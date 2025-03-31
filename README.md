@@ -1,4 +1,4 @@
 # TEAM JAVA RICE
 ## Members
-- Jacalan, ...
+- Jacalan, Aaron Rey A.
 - Villacin, Tim Leobert E.
