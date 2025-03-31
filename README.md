@@ -1,4 +1,4 @@
-<h1><b>TEAM JAVA RICE</b></h1>
+# TEAM JAVA RICE
 ## Members
 - Jacalan, ...
 - Villacin, Tim Leobert E.
