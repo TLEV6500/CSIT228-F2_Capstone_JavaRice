@@ -1,11 +1,11 @@
 <mxfile host="app.diagrams.net" agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/134.0.0.0 Safari/537.36" version="26.1.3">
   <diagram id="PM1M5yoGT51Y3Ebb_BXk" name="Page-1">
-    <mxGraphModel dx="1434" dy="772" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
+    <mxGraphModel dx="2049" dy="1103" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
       <root>
         <mxCell id="0" />
         <mxCell id="1" parent="0" />
         <mxCell id="iZ8sA4GsXJ8eKT-gEwyi-1" value="Primary Classes" style="swimlane;fontStyle=0;childLayout=stackLayout;horizontal=1;startSize=30;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=1;marginBottom=0;whiteSpace=wrap;html=1;" parent="1" vertex="1">
-          <mxGeometry x="100" y="200" width="140" height="420" as="geometry" />
+          <mxGeometry x="40" y="40" width="140" height="420" as="geometry" />
         </mxCell>
         <mxCell id="iZ8sA4GsXJ8eKT-gEwyi-2" value="MainApplication" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=4;spacingRight=4;overflow=hidden;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;rotatable=0;whiteSpace=wrap;html=1;" parent="iZ8sA4GsXJ8eKT-gEwyi-1" vertex="1">
           <mxGeometry y="30" width="140" height="30" as="geometry" />
@@ -47,7 +47,7 @@
           <mxGeometry y="390" width="140" height="30" as="geometry" />
         </mxCell>
         <mxCell id="BDkeirSqTaLFNPcLCZbl-12" value="Game-Specific Classes" style="swimlane;fontStyle=0;childLayout=stackLayout;horizontal=1;startSize=30;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=1;marginBottom=0;whiteSpace=wrap;html=1;" vertex="1" parent="1">
-          <mxGeometry x="320" y="200" width="160" height="150" as="geometry" />
+          <mxGeometry x="260" y="40" width="160" height="150" as="geometry" />
         </mxCell>
         <mxCell id="BDkeirSqTaLFNPcLCZbl-13" value="Deck" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=4;spacingRight=4;overflow=hidden;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;rotatable=0;whiteSpace=wrap;html=1;" vertex="1" parent="BDkeirSqTaLFNPcLCZbl-12">
           <mxGeometry y="30" width="160" height="30" as="geometry" />
@@ -60,6 +60,9 @@
         </mxCell>
         <mxCell id="BDkeirSqTaLFNPcLCZbl-16" value="GameMode" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=4;spacingRight=4;overflow=hidden;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;rotatable=0;whiteSpace=wrap;html=1;" vertex="1" parent="BDkeirSqTaLFNPcLCZbl-12">
           <mxGeometry y="120" width="160" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="BDkeirSqTaLFNPcLCZbl-30" value="@startuml&#xa;class Player {&#xa;    - hand: List&lt;Card&gt;&#xa;    - cardsDrawn: int&#xa;    + drawCard(deck: Deck): Card&#xa;    + playCard(card: Card, deck: Deck, discardPile: DiscardPile): boolean&#xa;    + getHand(): List&lt;Card&gt;&#xa;    + getName(): String&#xa;    + addCardsDrawn(count: int): void&#xa;    + getCardsDrawn(): int&#xa;    + clearCardsDrawn(): void&#xa;}&#xa;&#xa;&#xa;class Card {&#xa;    - color: Color&#xa;    - value: Value&#xa;    + getColor(): Color&#xa;    + getValue(): Value&#xa;}&#xa;&#xa;&#xa;enum Color {&#xa;    RED&#xa;    YELLOW&#xa;    GREEN&#xa;    BLUE&#xa;    WILD&#xa;}&#xa;&#xa;&#xa;enum Value {&#xa;    ZERO&#xa;    ONE&#xa;    TWO&#xa;    THREE&#xa;    FOUR&#xa;    FIVE&#xa;    SIX&#xa;    SEVEN&#xa;    EIGHT&#xa;    NINE&#xa;    SKIP&#xa;    REVERSE&#xa;    DRAW_TWO&#xa;    WILD&#xa;    WILD_DRAW_FOUR&#xa;    WILD_DRAW_SIX&#xa;    WILD_DRAW_TEN&#xa;    SKIP_EVERYONE&#xa;    DISCARD_ALL&#xa;}&#xa;&#xa;&#xa;class Deck {&#xa;    - cards: List&lt;Card&gt;&#xa;    + drawCard(): Card&#xa;    + shuffle(): void&#xa;    + addCard(card: Card): void&#xa;    + getCards(): List&lt;Card&gt;&#xa;}&#xa;&#xa;&#xa;class DiscardPile {&#xa;    - cards: List&lt;Card&gt;&#xa;    + addCard(card: Card): void&#xa;    + getTopCard(): Card&#xa;}&#xa;&#xa;&#xa;class Game {&#xa;    - players: List&lt;Player&gt;&#xa;    - deck: Deck&#xa;    - discardPile: DiscardPile&#xa;    - currentPlayer: Player&#xa;    + startGame(): void&#xa;    + nextTurn(): void&#xa;    + checkWinner(): Player&#xa;    + applyCardEffect(card: Card, player: Player, targetPlayer: Player): void&#xa;    + enforceMercyRule(): void&#xa;    + swapHands(player1: Player, player2: Player): void&#xa;    + passHands(): void&#xa;}&#xa;&#xa;&#xa;Player &quot;1..*&quot; -- &quot;1&quot; Game : plays in&#xa;Game &quot;1&quot; -- &quot;1&quot; Deck : has&#xa;Game &quot;1&quot; -- &quot;1&quot; DiscardPile : has&#xa;Deck &quot;0..*&quot; -- &quot;1&quot; Card : contains&#xa;Player &quot;0..*&quot; -- &quot;1&quot; Card : holds&#xa;DiscardPile &quot;0..*&quot; -- &quot;1&quot; Card : contains&#xa;Card &quot;1&quot; -- &quot;1&quot; Color : has&#xa;Card &quot;1&quot; -- &quot;1&quot; Value : has&#xa;&#xa;&#xa;@enduml" style="text;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="670" y="370" width="430" height="1410" as="geometry" />
         </mxCell>
       </root>
     </mxGraphModel>
