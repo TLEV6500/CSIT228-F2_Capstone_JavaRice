@@ -1,4 +1,4 @@
-package com.example.javarice_capstone.javarice_capstone.data;
+package com.example.javarice_capstone.javarice_capstone.datatypes;
 
 public class GameRound implements SerializableGameData {
     private int id;
@@ -7,8 +7,18 @@ public class GameRound implements SerializableGameData {
     private long duration;
     private boolean isOngoing;
 
+    GameRound() {
+        id = getNextId();
+    }
+
     @Override
     public int getId() {
         return id;
+    }
+
+    private static int ID = 0;
+    @Override
+    public int getNextId() {
+        return ID++;
     }
 }
