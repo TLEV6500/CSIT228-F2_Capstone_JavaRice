@@ -26,23 +26,38 @@ public class MySQLDatabaseManager implements DatabaseManager {
         if (instance == null) instance = new MySQLDatabaseManager(dbUrl, username, password);
     }
 
-    private <T> T beginTransaction(Function<Connection, T> action) {
+    public static <T> T beginTransaction(Transaction<T> action) {
         try (Connection db = DriverManager.getConnection(dbUrl, username, password)) {
-            return action.apply(db);
+            db.beginRequest();
+            T res = action.apply(db);
+            db.endRequest();
+            return res;
         } catch (SQLException e) {
-            throw new RuntimeException(e);
+            System.err.println("Transaction actions could not finish. " + e.getMessage());
+            return null;
         }
     }
 
     @Override
     public int saveData(SerializableGameData data) throws SerializationFailureException {
         newInstanceIfNull();
-        return 0;
+        Object result = beginTransaction(db -> {
+            PreparedStatement stmt = db.prepareStatement("INSERT INTO ? (id,data) VALUES (?,?)");
+            stmt.setInt(1, data.getId());
+            byte[] serializedData = LocalDatabaseManager.serialize(data);
+            stmt.setBytes(2, serializedData);
+            return stmt.executeUpdate();
+        });
+        System.out.println("saveData: " + result);
+        return data.getId();
     }
 
     @Override
     public <T extends SerializableGameData> T fetchData(Class<? extends T> classType, int id) throws DataFetchException, SerializationFailureException {
         newInstanceIfNull();
+//        Object result = beginTransaction(db -> {
+//
+//        })
         return null;
     }
 

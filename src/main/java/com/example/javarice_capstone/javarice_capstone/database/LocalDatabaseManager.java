@@ -13,13 +13,18 @@ public class LocalDatabaseManager implements DatabaseManager {
     private final Hashtable<Class<? extends SerializableGameData>, Hashtable<Integer, String>> tables = new Hashtable<>();
     private final Hashtable<Class<? extends SerializableGameData>, Integer> tableNextId = new Hashtable<>();
     private static LocalDatabaseManager instance = null;
+    public static LocalDatabaseManager getInstance () {
+        newInstanceIfNull();
+        return instance;
+    }
     private LocalDatabaseManager() {}
 
-    private void newInstanceIfNull() {
+    private static void newInstanceIfNull() {
         if (instance == null) instance = new LocalDatabaseManager();
     }
 
     // CREATE
+    @Override
     public int saveData(SerializableGameData data) throws SerializationFailureException {
         newInstanceIfNull();
         int id = data.getId();
@@ -35,6 +40,7 @@ public class LocalDatabaseManager implements DatabaseManager {
 
 
     // READ
+    @Override
     public <T extends SerializableGameData> T fetchData(Class<? extends T> classType, int id) throws DataFetchException, SerializationFailureException {
         newInstanceIfNull();
         T data = null;
@@ -50,6 +56,7 @@ public class LocalDatabaseManager implements DatabaseManager {
         return data;
     }
 
+    @Override
     public <T extends SerializableGameData> List<T> fetchAll(Class<? extends T> classType) throws DataFetchException, SerializationFailureException {
         newInstanceIfNull();
         List<T> dataList = new ArrayList<>();
@@ -71,6 +78,7 @@ public class LocalDatabaseManager implements DatabaseManager {
     }
 
     // UPDATE
+    @Override
     public <T extends SerializableGameData> void updateData(Class<? extends T> classType, T newData, int... ids) throws SerializationFailureException {
         newInstanceIfNull();
         for (int id : ids) {
@@ -87,6 +95,7 @@ public class LocalDatabaseManager implements DatabaseManager {
     }
 
     // DELETE
+    @Override
     public <T extends SerializableGameData> void deleteData(Class<? extends T> classType, int... ids) throws SerializationFailureException {
         newInstanceIfNull();
         String curFileName;
@@ -117,5 +126,15 @@ public class LocalDatabaseManager implements DatabaseManager {
         String dirName = storageDirName + "/" + classType;
         File dir = new File(dirName);
         return dir.list();
+    }
+
+    public static byte[] serialize(SerializableGameData data) {
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        try (ObjectOutputStream oos = new ObjectOutputStream(baos)) {
+            oos.writeObject(data);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+        return baos.toByteArray();
     }
 }

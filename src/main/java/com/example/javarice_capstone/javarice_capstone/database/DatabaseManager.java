@@ -3,10 +3,19 @@ package com.example.javarice_capstone.javarice_capstone.database;
 import com.example.javarice_capstone.javarice_capstone.datatypes.SerializableGameData;
 
 import java.io.Serializable;
+import java.sql.Connection;
+import java.sql.SQLException;
 import java.util.List;
 
 public interface DatabaseManager {
     // CREATE
+
+    /**
+     *
+     * @param data
+     * @return int id
+     * @throws SerializationFailureException
+     */
     int saveData(SerializableGameData data) throws SerializationFailureException;
 
     // READ
@@ -21,6 +30,10 @@ public interface DatabaseManager {
 
 //    void saveAllIds(Class<SerializableGameData> classType) throws SerializationFailureException;
 //    List<Integer> getAllIds(Class<SerializableGameData> classType);
+
+    interface Transaction<R> {
+        R apply(Connection db) throws SQLException;
+    }
 
     class SerializationFailureException extends Exception {
         SerializationFailureException(SerializableGameData data, Exception cause) {
