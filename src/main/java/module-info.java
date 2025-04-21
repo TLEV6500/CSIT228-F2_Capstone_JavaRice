@@ -1,6 +1,7 @@
 module com.example.javarice_capstone.javarice_capstone {
     requires javafx.controls;
     requires javafx.fxml;
+    requires java.sql;
 
 
     opens com.example.javarice_capstone.javarice_capstone to javafx.fxml;
