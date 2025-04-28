@@ -1,16 +1,11 @@
 package com.example.javarice_capstone.javarice_capstone.ui.playground;
 
-import com.example.javarice_capstone.javarice_capstone.HelloApplication;
 import javafx.application.Application;
 import javafx.event.EventHandler;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Node;
-import javafx.scene.Parent;
 import javafx.scene.Scene;
-import javafx.scene.input.DragEvent;
-import javafx.scene.input.MouseDragEvent;
 import javafx.scene.input.MouseEvent;
-import javafx.scene.input.TransferMode;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.Pane;
 import javafx.scene.text.Text;
@@ -18,8 +13,6 @@ import javafx.stage.Stage;
 import javafx.util.Pair;
 
 import java.util.Date;
-import java.util.Timer;
-import java.util.TimerTask;
 
 
 public class DraggableCardPlayground extends Application {

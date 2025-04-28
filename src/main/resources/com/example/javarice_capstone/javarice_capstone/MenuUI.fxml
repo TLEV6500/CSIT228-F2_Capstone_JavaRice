@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.shape.*?>
+<?import javafx.scene.text.*?>
+
+<StackPane prefHeight="768.0" prefWidth="1366.0" styleClass="root-pane"
+           stylesheets="@css/menu.css"
+           xmlns="http://javafx.com/javafx/11.0.14-internal"
+           xmlns:fx="http://javafx.com/fxml/1"
+           fx:controller="com.example.javarice_capstone.javarice_capstone.MenuController">
+
+    <Rectangle styleClass="background-rect" StackPane.alignment="CENTER" />
+
+    <VBox alignment="CENTER" spacing="20" styleClass="content-container">
+        <Label styleClass="game-title" text="UNO">
+            <font>
+                <Font name="Arial Black" size="100.0" />
+            </font>
+        </Label>
+
+        <VBox alignment="CENTER" spacing="15" styleClass="menu-options-container">
+            <Button fx:id="singleplayerButton" styleClass="primary-button" text="SINGLEPLAYER" />
+            <Button fx:id="multiplayerButton" styleClass="primary-button" text="MULTIPLAYER" />
+            <Button fx:id="exitButton" styleClass="cancel-button" text="EXIT" />
+        </VBox>
+
+        <HBox alignment="CENTER" styleClass="footer-container">
+            <Label styleClass="copyright-text" text="© 2025 UNO Game" />
+        </HBox>
+    </VBox>
+</StackPane>
