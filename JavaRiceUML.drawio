@@ -581,7 +581,7 @@
     </mxGraphModel>
   </diagram>
   <diagram id="Xp8H6XsXTpFmnIvxjrIJ" name="DatabaseManager">
-    <mxGraphModel dx="940" dy="548" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
+    <mxGraphModel dx="1088" dy="635" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
       <root>
         <mxCell id="0" />
         <mxCell id="1" parent="0" />
@@ -705,7 +705,7 @@
         <mxCell id="uxWlM9PTA_Rd7WZLYCtZ-8" value="- &lt;u&gt;newInstanceIfNull(): void&lt;/u&gt;" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;whiteSpace=wrap;html=1;" vertex="1" parent="uxWlM9PTA_Rd7WZLYCtZ-1">
           <mxGeometry y="178" width="580" height="26" as="geometry" />
         </mxCell>
-        <mxCell id="uxWlM9PTA_Rd7WZLYCtZ-14" value="+ &lt;u&gt;getInstance(): LocalDatabaseManager&lt;/u&gt;" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;whiteSpace=wrap;html=1;" vertex="1" parent="uxWlM9PTA_Rd7WZLYCtZ-1">
+        <mxCell id="uxWlM9PTA_Rd7WZLYCtZ-14" value="+ &lt;u&gt;getInstance(): MySQLDatabaseManager&lt;/u&gt;" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;whiteSpace=wrap;html=1;" vertex="1" parent="uxWlM9PTA_Rd7WZLYCtZ-1">
           <mxGeometry y="204" width="580" height="26" as="geometry" />
         </mxCell>
         <mxCell id="uxWlM9PTA_Rd7WZLYCtZ-56" value="+ &lt;u&gt;beginTransaction&amp;lt;T&amp;gt;(Transaction&amp;lt;T&amp;gt; action): T&lt;/u&gt;" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;whiteSpace=wrap;html=1;" vertex="1" parent="uxWlM9PTA_Rd7WZLYCtZ-1">
