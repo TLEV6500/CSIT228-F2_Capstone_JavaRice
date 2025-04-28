@@ -1,4 +1,4 @@
-<mxfile host="app.diagrams.net" agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/135.0.0.0 Safari/537.36" version="26.2.13" pages="2">
+<mxfile host="app.diagrams.net" agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/135.0.0.0 Safari/537.36" version="26.1.1" pages="3">
   <diagram id="PM1M5yoGT51Y3Ebb_BXk" name="Page-1">
     <mxGraphModel dx="1790" dy="987" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
       <root>
@@ -576,6 +576,74 @@
         </mxCell>
         <mxCell id="LkswA_kjF3YWwdKcmI7V-7" value="+ delete(type): type" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;whiteSpace=wrap;html=1;" vertex="1" parent="LkswA_kjF3YWwdKcmI7V-1">
           <mxGeometry y="138" width="160" height="26" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+  <diagram id="Xp8H6XsXTpFmnIvxjrIJ" name="DatabaseManager">
+    <mxGraphModel dx="1034" dy="603" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="NkaWe0BvlKoYusUZMuDu-1" value="DatabaseManager&lt;div&gt;&lt;span style=&quot;font-weight: normal;&quot;&gt;&amp;lt;&amp;lt;Interface&amp;gt;&amp;gt;&lt;/span&gt;&lt;/div&gt;" style="swimlane;fontStyle=1;align=center;verticalAlign=top;childLayout=stackLayout;horizontal=1;startSize=40;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=1;marginBottom=0;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="40" y="40" width="570" height="256" as="geometry" />
+        </mxCell>
+        <mxCell id="NkaWe0BvlKoYusUZMuDu-2" value="+ &lt;u&gt;Transaction&amp;lt;R&amp;gt;: interface&lt;/u&gt;" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;whiteSpace=wrap;html=1;fontStyle=0" vertex="1" parent="NkaWe0BvlKoYusUZMuDu-1">
+          <mxGeometry y="40" width="570" height="26" as="geometry" />
+        </mxCell>
+        <mxCell id="NkaWe0BvlKoYusUZMuDu-5" value="+ &lt;u&gt;SerializationFailureException: Exception&lt;/u&gt;" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;whiteSpace=wrap;html=1;fontStyle=0" vertex="1" parent="NkaWe0BvlKoYusUZMuDu-1">
+          <mxGeometry y="66" width="570" height="26" as="geometry" />
+        </mxCell>
+        <mxCell id="NkaWe0BvlKoYusUZMuDu-6" value="+ &lt;u&gt;DataFetchException: Exception&lt;/u&gt;" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;whiteSpace=wrap;html=1;fontStyle=0" vertex="1" parent="NkaWe0BvlKoYusUZMuDu-1">
+          <mxGeometry y="92" width="570" height="26" as="geometry" />
+        </mxCell>
+        <mxCell id="NkaWe0BvlKoYusUZMuDu-3" value="" style="line;strokeWidth=1;fillColor=none;align=left;verticalAlign=middle;spacingTop=-1;spacingLeft=3;spacingRight=3;rotatable=0;labelPosition=right;points=[];portConstraint=eastwest;strokeColor=inherit;" vertex="1" parent="NkaWe0BvlKoYusUZMuDu-1">
+          <mxGeometry y="118" width="570" height="8" as="geometry" />
+        </mxCell>
+        <mxCell id="NkaWe0BvlKoYusUZMuDu-4" value="# saveData(SerializableGameData): int" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;whiteSpace=wrap;html=1;" vertex="1" parent="NkaWe0BvlKoYusUZMuDu-1">
+          <mxGeometry y="126" width="570" height="26" as="geometry" />
+        </mxCell>
+        <mxCell id="NkaWe0BvlKoYusUZMuDu-7" value="# fetchData&amp;lt;T: SerializableGameData&amp;gt;(classType: Class&amp;lt;? extends T&amp;gt;, id: int): T" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;whiteSpace=wrap;html=1;" vertex="1" parent="NkaWe0BvlKoYusUZMuDu-1">
+          <mxGeometry y="152" width="570" height="26" as="geometry" />
+        </mxCell>
+        <mxCell id="NkaWe0BvlKoYusUZMuDu-8" value="# fetchAll&amp;lt;T: SerializableGameData&amp;gt;(classType: Class&amp;lt;? extends T&amp;gt;): T" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;whiteSpace=wrap;html=1;" vertex="1" parent="NkaWe0BvlKoYusUZMuDu-1">
+          <mxGeometry y="178" width="570" height="26" as="geometry" />
+        </mxCell>
+        <mxCell id="NkaWe0BvlKoYusUZMuDu-9" value="# updateData&amp;lt;T: SerializableGameData&amp;gt;(classType: Class&amp;lt;? extends T&amp;gt;, newData: T, ids: ...int): void" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;whiteSpace=wrap;html=1;" vertex="1" parent="NkaWe0BvlKoYusUZMuDu-1">
+          <mxGeometry y="204" width="570" height="26" as="geometry" />
+        </mxCell>
+        <mxCell id="NkaWe0BvlKoYusUZMuDu-10" value="# deleteData&amp;lt;T: SerializableGameData&amp;gt;(classType: Class&amp;lt;? extends T&amp;gt;, ids: ...int): void" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;whiteSpace=wrap;html=1;" vertex="1" parent="NkaWe0BvlKoYusUZMuDu-1">
+          <mxGeometry y="230" width="570" height="26" as="geometry" />
+        </mxCell>
+        <mxCell id="NkaWe0BvlKoYusUZMuDu-21" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=0;exitDx=0;exitDy=0;endArrow=block;endFill=0;dashed=1;dashPattern=8 8;" edge="1" parent="1" source="NkaWe0BvlKoYusUZMuDu-11" target="NkaWe0BvlKoYusUZMuDu-1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="NkaWe0BvlKoYusUZMuDu-11" value="LocalDatabaseManager" style="swimlane;fontStyle=1;align=center;verticalAlign=top;childLayout=stackLayout;horizontal=1;startSize=40;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=1;marginBottom=0;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="40" y="410" width="570" height="230" as="geometry" />
+        </mxCell>
+        <mxCell id="NkaWe0BvlKoYusUZMuDu-12" value="- storageDirName: String" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;whiteSpace=wrap;html=1;fontStyle=0" vertex="1" parent="NkaWe0BvlKoYusUZMuDu-11">
+          <mxGeometry y="40" width="570" height="26" as="geometry" />
+        </mxCell>
+        <mxCell id="NkaWe0BvlKoYusUZMuDu-13" value="- tables: Hashtable&amp;lt;Class&amp;lt;? extends SerializableGameData&amp;gt;, Hashtable&amp;lt;Integer, String&amp;gt;&amp;gt;" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;whiteSpace=wrap;html=1;fontStyle=0" vertex="1" parent="NkaWe0BvlKoYusUZMuDu-11">
+          <mxGeometry y="66" width="570" height="26" as="geometry" />
+        </mxCell>
+        <mxCell id="NkaWe0BvlKoYusUZMuDu-15" value="" style="line;strokeWidth=1;fillColor=none;align=left;verticalAlign=middle;spacingTop=-1;spacingLeft=3;spacingRight=3;rotatable=0;labelPosition=right;points=[];portConstraint=eastwest;strokeColor=inherit;" vertex="1" parent="NkaWe0BvlKoYusUZMuDu-11">
+          <mxGeometry y="92" width="570" height="8" as="geometry" />
+        </mxCell>
+        <mxCell id="NkaWe0BvlKoYusUZMuDu-16" value="# saveData(SerializableGameData): int" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;whiteSpace=wrap;html=1;" vertex="1" parent="NkaWe0BvlKoYusUZMuDu-11">
+          <mxGeometry y="100" width="570" height="26" as="geometry" />
+        </mxCell>
+        <mxCell id="NkaWe0BvlKoYusUZMuDu-17" value="# fetchData&amp;lt;T: SerializableGameData&amp;gt;(classType: Class&amp;lt;? extends T&amp;gt;, id: int): T" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;whiteSpace=wrap;html=1;" vertex="1" parent="NkaWe0BvlKoYusUZMuDu-11">
+          <mxGeometry y="126" width="570" height="26" as="geometry" />
+        </mxCell>
+        <mxCell id="NkaWe0BvlKoYusUZMuDu-18" value="# fetchAll&amp;lt;T: SerializableGameData&amp;gt;(classType: Class&amp;lt;? extends T&amp;gt;): T" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;whiteSpace=wrap;html=1;" vertex="1" parent="NkaWe0BvlKoYusUZMuDu-11">
+          <mxGeometry y="152" width="570" height="26" as="geometry" />
+        </mxCell>
+        <mxCell id="NkaWe0BvlKoYusUZMuDu-19" value="# updateData&amp;lt;T: SerializableGameData&amp;gt;(classType: Class&amp;lt;? extends T&amp;gt;, newData: T, ids: ...int): void" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;whiteSpace=wrap;html=1;" vertex="1" parent="NkaWe0BvlKoYusUZMuDu-11">
+          <mxGeometry y="178" width="570" height="26" as="geometry" />
+        </mxCell>
+        <mxCell id="NkaWe0BvlKoYusUZMuDu-20" value="# deleteData&amp;lt;T: SerializableGameData&amp;gt;(classType: Class&amp;lt;? extends T&amp;gt;, ids: ...int): void" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;whiteSpace=wrap;html=1;" vertex="1" parent="NkaWe0BvlKoYusUZMuDu-11">
+          <mxGeometry y="204" width="570" height="26" as="geometry" />
         </mxCell>
       </root>
     </mxGraphModel>
