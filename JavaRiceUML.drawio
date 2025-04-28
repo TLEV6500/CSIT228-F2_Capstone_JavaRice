@@ -581,7 +581,7 @@
     </mxGraphModel>
   </diagram>
   <diagram id="Xp8H6XsXTpFmnIvxjrIJ" name="DatabaseManager">
-    <mxGraphModel dx="1088" dy="635" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
+    <mxGraphModel dx="2298" dy="1340" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
       <root>
         <mxCell id="0" />
         <mxCell id="1" parent="0" />
@@ -730,7 +730,7 @@
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
         <mxCell id="uxWlM9PTA_Rd7WZLYCtZ-23" value="Transaction&amp;lt;R&amp;gt;&lt;div&gt;&lt;span style=&quot;font-weight: normal;&quot;&gt;&amp;lt;&amp;lt;Interface&amp;gt;&amp;gt;&lt;/span&gt;&lt;/div&gt;" style="swimlane;fontStyle=1;align=center;verticalAlign=top;childLayout=stackLayout;horizontal=1;startSize=40;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=1;marginBottom=0;whiteSpace=wrap;html=1;" vertex="1" parent="1">
-          <mxGeometry x="1130" y="30" width="180" height="66" as="geometry" />
+          <mxGeometry x="1440" y="20" width="180" height="66" as="geometry" />
         </mxCell>
         <mxCell id="uxWlM9PTA_Rd7WZLYCtZ-28" value="&lt;i&gt;+ apply(db: Connection): R&lt;/i&gt;" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;whiteSpace=wrap;html=1;" vertex="1" parent="uxWlM9PTA_Rd7WZLYCtZ-23">
           <mxGeometry y="40" width="180" height="26" as="geometry" />
@@ -739,7 +739,7 @@
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
         <mxCell id="uxWlM9PTA_Rd7WZLYCtZ-34" value="SerializationFailureException" style="swimlane;fontStyle=1;align=center;verticalAlign=top;childLayout=stackLayout;horizontal=1;startSize=30;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=1;marginBottom=0;whiteSpace=wrap;html=1;" vertex="1" parent="1">
-          <mxGeometry x="1130" y="120" width="610" height="108" as="geometry" />
+          <mxGeometry x="1440" y="140" width="610" height="108" as="geometry" />
         </mxCell>
         <mxCell id="uxWlM9PTA_Rd7WZLYCtZ-39" value="&lt;span style=&quot;font-style: normal;&quot;&gt;# SerializationFailureException(data: SerializableGameData, cause: Exception): new()&lt;/span&gt;" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;whiteSpace=wrap;html=1;fontStyle=6" vertex="1" parent="uxWlM9PTA_Rd7WZLYCtZ-34">
           <mxGeometry y="30" width="610" height="26" as="geometry" />
@@ -751,7 +751,7 @@
           <mxGeometry y="82" width="610" height="26" as="geometry" />
         </mxCell>
         <mxCell id="uxWlM9PTA_Rd7WZLYCtZ-47" value="DataFetchException" style="swimlane;fontStyle=1;align=center;verticalAlign=top;childLayout=stackLayout;horizontal=1;startSize=30;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=1;marginBottom=0;whiteSpace=wrap;html=1;" vertex="1" parent="1">
-          <mxGeometry x="1380" y="250" width="660" height="186" as="geometry" />
+          <mxGeometry x="1440" y="280" width="660" height="186" as="geometry" />
         </mxCell>
         <mxCell id="uxWlM9PTA_Rd7WZLYCtZ-49" value="&lt;span style=&quot;font-style: normal;&quot;&gt;# &lt;u&gt;DataFetchException(&lt;/u&gt;&lt;/span&gt;&lt;u&gt;&lt;span style=&quot;font-style: normal;&quot;&gt;classType: Class&amp;lt;? extends SerializableGameData&amp;gt;&lt;/span&gt;&lt;span style=&quot;font-style: normal;&quot;&gt;, id: int, cause: Exception): new()&lt;/span&gt;&lt;/u&gt;" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;whiteSpace=wrap;html=1;fontStyle=2" vertex="1" parent="uxWlM9PTA_Rd7WZLYCtZ-47">
           <mxGeometry y="30" width="660" height="26" as="geometry" />
