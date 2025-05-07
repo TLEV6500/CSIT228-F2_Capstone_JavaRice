@@ -1,14 +1,11 @@
-package com.example.javarice_capstone.javarice_capstone;
+package com.example.javarice_capstone.javarice_capstone.Gameplay;
 
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
-import javafx.scene.control.TextInputDialog;
 import javafx.stage.Stage;
-
-import java.util.Optional;
 
 public class MenuController {
     @FXML private Button singleplayerButton;
@@ -24,13 +21,18 @@ public class MenuController {
 
     private void handleSingleplayer() {
         try {
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("gameSetupUI.fxml"));
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/example/javarice_capstone/javarice_capstone/GameSetupUI.fxml"));
             Parent root = loader.load();
             Stage stage = (Stage) singleplayerButton.getScene().getWindow();
             stage.getScene().setRoot(root);
             stage.setTitle("UNO - Setup Game");
         } catch (Exception e) {
             e.printStackTrace();
+            Alert alert = new Alert(Alert.AlertType.ERROR);
+            alert.setTitle("Error");
+            alert.setHeaderText("Cannot load game setup screen");
+            alert.setContentText("Make sure GameSetupUI.fxml exists in the resources/Gameplay folder.");
+            alert.showAndWait();
         }
     }
 
@@ -39,12 +41,10 @@ public class MenuController {
     }
 
     private void handleMultiplayer() {
-        //PLACEHOLDER KAY DI PA I IMPLEMENT
         Alert alert = new Alert(Alert.AlertType.INFORMATION);
         alert.setTitle("Multiplayer Mode");
         alert.setHeaderText(null);
         alert.setContentText("Multiplayer mode is not implemented yet.");
         alert.showAndWait();
     }
-
 }

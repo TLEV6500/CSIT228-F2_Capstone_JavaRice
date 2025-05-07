@@ -1,0 +1,17 @@
+package com.example.javarice_capstone.javarice_capstone.Models;
+
+import com.example.javarice_capstone.javarice_capstone.Abstracts.AbstractCard;
+import com.example.javarice_capstone.javarice_capstone.Abstracts.AbstractPlayer;
+import com.example.javarice_capstone.javarice_capstone.enums.Colors;
+
+public class PlayerHuman extends AbstractPlayer {
+    public PlayerHuman(String name) {
+        super(name);
+    }
+
+    @Override
+    public int selectCardToPlay(AbstractCard topCard, Colors currentColor) {
+        // In a GUI, you'd prompt the user for input; placeholder for now
+        return -1; // Not implemented; should be handled by the game UI
+    }
+}

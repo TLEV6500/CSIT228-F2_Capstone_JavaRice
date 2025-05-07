@@ -1,15 +1,15 @@
-package com.example.javarice_capstone.javarice_capstone;
+package com.example.javarice_capstone.javarice_capstone.Gameplay;
 
-import com.example.javarice_capstone.javarice_capstone.Models.*;
+import com.example.javarice_capstone.javarice_capstone.Models.Game;
+import com.example.javarice_capstone.javarice_capstone.Abstracts.AbstractCard;
+import com.example.javarice_capstone.javarice_capstone.Abstracts.AbstractPlayer;
 import javafx.animation.FadeTransition;
-import javafx.animation.PauseTransition;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.fxml.Initializable;
 import javafx.geometry.Pos;
 import javafx.scene.Parent;
-import javafx.scene.Scene;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.scene.control.ButtonType;
@@ -86,7 +86,7 @@ public class GameController implements Initializable {
     public void startGame(int numPlayers, java.util.List<String> playerNames) {
         game = new Game(numPlayers);
         for (int i = 0; i < Math.min(numPlayers, playerNames.size()); i++) {
-            Player player = game.getPlayers().get(i);
+            AbstractPlayer player = game.getPlayers().get(i);
             player.setName(playerNames.get(i));
         }
         isFirstTurn = true;
@@ -96,10 +96,10 @@ public class GameController implements Initializable {
 
     private void updateUI() {
         playerHand.getChildren().clear();
-        Player humanPlayer = game.getPlayers().get(0);
+        AbstractPlayer humanPlayer = game.getPlayers().get(0);
 
         for (int i = 0; i < humanPlayer.getHand().size(); i++) {
-            Card card = humanPlayer.getHand().get(i);
+            AbstractCard card = humanPlayer.getHand().get(i);
             final int cardIndex = i;
 
             ImageView cardView = new ImageView();
@@ -113,12 +113,7 @@ public class GameController implements Initializable {
                 cardRect.setFill(getJavaFXColor(card.getColor()));
                 cardRect.setStroke(Color.BLACK);
 
-                Label cardLabel = new Label();
-                if (card.getType() == Card.Type.NUMBER) {
-                    cardLabel.setText(String.valueOf(card.getNumber()));
-                } else {
-                    cardLabel.setText(card.getType().toString().substring(0, 1));
-                }
+                Label cardLabel = new Label(card.toString());
 
                 VBox cardBox = new VBox(cardRect, cardLabel);
                 cardBox.setAlignment(Pos.CENTER);
@@ -133,7 +128,7 @@ public class GameController implements Initializable {
 
         opponentArea.getChildren().clear();
         for (int i = 1; i < game.getPlayers().size(); i++) {
-            Player opponent = game.getPlayers().get(i);
+            AbstractPlayer opponent = game.getPlayers().get(i);
             HBox opponentBox = new HBox();
             opponentBox.setAlignment(Pos.CENTER);
             opponentBox.setSpacing(10);
@@ -149,24 +144,24 @@ public class GameController implements Initializable {
             opponentArea.getChildren().add(opponentBox);
         }
 
-        Card topCard = game.getTopCard();
+        AbstractCard topCard = game.getTopCard();
         try {
             discardPileView.setImage(new Image(getClass().getResourceAsStream(topCard.getImagePath())));
         } catch (Exception e) {
         }
 
         updateColorIndicator();
-        Player currentPlayer = game.getCurrentPlayer();
+        AbstractPlayer currentPlayer = game.getCurrentPlayer();
         statusLabel.setText("Current turn: " + currentPlayer.getName());
     }
 
     private void updateColorIndicator() {
-        Card.Color currentColor = game.getCurrentColor();
+        com.example.javarice_capstone.javarice_capstone.enums.Colors currentColor = game.getCurrentColor();
         colorIndicator.setFill(getJavaFXColor(currentColor));
         currentColorLabel.setText("Current Color: " + currentColor);
     }
 
-    private Color getJavaFXColor(Card.Color cardColor) {
+    private Color getJavaFXColor(com.example.javarice_capstone.javarice_capstone.enums.Colors cardColor) {
         switch (cardColor) {
             case RED: return Color.RED;
             case BLUE: return Color.BLUE;
@@ -182,9 +177,9 @@ public class GameController implements Initializable {
             return;
         }
 
-        Card card = game.getPlayers().get(0).getHand().get(cardIndex);
+        AbstractCard card = game.getPlayers().get(0).getHand().get(cardIndex);
 
-        if (card.getColor() == Card.Color.WILD) {
+        if (card.getColor() == com.example.javarice_capstone.javarice_capstone.enums.Colors.WILD) {
             showColorSelectionDialog();
             if (game.playCard(cardIndex)) {
                 updateLastAction(card);
@@ -202,34 +197,35 @@ public class GameController implements Initializable {
                 Alert alert = new Alert(Alert.AlertType.WARNING);
                 alert.setTitle("Invalid Move");
                 alert.setHeaderText("You can't play this card");
-                alert.setContentText("The card must match the color or number of the top discard card.");
+                alert.setContentText("The card must match the color or number/type of the top discard card.");
                 alert.showAndWait();
             }
         }
     }
 
-    private void updateLastAction(Card card) {
-        String actionText = "Played ";
+    private void updateLastAction(AbstractCard card) {
+        String actionText = "Played " + card.toString();
 
-        if (card.getType() == Card.Type.NUMBER) {
-            actionText += card.getColor() + " " + card.getNumber();
-        } else {
-            actionText += card.getColor() + " " + card.getType();
-        }
-
-        if (card.getType() == Card.Type.SKIP) {
-            actionText += " - Player skipped!";
-            showNotification("SKIP!", Color.RED);
-        } else if (card.getType() == Card.Type.REVERSE) {
-            actionText += " - Direction reversed!";
-            showNotification("REVERSE!", Color.ORANGE);
-            updateGameDirectionLabel(false);
-        } else if (card.getType() == Card.Type.DRAW_TWO) {
-            actionText += " - Next player draws 2 cards!";
-            showNotification("+2 CARDS", Color.RED);
-        } else if (card.getType() == Card.Type.DRAW_FOUR) {
-            actionText += " - Next player draws 4 cards!";
-            showNotification("+4 CARDS", Color.DARKRED);
+        switch (card.getType()) {
+            case SKIP:
+                actionText += " - Player skipped!";
+                showNotification("SKIP!", Color.RED);
+                break;
+            case REVERSE:
+                actionText += " - Direction reversed!";
+                showNotification("REVERSE!", Color.ORANGE);
+                updateGameDirectionLabel(false);
+                break;
+            case DRAW_TWO:
+                actionText += " - Next player draws 2 cards!";
+                showNotification("+2 CARDS", Color.RED);
+                break;
+            case DRAW_FOUR:
+                actionText += " - Next player draws 4 cards!";
+                showNotification("+4 CARDS", Color.DARKRED);
+                break;
+            default:
+                break;
         }
 
         lastActionLabel.setText(actionText);
@@ -259,51 +255,43 @@ public class GameController implements Initializable {
             return;
         }
 
-        boolean currentIsClockwise = gameDirectionLabel.getText().contains("Clockwise");
-
         if (isClockwise) {
             gameDirectionLabel.setText("Direction: Clockwise →");
-        } else if (!isClockwise) {
-            gameDirectionLabel.setText("Direction: Counter-clockwise ←");
         } else {
-            if (currentIsClockwise) {
-                gameDirectionLabel.setText("Direction: Counter-clockwise ←");
-            } else {
-                gameDirectionLabel.setText("Direction: Clockwise →");
-            }
+            gameDirectionLabel.setText("Direction: Counter-clockwise ←");
         }
     }
 
     private void showColorSelectionDialog() {
-        Dialog<Card.Color> dialog = new Dialog<>();
+        Dialog<com.example.javarice_capstone.javarice_capstone.enums.Colors> dialog = new Dialog<>();
         dialog.setTitle("Choose a Color");
         dialog.setHeaderText("Select a color for the Wild card.");
 
         Button redButton = new Button("Red");
         redButton.setOnAction(event -> {
-            game.setCurrentColor(Card.Color.RED);
-            dialog.setResult(Card.Color.RED);
+            game.setCurrentColor(com.example.javarice_capstone.javarice_capstone.enums.Colors.RED);
+            dialog.setResult(com.example.javarice_capstone.javarice_capstone.enums.Colors.RED);
             dialog.close();
         });
 
         Button blueButton = new Button("Blue");
         blueButton.setOnAction(event -> {
-            game.setCurrentColor(Card.Color.BLUE);
-            dialog.setResult(Card.Color.BLUE);
+            game.setCurrentColor(com.example.javarice_capstone.javarice_capstone.enums.Colors.BLUE);
+            dialog.setResult(com.example.javarice_capstone.javarice_capstone.enums.Colors.BLUE);
             dialog.close();
         });
 
         Button greenButton = new Button("Green");
         greenButton.setOnAction(event -> {
-            game.setCurrentColor(Card.Color.GREEN);
-            dialog.setResult(Card.Color.GREEN);
+            game.setCurrentColor(com.example.javarice_capstone.javarice_capstone.enums.Colors.GREEN);
+            dialog.setResult(com.example.javarice_capstone.javarice_capstone.enums.Colors.GREEN);
             dialog.close();
         });
 
         Button yellowButton = new Button("Yellow");
         yellowButton.setOnAction(event -> {
-            game.setCurrentColor(Card.Color.YELLOW);
-            dialog.setResult(Card.Color.YELLOW);
+            game.setCurrentColor(com.example.javarice_capstone.javarice_capstone.enums.Colors.YELLOW);
+            dialog.setResult(com.example.javarice_capstone.javarice_capstone.enums.Colors.YELLOW);
             dialog.close();
         });
 
@@ -318,7 +306,7 @@ public class GameController implements Initializable {
         dialog.getDialogPane().setContent(buttonBox);
         dialog.getDialogPane().getButtonTypes().add(ButtonType.CANCEL);
 
-        Optional<Card.Color> result = dialog.showAndWait();
+        Optional<com.example.javarice_capstone.javarice_capstone.enums.Colors> result = dialog.showAndWait();
         result.ifPresent(color -> game.setCurrentColor(color));
     }
 
@@ -334,7 +322,7 @@ public class GameController implements Initializable {
     }
 
     private void checkGameStatus() {
-        for (Player player : game.getPlayers()) {
+        for (AbstractPlayer player : game.getPlayers()) {
             if (player.hasWon()) {
                 Alert alert = new Alert(Alert.AlertType.INFORMATION);
                 alert.setTitle("Game Over");
@@ -367,8 +355,10 @@ public class GameController implements Initializable {
     }
 
     private void checkAndStartComputerTurn() {
-        Player currentPlayer = game.getCurrentPlayer();
-        if (currentPlayer.isComputer()) {
+        AbstractPlayer currentPlayer = game.getCurrentPlayer();
+        // Suppose you mark computers with a method isComputer() or by class type
+        boolean isComputer = currentPlayer.getClass().getSimpleName().toLowerCase().contains("computer");
+        if (isComputer) {
             Platform.runLater(() -> {
                 statusLabel.setText("Current turn: " + currentPlayer.getName() + " (thinking...)");
             });
@@ -380,44 +370,56 @@ public class GameController implements Initializable {
     }
 
     private void playComputerTurn() {
-        Player computer = game.getCurrentPlayer();
-        if (!computer.isComputer()) {
+        AbstractPlayer computer = game.getCurrentPlayer();
+        boolean isComputer = computer.getClass().getSimpleName().toLowerCase().contains("computer");
+        if (!isComputer) {
             return;
         }
 
-        int cardToPlay = computer.selectCardToPlay(game.getTopCard());
+        int cardToPlay = computer.selectCardToPlay(game.getTopCard(), game.getCurrentColor());
         if (cardToPlay >= 0) {
-            Card selectedCard = computer.getHand().get(cardToPlay);
+            AbstractCard selectedCard = computer.getHand().get(cardToPlay);
 
-            if (selectedCard.getColor() == Card.Color.WILD) {
-                Card.Color[] colors = {Card.Color.RED, Card.Color.BLUE, Card.Color.GREEN, Card.Color.YELLOW};
+            if (selectedCard.getColor() == com.example.javarice_capstone.javarice_capstone.enums.Colors.WILD) {
+                com.example.javarice_capstone.javarice_capstone.enums.Colors[] colors = {
+                        com.example.javarice_capstone.javarice_capstone.enums.Colors.RED,
+                        com.example.javarice_capstone.javarice_capstone.enums.Colors.BLUE,
+                        com.example.javarice_capstone.javarice_capstone.enums.Colors.GREEN,
+                        com.example.javarice_capstone.javarice_capstone.enums.Colors.YELLOW
+                };
                 game.setCurrentColor(colors[(int) (Math.random() * colors.length)]);
             }
 
-            String computerAction = computer.getName() + " played ";
-            if (selectedCard.getType() == Card.Type.NUMBER) {
-                computerAction += selectedCard.getColor() + " " + selectedCard.getNumber();
-            } else {
-                computerAction += selectedCard.getColor() + " " + selectedCard.getType();
-            }
+            String computerAction = computer.getName() + " played " + selectedCard.toString();
 
-            if (selectedCard.getType() == Card.Type.SKIP) {
-                computerAction += " - Player skipped!";
-                showNotification("SKIP!", Color.RED);
-            } else if (selectedCard.getType() == Card.Type.REVERSE) {
-                computerAction += " - Direction reversed!";
-                showNotification("REVERSE!", Color.ORANGE);
-                updateGameDirectionLabel(false);
-            } else if (selectedCard.getType() == Card.Type.DRAW_TWO) {
-                computerAction += " - Next player draws 2 cards!";
-                showNotification("+2 CARDS", Color.RED);
-            } else if (selectedCard.getType() == Card.Type.DRAW_FOUR) {
-                computerAction += " - Next player draws 4 cards!";
-                showNotification("+4 CARDS", Color.DARKRED);
+            switch (selectedCard.getType()) {
+                case SKIP:
+                    computerAction += " - Player skipped!";
+                    showNotification("SKIP!", Color.RED);
+                    break;
+                case REVERSE:
+                    computerAction += " - Direction reversed!";
+                    showNotification("REVERSE!", Color.ORANGE);
+                    updateGameDirectionLabel(false);
+                    break;
+                case DRAW_TWO:
+                    computerAction += " - Next player draws 2 cards!";
+                    showNotification("+2 CARDS", Color.RED);
+                    break;
+                case DRAW_FOUR:
+                    computerAction += " - Next player draws 4 cards!";
+                    showNotification("+4 CARDS", Color.DARKRED);
+                    break;
+                default:
+                    break;
             }
 
             lastActionLabel.setText(computerAction);
             game.playCard(cardToPlay);
+
+            updateUI();
+            checkGameStatus();
+            checkAndStartComputerTurn();
 
         } else {
             game.drawCardForPlayer();
