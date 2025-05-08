@@ -40,7 +40,7 @@ public class GameSetupController {
     );
 
     private static final int MIN_PLAYERS = 2;
-    private static final int MAX_PLAYERS = 8;
+    private static final int MAX_PLAYERS = 6;
 
     public void initialize() {
         if (startGameButton != null) startGameButton.setOnAction(e -> handleStartGame());
@@ -69,7 +69,7 @@ public class GameSetupController {
 
     private void removeLastAiPlayer() {
         int idx = playersContainer.getChildren().size() - 1;
-        if (idx > 0 && playersContainer.getChildren().size() > MIN_PLAYERS) { // Never remove the host, and keep at least 2 players
+        if (idx > 0 && playersContainer.getChildren().size() > MIN_PLAYERS) {
             HBox entry = (HBox) playersContainer.getChildren().get(idx);
             Label nameLabel = (Label) entry.getChildren().get(0);
             usedAiNames.remove(nameLabel.getText());
@@ -104,7 +104,7 @@ public class GameSetupController {
 
     @FXML
     private void addAiPlayer(String name) {
-        if (playersContainer != null) addPlayerEntry(name, "AI", false);
+        if (playersContainer != null) addPlayerEntry(name, "COMPUTER", false);
         updateAddRemoveButtons();
     }
 
@@ -141,7 +141,12 @@ public class GameSetupController {
             GameController gameUIController = loader.getController();
             gameUIController.startGame(numberOfPlayers, playerNames);
             Stage stage = (Stage) startGameButton.getScene().getWindow();
-            stage.setScene(new Scene(root));
+
+            Scene scene = new Scene(root, 1366, 768);
+            stage.setScene(scene);
+            stage.setMinWidth(1366);
+            stage.setMinHeight(768);
+            stage.setMaximized(true);
             stage.setTitle("UNO - Gameplay");
         } catch (Exception e) {
             e.printStackTrace();

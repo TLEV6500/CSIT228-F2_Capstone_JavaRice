@@ -47,4 +47,5 @@ public class MenuController {
         alert.setContentText("Multiplayer mode is not implemented yet.");
         alert.showAndWait();
     }
+
 }

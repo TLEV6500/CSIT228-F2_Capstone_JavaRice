@@ -25,20 +25,6 @@
 
                         <Label styleClass="section-header" text="Game Setup" />
 
-                        <!-- Deck Selection -->
-                        <HBox alignment="CENTER_LEFT" spacing="15.0">
-                            <Label styleClass="setting-label" text="Choose Deck:" />
-                            <ComboBox fx:id="deckSelectionComboBox" promptText="Select a deck" styleClass="combo-box">
-                                <items>
-                                    <FXCollections fx:factory="observableArrayList">
-                                        <String fx:value="Classic UNO Deck" />
-                                        <String fx:value="No Mercy UNO Deck" />
-                                    </FXCollections>
-                                </items>
-                            </ComboBox>
-                            <Label styleClass="help-label" text="(Determines the card set used for the game.)" />
-                        </HBox>
-
                         <!-- Classic UNO -->
                         <VBox fx:id="classicBox" spacing="10.0" styleClass="classic-box">
                             <Label styleClass="section-header" text="Classic UNO Rules" />
@@ -86,17 +72,13 @@
                                 <CheckBox fx:id="noMercyJumpInWildsCheckBox" GridPane.columnIndex="1" GridPane.rowIndex="1" />
                                 <Label styleClass="help-label" text="(Jump-in allowed with Wild cards.)" GridPane.columnIndex="2" GridPane.rowIndex="1" />
 
-                                <Label styleClass="setting-label" text="Quick Play Draws:" GridPane.columnIndex="0" GridPane.rowIndex="2" />
-                                <CheckBox fx:id="noMercyQuickPlayDrawsCheckBox" GridPane.columnIndex="1" GridPane.rowIndex="2" />
-                                <Label styleClass="help-label" text="(If you draw and can play, you must play immediately.)" GridPane.columnIndex="2" GridPane.rowIndex="2" />
+                                <Label styleClass="setting-label" text="Reverse Stack:" GridPane.columnIndex="0" GridPane.rowIndex="2" />
+                                <CheckBox fx:id="noMercyReverseStackCheckBox" GridPane.columnIndex="1" GridPane.rowIndex="2" />
+                                <Label styleClass="help-label" text="(Stack Reverse cards to reverse direction multiple times.)" GridPane.columnIndex="2" GridPane.rowIndex="2" />
 
-                                <Label styleClass="setting-label" text="Reverse Stack:" GridPane.columnIndex="0" GridPane.rowIndex="3" />
-                                <CheckBox fx:id="noMercyReverseStackCheckBox" GridPane.columnIndex="1" GridPane.rowIndex="3" />
-                                <Label styleClass="help-label" text="(Stack Reverse cards to reverse direction multiple times.)" GridPane.columnIndex="2" GridPane.rowIndex="3" />
-
-                                <Label styleClass="setting-label" text="Double Attack Draws:" GridPane.columnIndex="0" GridPane.rowIndex="4" />
-                                <CheckBox fx:id="noMercyDoubleAttackDrawsCheckBox" GridPane.columnIndex="1" GridPane.rowIndex="4" />
-                                <Label styleClass="help-label" text="(Draw 2 and Draw 4 can be combined into a single attack.)" GridPane.columnIndex="2" GridPane.rowIndex="4" />
+                                <Label styleClass="setting-label" text="Double Attack Draws:" GridPane.columnIndex="0" GridPane.rowIndex="3" />
+                                <CheckBox fx:id="noMercyDoubleAttackDrawsCheckBox" GridPane.columnIndex="1" GridPane.rowIndex="3" />
+                                <Label styleClass="help-label" text="(Draw 2 and Draw 4 can be combined into a single attack.)" GridPane.columnIndex="2" GridPane.rowIndex="3" />
                             </GridPane>
                         </VBox>
 
@@ -114,17 +96,13 @@
                                     <RowConstraints />
                                     <RowConstraints />
                                 </rowConstraints>
-                                <Label styleClass="setting-label" text="Seven-O Rule:" GridPane.columnIndex="0" GridPane.rowIndex="0" />
-                                <CheckBox fx:id="sevenZeroRuleCheckBox" GridPane.columnIndex="1" GridPane.rowIndex="0" />
-                                <Label styleClass="help-label" text="(7 swaps hands, 0 passes hands.)" GridPane.columnIndex="2" GridPane.rowIndex="0" />
+                                <Label styleClass="setting-label" text="Swap With Any Player:" GridPane.columnIndex="0" GridPane.rowIndex="0" />
+                                <CheckBox fx:id="sevenZeroSwapAnyPlayerCheckBox" GridPane.columnIndex="1" GridPane.rowIndex="0" />
+                                <Label styleClass="help-label" text="(When playing 7, you can swap with any player, not just next.)" GridPane.columnIndex="2" GridPane.rowIndex="0" />
 
-                                <Label styleClass="setting-label" text="Swap With Any Player:" GridPane.columnIndex="0" GridPane.rowIndex="1" />
-                                <CheckBox fx:id="sevenZeroSwapAnyPlayerCheckBox" GridPane.columnIndex="1" GridPane.rowIndex="1" />
-                                <Label styleClass="help-label" text="(When playing 7, you can swap with any player, not just next.)" GridPane.columnIndex="2" GridPane.rowIndex="1" />
-
-                                <Label styleClass="setting-label" text="Rotate Hands Direction:" GridPane.columnIndex="0" GridPane.rowIndex="2" />
-                                <CheckBox fx:id="sevenZeroRotateHandsCheckBox" GridPane.columnIndex="1" GridPane.rowIndex="2" />
-                                <Label styleClass="help-label" text="(0 rotates all hands in direction of play.)" GridPane.columnIndex="2" GridPane.rowIndex="2" />
+                                <Label styleClass="setting-label" text="Rotate Hands Direction:" GridPane.columnIndex="0" GridPane.rowIndex="1" />
+                                <CheckBox fx:id="sevenZeroRotateHandsCheckBox" GridPane.columnIndex="1" GridPane.rowIndex="1" />
+                                <Label styleClass="help-label" text="(0 rotates all hands in direction of play.)" GridPane.columnIndex="2" GridPane.rowIndex="1" />
                             </GridPane>
                         </VBox>
                     </VBox>

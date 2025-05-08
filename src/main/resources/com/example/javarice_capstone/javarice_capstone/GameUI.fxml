@@ -5,31 +5,69 @@
 <?import javafx.scene.layout.*?>
 <?import javafx.scene.shape.*?>
 
-<BorderPane xmlns="http://javafx.com/javafx/11.0.14-internal" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.example.javarice_capstone.javarice_capstone.Gameplay.GameController">
-    <center>
-        <VBox fx:id="gamePane" alignment="CENTER" spacing="10">
-            <VBox fx:id="opponentArea" alignment="CENTER" spacing="20" />
+<BorderPane prefHeight="768" prefWidth="1366" xmlns="http://javafx.com/javafx/11.0.14-internal" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.example.javarice_capstone.javarice_capstone.Gameplay.GameController">
 
+    <!-- Top Opponents -->
+    <top>
+        <HBox fx:id="topOpponentsBox" alignment="CENTER" prefHeight="120" spacing="100">
+            <VBox alignment="CENTER" spacing="5">
+                <Label fx:id="opponent1Name" text="Opponent 1" />
+                <HBox fx:id="opponent1Hand" alignment="CENTER" spacing="3" />
+            </VBox>
+            <VBox alignment="CENTER" spacing="5">
+                <Label fx:id="opponent2Name" text="Opponent 2" />
+                <HBox fx:id="opponent2Hand" alignment="CENTER" spacing="3" />
+            </VBox>
+            <VBox alignment="CENTER" spacing="5">
+                <Label fx:id="opponent3Name" text="Opponent 3" />
+                <HBox fx:id="opponent3Hand" alignment="CENTER" spacing="3" />
+            </VBox>
+        </HBox>
+    </top>
+
+    <!-- Left Opponent 4 -->
+    <left>
+        <VBox alignment="CENTER" prefWidth="120" spacing="1.0">
+            <Label fx:id="opponent4Name" text="Opponent 4" />
+            <VBox fx:id="opponent4Hand" alignment="CENTER" spacing="3" />
+        </VBox>
+    </left>
+
+    <!-- Right Opponent 5 -->
+    <right>
+        <VBox alignment="CENTER" prefWidth="120" spacing="5">
+            <Label fx:id="opponent5Name" text="Opponent 5" />
+            <VBox fx:id="opponent5Hand" alignment="CENTER" spacing="3" />
+        </VBox>
+    </right>
+
+    <!-- Center Gameplay Area -->
+    <center>
+        <VBox fx:id="gamePane" alignment="CENTER" prefHeight="528" prefWidth="1126" spacing="10">
             <HBox alignment="CENTER" spacing="30">
                 <VBox alignment="CENTER">
                     <Label text="Discard Pile" />
                     <ImageView fx:id="discardPileView" fitHeight="150" fitWidth="100" preserveRatio="true" />
                 </VBox>
-
                 <VBox alignment="CENTER">
                     <Label text="Draw Pile" />
                     <Button fx:id="drawButton" text="Draw Card" />
                 </VBox>
-
                 <VBox alignment="CENTER" spacing="5">
                     <Label fx:id="currentColorLabel" text="Current Color: RED" />
                     <Rectangle fx:id="colorIndicator" height="50" width="50" />
                 </VBox>
             </HBox>
-
             <Label fx:id="statusLabel" text="Your turn!" />
-
-            <HBox fx:id="playerHand" alignment="CENTER" spacing="5" />
         </VBox>
     </center>
+
+    <!-- Bottom Player Row -->
+    <bottom>
+        <VBox alignment="CENTER" prefHeight="120" spacing="5">
+            <Label text="You" />
+            <HBox fx:id="playerHand" alignment="CENTER" spacing="5" />
+        </VBox>
+    </bottom>
+
 </BorderPane>

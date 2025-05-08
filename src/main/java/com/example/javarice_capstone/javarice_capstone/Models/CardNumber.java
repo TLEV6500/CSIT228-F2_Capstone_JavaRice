@@ -32,5 +32,4 @@ public class CardNumber extends AbstractCard {
         String colorStr = getColor().toString().toLowerCase();
         return "/images/cards/" + colorStr + "_" + number + ".png";
     }
-
 }

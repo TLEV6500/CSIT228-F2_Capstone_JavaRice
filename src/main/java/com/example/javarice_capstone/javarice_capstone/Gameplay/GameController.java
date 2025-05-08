@@ -3,6 +3,7 @@ package com.example.javarice_capstone.javarice_capstone.Gameplay;
 import com.example.javarice_capstone.javarice_capstone.Models.Game;
 import com.example.javarice_capstone.javarice_capstone.Abstracts.AbstractCard;
 import com.example.javarice_capstone.javarice_capstone.Abstracts.AbstractPlayer;
+import com.example.javarice_capstone.javarice_capstone.enums.Colors;
 import javafx.animation.FadeTransition;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
@@ -38,7 +39,6 @@ import java.util.concurrent.TimeUnit;
 public class GameController implements Initializable {
     @FXML private VBox gamePane;
     @FXML private HBox playerHand;
-    @FXML private VBox opponentArea;
     @FXML private ImageView discardPileView;
     @FXML private Button drawButton;
     @FXML private Label statusLabel;
@@ -48,13 +48,24 @@ public class GameController implements Initializable {
     @FXML private Label gameDirectionLabel;
     @FXML private Label lastActionLabel;
 
+    // Opponent UI references
+    @FXML private HBox opponent1Hand, opponent2Hand, opponent3Hand;
+    @FXML private VBox  opponent4Hand, opponent5Hand;
+    @FXML private Label opponent1Name, opponent2Name, opponent3Name, opponent4Name, opponent5Name;
+
     private Game game;
     private final ScheduledExecutorService computerPlayerTimer = Executors.newSingleThreadScheduledExecutor();
     private boolean isFirstTurn = true;
 
+    private static final double PLAYER_CARD_WIDTH = 80 * 0.9;
+    private static final double PLAYER_CARD_HEIGHT = 120 * 0.9;
+    private static final double OPPONENT_CARD_WIDTH = 55 * 0.95;
+    private static final double OPPONENT_CARD_HEIGHT = 80 * 0.95;
+    private static final double CARD_OVERLAP = 10;
+
     @Override
     public void initialize(URL location, ResourceBundle resources) {
-        game = new Game(8);
+        game = new Game(6);
 
         if (notificationArea == null) {
             notificationArea = new StackPane();
@@ -95,6 +106,7 @@ public class GameController implements Initializable {
     }
 
     private void updateUI() {
+        // Update player hand
         playerHand.getChildren().clear();
         AbstractPlayer humanPlayer = game.getPlayers().get(0);
 
@@ -103,13 +115,13 @@ public class GameController implements Initializable {
             final int cardIndex = i;
 
             ImageView cardView = new ImageView();
-            cardView.setFitHeight(120);
-            cardView.setFitWidth(80);
+            cardView.setFitHeight(PLAYER_CARD_HEIGHT);
+            cardView.setFitWidth(PLAYER_CARD_WIDTH);
 
             try {
                 cardView.setImage(new Image(getClass().getResourceAsStream(card.getImagePath())));
             } catch (Exception exception) {
-                Rectangle cardRect = new Rectangle(80, 120);
+                Rectangle cardRect = new Rectangle(PLAYER_CARD_WIDTH, PLAYER_CARD_HEIGHT);
                 cardRect.setFill(getJavaFXColor(card.getColor()));
                 cardRect.setStroke(Color.BLACK);
 
@@ -117,51 +129,128 @@ public class GameController implements Initializable {
 
                 VBox cardBox = new VBox(cardRect, cardLabel);
                 cardBox.setAlignment(Pos.CENTER);
+                // --- Overlap: set margin for player cards ---
+                if (i > 0) {
+                    HBox.setMargin(cardBox, new javafx.geometry.Insets(0, 0, 0, -CARD_OVERLAP));
+                }
                 playerHand.getChildren().add(cardBox);
                 cardBox.setOnMouseClicked(e -> handleCardClick(cardIndex));
                 continue;
             }
 
             cardView.setOnMouseClicked(e -> handleCardClick(cardIndex));
+            // --- Overlap: set margin for player cards ---
+            if (i > 0) {
+                HBox.setMargin(cardView, new javafx.geometry.Insets(0, 0, 0, -CARD_OVERLAP));
+            }
             playerHand.getChildren().add(cardView);
         }
+        clearOpponentHands();
+        Image cardBack;
 
-        opponentArea.getChildren().clear();
-        for (int i = 1; i < game.getPlayers().size(); i++) {
-            AbstractPlayer opponent = game.getPlayers().get(i);
-            HBox opponentBox = new HBox();
-            opponentBox.setAlignment(Pos.CENTER);
-            opponentBox.setSpacing(10);
-
-            Label nameLabel = new Label(opponent.getName() + "'s hand");
-            Label cardCountLabel = new Label(opponent.getHand().size() + " cards");
-
-            if (game.getCurrentPlayer() == opponent) {
-                nameLabel.setStyle("-fx-font-weight: bold; -fx-text-fill: blue;");
-            }
-
-            opponentBox.getChildren().addAll(nameLabel, cardCountLabel);
-            opponentArea.getChildren().add(opponentBox);
+        try {
+            cardBack = new Image(getClass().getResourceAsStream("/images/cards/card_back.png"));
+        } catch (Exception e) {
+            cardBack = null;
         }
 
+        // Layout: [0] = player, [1..6] = opponents
+        // Top: opponent 1, 2, 3
+        setOpponentHandHBox(1, opponent1Name, opponent1Hand, cardBack);
+        setOpponentHandHBox(2, opponent2Name, opponent2Hand, cardBack);
+        setOpponentHandHBox(3, opponent3Name, opponent3Hand, cardBack);
+        // Left: opponent 4
+        setOpponentHandVBox(4, opponent4Name, opponent4Hand, cardBack);
+        // Right: opponent 5
+        setOpponentHandVBox(5, opponent5Name, opponent5Hand, cardBack);
+
+        // ... [rest unchanged]
         AbstractCard topCard = game.getTopCard();
         try {
             discardPileView.setImage(new Image(getClass().getResourceAsStream(topCard.getImagePath())));
-        } catch (Exception e) {
-        }
+        } catch (Exception e) {}
 
         updateColorIndicator();
         AbstractPlayer currentPlayer = game.getCurrentPlayer();
         statusLabel.setText("Current turn: " + currentPlayer.getName());
     }
 
+    private void clearOpponentHands() {
+        if (opponent1Hand != null) opponent1Hand.getChildren().clear();
+        if (opponent2Hand != null) opponent2Hand.getChildren().clear();
+        if (opponent3Hand != null) opponent3Hand.getChildren().clear();
+        if (opponent4Hand != null) opponent4Hand.getChildren().clear();
+        if (opponent5Hand != null) opponent5Hand.getChildren().clear();
+    }
+
+    // For top opponents (HBox)
+    private void setOpponentHandHBox(int index, Label nameLabel, HBox handBox, Image cardBack) {
+        if (game.getPlayers().size() > index) {
+            AbstractPlayer opponent = game.getPlayers().get(index);
+            if (nameLabel != null) {
+                nameLabel.setText(opponent.getName());
+                if (game.getCurrentPlayer() == opponent) {
+                    nameLabel.setStyle("-fx-font-weight: bold; -fx-text-fill: blue;");
+                } else {
+                    nameLabel.setStyle("");
+                }
+            }
+            if (handBox != null && cardBack != null) {
+                handBox.getChildren().clear();
+                for (int j = 0; j < opponent.getHand().size(); j++) {
+                    ImageView cardView = new ImageView(cardBack);
+                    cardView.setFitHeight(OPPONENT_CARD_HEIGHT);
+                    cardView.setFitWidth(OPPONENT_CARD_WIDTH);
+                    // --- Overlap: set margin for opponent cards ---
+                    if (j > 0) {
+                        HBox.setMargin(cardView, new javafx.geometry.Insets(0, 0, 0, -CARD_OVERLAP));
+                    }
+                    handBox.getChildren().add(cardView);
+                }
+            }
+        } else {
+            if (nameLabel != null) nameLabel.setText("");
+            if (handBox != null) handBox.getChildren().clear();
+        }
+    }
+
+    private void setOpponentHandVBox(int index, Label nameLabel, VBox handBox, Image cardBack) {
+        if (game.getPlayers().size() > index) {
+            AbstractPlayer opponent = game.getPlayers().get(index);
+            if (nameLabel != null) {
+                nameLabel.setText(opponent.getName());
+                if (game.getCurrentPlayer() == opponent) {
+                    nameLabel.setStyle("-fx-font-weight: bold; -fx-text-fill: blue;");
+                } else {
+                    nameLabel.setStyle("");
+                }
+            }
+            if (handBox != null && cardBack != null) {
+                handBox.getChildren().clear();
+                for (int j = 0; j < opponent.getHand().size(); j++) {
+                    ImageView cardView = new ImageView(cardBack);
+                    cardView.setFitHeight(OPPONENT_CARD_WIDTH);
+                    cardView.setFitWidth(OPPONENT_CARD_HEIGHT);
+                    // --- Overlap: set margin for opponent cards ---
+                    if (j > 0) {
+                        VBox.setMargin(cardView, new javafx.geometry.Insets(-CARD_OVERLAP, 0, 0, 0));
+                    }
+                    handBox.getChildren().add(cardView);
+                }
+            }
+        } else {
+            if (nameLabel != null) nameLabel.setText("");
+            if (handBox != null) handBox.getChildren().clear();
+        }
+    }
+
     private void updateColorIndicator() {
-        com.example.javarice_capstone.javarice_capstone.enums.Colors currentColor = game.getCurrentColor();
+        Colors currentColor = game.getCurrentColor();
         colorIndicator.setFill(getJavaFXColor(currentColor));
         currentColorLabel.setText("Current Color: " + currentColor);
     }
 
-    private Color getJavaFXColor(com.example.javarice_capstone.javarice_capstone.enums.Colors cardColor) {
+    private Color getJavaFXColor(Colors cardColor) {
         switch (cardColor) {
             case RED: return Color.RED;
             case BLUE: return Color.BLUE;
@@ -179,7 +268,7 @@ public class GameController implements Initializable {
 
         AbstractCard card = game.getPlayers().get(0).getHand().get(cardIndex);
 
-        if (card.getColor() == com.example.javarice_capstone.javarice_capstone.enums.Colors.WILD) {
+        if (card.getColor() == Colors.WILD) {
             showColorSelectionDialog();
             if (game.playCard(cardIndex)) {
                 updateLastAction(card);
@@ -263,35 +352,35 @@ public class GameController implements Initializable {
     }
 
     private void showColorSelectionDialog() {
-        Dialog<com.example.javarice_capstone.javarice_capstone.enums.Colors> dialog = new Dialog<>();
+        Dialog<Colors> dialog = new Dialog<>();
         dialog.setTitle("Choose a Color");
         dialog.setHeaderText("Select a color for the Wild card.");
 
         Button redButton = new Button("Red");
         redButton.setOnAction(event -> {
-            game.setCurrentColor(com.example.javarice_capstone.javarice_capstone.enums.Colors.RED);
-            dialog.setResult(com.example.javarice_capstone.javarice_capstone.enums.Colors.RED);
+            game.setCurrentColor(Colors.RED);
+            dialog.setResult(Colors.RED);
             dialog.close();
         });
 
         Button blueButton = new Button("Blue");
         blueButton.setOnAction(event -> {
-            game.setCurrentColor(com.example.javarice_capstone.javarice_capstone.enums.Colors.BLUE);
-            dialog.setResult(com.example.javarice_capstone.javarice_capstone.enums.Colors.BLUE);
+            game.setCurrentColor(Colors.BLUE);
+            dialog.setResult(Colors.BLUE);
             dialog.close();
         });
 
         Button greenButton = new Button("Green");
         greenButton.setOnAction(event -> {
-            game.setCurrentColor(com.example.javarice_capstone.javarice_capstone.enums.Colors.GREEN);
-            dialog.setResult(com.example.javarice_capstone.javarice_capstone.enums.Colors.GREEN);
+            game.setCurrentColor(Colors.GREEN);
+            dialog.setResult(Colors.GREEN);
             dialog.close();
         });
 
         Button yellowButton = new Button("Yellow");
         yellowButton.setOnAction(event -> {
-            game.setCurrentColor(com.example.javarice_capstone.javarice_capstone.enums.Colors.YELLOW);
-            dialog.setResult(com.example.javarice_capstone.javarice_capstone.enums.Colors.YELLOW);
+            game.setCurrentColor(Colors.YELLOW);
+            dialog.setResult(Colors.YELLOW);
             dialog.close();
         });
 
@@ -306,7 +395,7 @@ public class GameController implements Initializable {
         dialog.getDialogPane().setContent(buttonBox);
         dialog.getDialogPane().getButtonTypes().add(ButtonType.CANCEL);
 
-        Optional<com.example.javarice_capstone.javarice_capstone.enums.Colors> result = dialog.showAndWait();
+        Optional<Colors> result = dialog.showAndWait();
         result.ifPresent(color -> game.setCurrentColor(color));
     }
 
@@ -318,7 +407,6 @@ public class GameController implements Initializable {
         game.drawCardForPlayer();
         lastActionLabel.setText("You drew a card");
         updateUI();
-        checkAndStartComputerTurn();
     }
 
     private void checkGameStatus() {
@@ -340,7 +428,7 @@ public class GameController implements Initializable {
                     stage.setTitle("UNO - Setup Game");
                 } catch (Exception e) {
                     e.printStackTrace();
-                    game = new Game(4);
+                    game = new Game(6);
                     isFirstTurn = true;
                     updateUI();
                     updateGameDirectionLabel(true);
@@ -356,7 +444,6 @@ public class GameController implements Initializable {
 
     private void checkAndStartComputerTurn() {
         AbstractPlayer currentPlayer = game.getCurrentPlayer();
-        // Suppose you mark computers with a method isComputer() or by class type
         boolean isComputer = currentPlayer.getClass().getSimpleName().toLowerCase().contains("computer");
         if (isComputer) {
             Platform.runLater(() -> {
@@ -365,7 +452,7 @@ public class GameController implements Initializable {
 
             computerPlayerTimer.schedule(() -> {
                 Platform.runLater(this::playComputerTurn);
-            }, 1, TimeUnit.SECONDS);
+            }, 1500, TimeUnit.MILLISECONDS);
         }
     }
 
@@ -380,13 +467,8 @@ public class GameController implements Initializable {
         if (cardToPlay >= 0) {
             AbstractCard selectedCard = computer.getHand().get(cardToPlay);
 
-            if (selectedCard.getColor() == com.example.javarice_capstone.javarice_capstone.enums.Colors.WILD) {
-                com.example.javarice_capstone.javarice_capstone.enums.Colors[] colors = {
-                        com.example.javarice_capstone.javarice_capstone.enums.Colors.RED,
-                        com.example.javarice_capstone.javarice_capstone.enums.Colors.BLUE,
-                        com.example.javarice_capstone.javarice_capstone.enums.Colors.GREEN,
-                        com.example.javarice_capstone.javarice_capstone.enums.Colors.YELLOW
-                };
+            if (selectedCard.getColor() == Colors.WILD) {
+                Colors[] colors = { Colors.RED, Colors.BLUE, Colors.GREEN, Colors.YELLOW };
                 game.setCurrentColor(colors[(int) (Math.random() * colors.length)]);
             }
 
