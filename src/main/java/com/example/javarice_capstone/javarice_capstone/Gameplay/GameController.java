@@ -30,6 +30,7 @@ import javafx.stage.Stage;
 import javafx.util.Duration;
 
 import java.net.URL;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.ResourceBundle;
 import java.util.concurrent.Executors;
@@ -138,7 +139,7 @@ public class GameController implements Initializable {
             cardView.setFitWidth(PLAYER_CARD_WIDTH);
 
             try {
-                cardView.setImage(new Image(getClass().getResourceAsStream(card.getImagePath())));
+                cardView.setImage(new Image(Objects.requireNonNull(getClass().getResourceAsStream(card.getImagePath()))));
             } catch (Exception exception) {
                 Rectangle cardRect = new Rectangle(PLAYER_CARD_WIDTH, PLAYER_CARD_HEIGHT);
                 cardRect.setFill(getJavaFXColor(card.getColor()));
@@ -166,7 +167,7 @@ public class GameController implements Initializable {
         Image cardBack;
 
         try {
-            cardBack = new Image(getClass().getResourceAsStream("/images/cards/card_back.png"));
+            cardBack = new Image(Objects.requireNonNull(getClass().getResourceAsStream("/images/cards/card_back.png")));
         } catch (Exception e) {
             cardBack = null;
         }
@@ -179,8 +180,8 @@ public class GameController implements Initializable {
 
         AbstractCard topCard = game.getTopCard();
         try {
-            discardPileView.setImage(new Image(getClass().getResourceAsStream(topCard.getImagePath())));
-        } catch (Exception e) {}
+            discardPileView.setImage(new Image(Objects.requireNonNull(getClass().getResourceAsStream(topCard.getImagePath()))));
+        } catch (Exception ignored) {}
 
         updateColorIndicator();
         AbstractPlayer currentPlayer = game.getCurrentPlayer();
@@ -293,14 +294,14 @@ public class GameController implements Initializable {
     }
 
     private Color getJavaFXColor(Colors cardColor) {
-        switch (cardColor) {
-            case RED: return Color.RED;
-            case BLUE: return Color.BLUE;
-            case GREEN: return Color.GREEN;
-            case YELLOW: return Color.YELLOW;
-            case WILD: return Color.BLACK;
-            default: return Color.GRAY;
-        }
+        return switch (cardColor) {
+            case RED -> Color.RED;
+            case BLUE -> Color.BLUE;
+            case GREEN -> Color.GREEN;
+            case YELLOW -> Color.YELLOW;
+            case WILD -> Color.BLACK;
+            default -> Color.GRAY;
+        };
     }
 
     private void handleCardClick(int cardIndex) {
@@ -360,6 +361,55 @@ public class GameController implements Initializable {
         }
 
         lastActionLabel.setText(actionText);
+    }
+
+    private void handleGameRules() {
+        if (gameRules == null) return;
+
+        if (gameRules.isClassicAllowJumpIn()) {
+            // Allow Jump-In: If a player (not in turn) has an exact match of the card just played, they can play out of turn.
+            // You'd need to hook this in your playCard logic, likely in your input/event handlers.
+            // Example comment:
+            // TODO: Implement logic to allow jump-in when a player (not in turn) has an exact matching card.
+        }
+
+        if (gameRules.isClassicStackDrawCards()) {
+            // Stack Draw Cards: If a Draw 2 or Draw 4 is played, the next player can stack another Draw card.
+            // You'd check this when a player responds to a draw penalty.
+            // TODO: Implement draw card stacking logic.
+        }
+
+        // --- UNO No Mercy ---
+        if (gameRules.isNoMercyChainAllCards()) {
+            // Chain All Cards: Player can play multiple matching cards (same value, any color) in one turn.
+            // TODO: Implement logic to allow chaining cards in one move.
+        }
+
+        if (gameRules.isNoMercyJumpInWilds()) {
+            // Jump-In Wilds: Allow jump-in with Wild cards (not just colored cards).
+            // TODO: Extend jump-in logic to consider wilds.
+        }
+
+        if (gameRules.isNoMercyReverseStack()) {
+            // Reverse Stack: Allow stacking Reverse cards to reverse direction multiple times.
+            // TODO: Implement reverse stacking logic.
+        }
+
+        if (gameRules.isNoMercyDoubleAttackDraws()) {
+            // Double Attack Draws: Allow a Draw 2 and Draw 4 to be combined into a single attack.
+            // TODO: Implement double attack logic for stacking +2 and +4.
+        }
+
+        // --- UNO 7-0 ---
+        if (gameRules.isSevenZeroSwapAnyPlayer()) {
+            // Swap With Any Player: When a 7 is played, allow the player to swap hands with any player.
+            // TODO: Prompt the user to select any player to swap with.
+        }
+
+        if (gameRules.isSevenZeroRotateHands()) {
+            // Rotate Hands Direction: When a 0 is played, rotate all hands in the direction of play.
+            // TODO: Implement hand rotation logic.
+        }
     }
 
     private void showNotification(String message, Color color) {

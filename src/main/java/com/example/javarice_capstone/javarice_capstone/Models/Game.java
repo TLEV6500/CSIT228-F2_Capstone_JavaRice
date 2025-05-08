@@ -14,8 +14,12 @@ public class Game {
     private final Deck deck;
     private final List<AbstractPlayer> players;
     private int currentPlayerIndex;
-    private boolean isClockwise;
     private Colors currentColor;
+
+    // Always use this custom order: player (0), opp4 (4), opp1 (1), opp2 (2), opp3 (3), opp5 (5)
+    private static final int[] CUSTOM_ORDER = {0, 4, 1, 2, 3, 5};
+    private int customTurnIndex = -1;
+    private boolean customOrderIsClockwise = true;
 
     public Game(int numPlayers) {
         deck = new Deck(new UnlimitedCardFactory());
@@ -33,8 +37,11 @@ public class Game {
             }
         }
 
-        currentPlayerIndex = 0;
-        isClockwise = true;
+        // Set the first player according to the fixed custom order (should be the human player, index 0)
+        currentPlayerIndex = getNextValidPlayerIndex(-1, true);
+        customTurnIndex = getCustomOrderIndex(currentPlayerIndex);
+        // Direction starts as clockwise
+        customOrderIsClockwise = true;
 
         AbstractCard firstCard = deck.drawCard();
         while (firstCard.getColor() == Colors.WILD) {
@@ -45,10 +52,6 @@ public class Game {
 
         deck.discard(firstCard);
         currentColor = firstCard.getColor();
-    }
-
-    public boolean isClockwise() {
-        return isClockwise;
     }
 
     public AbstractPlayer getCurrentPlayer() {
@@ -80,7 +83,6 @@ public class Game {
             if (card.getType() != Types.NUMBER) {
                 handleSpecialCard(card);
             } else {
-                // For number cards, simply update color and move to next player
                 currentColor = card.getColor();
                 nextPlayer();
             }
@@ -117,24 +119,19 @@ public class Game {
         switch (card.getType()) {
             case SKIP:
                 currentColor = card.getColor();
-                nextPlayer(); // Skip next player
+                nextPlayer();
                 nextPlayer();
                 break;
 
             case REVERSE:
                 currentColor = card.getColor();
-                isClockwise = !isClockwise;
-                if (players.size() == 2) {
-                    // In a 2-player game, reverse acts like skip
-                    nextPlayer();
-                }
+                customOrderIsClockwise = !customOrderIsClockwise; // Toggle direction
                 nextPlayer();
                 break;
 
             case DRAW_TWO:
                 currentColor = card.getColor();
                 nextPlayer();
-                // Next player draws 2 cards
                 AbstractPlayer nextPlayer = getCurrentPlayer();
                 nextPlayer.addCard(deck.drawCard());
                 nextPlayer.addCard(deck.drawCard());
@@ -142,14 +139,11 @@ public class Game {
                 break;
 
             case WILD:
-                // currentColor will be set by the player
                 nextPlayer();
                 break;
 
             case DRAW_FOUR:
-                // currentColor will be set by the player
                 nextPlayer();
-                // Next player draws 4 cards
                 AbstractPlayer drawFourPlayer = getCurrentPlayer();
                 for (int i = 0; i < 4; i++) {
                     drawFourPlayer.addCard(deck.drawCard());
@@ -160,11 +154,31 @@ public class Game {
     }
 
     public void nextPlayer() {
-        if (isClockwise) {
-            currentPlayerIndex = (currentPlayerIndex + 1) % players.size();
-        } else {
-            currentPlayerIndex = (currentPlayerIndex - 1 + players.size()) % players.size();
+        currentPlayerIndex = getNextValidPlayerIndex(customTurnIndex, customOrderIsClockwise);
+        customTurnIndex = getCustomOrderIndex(currentPlayerIndex);
+    }
+
+    private int getNextValidPlayerIndex(int prevCustomTurnIndex, boolean isClockwise) {
+        int tries = 0;
+        int totalPlayers = players.size();
+        int idx = prevCustomTurnIndex;
+        while (tries < CUSTOM_ORDER.length) {
+
+            if (isClockwise) idx = (idx + 1) % CUSTOM_ORDER.length;
+            else idx = (idx - 1 + CUSTOM_ORDER.length) % CUSTOM_ORDER.length;
+
+            int candidate = CUSTOM_ORDER[idx];
+            if (candidate < totalPlayers && players.get(candidate) != null) return candidate;
+            tries++;
         }
+        return 0;
+    }
+
+    private int getCustomOrderIndex(int playerIdx) {
+        for (int i = 0; i < CUSTOM_ORDER.length; i++) {
+            if (CUSTOM_ORDER[i] == playerIdx) return i;
+        }
+        return 0;
     }
 
     public boolean isGameOver() {
