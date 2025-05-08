@@ -5,7 +5,7 @@
 <?import javafx.scene.layout.*?>
 <?import javafx.scene.shape.*?>
 
-<BorderPane prefHeight="768" prefWidth="1366" xmlns="http://javafx.com/javafx/11.0.14-internal" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.example.javarice_capstone.javarice_capstone.Gameplay.GameController">
+<BorderPane prefWidth="1230" prefHeight="690" xmlns="http://javafx.com/javafx/11.0.14-internal" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.example.javarice_capstone.javarice_capstone.Gameplay.GameController">
 
     <!-- Top Opponents -->
     <top>
@@ -74,7 +74,7 @@
                 <Label text="You" />
                 <Label fx:id="playerHandCount" text="(0 cards)" />
             </HBox>
-            <ScrollPane fitToHeight="true" fitToWidth="true" style="-fx-background:transparent; -fx-background-color:transparent;">
+            <ScrollPane fitToHeight="true" fitToWidth="true" hbarPolicy="ALWAYS" vbarPolicy="NEVER" style="-fx-background:transparent; -fx-background-color:transparent;">
                 <HBox fx:id="playerHand" alignment="CENTER" spacing="5" />
             </ScrollPane>
         </VBox>

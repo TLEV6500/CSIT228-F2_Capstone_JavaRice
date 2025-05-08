@@ -1,7 +1,7 @@
 package com.example.javarice_capstone.javarice_capstone.Strategies;
 
 import com.example.javarice_capstone.javarice_capstone.Abstracts.AbstractCard;
-import com.example.javarice_capstone.javarice_capstone.Factory.ComputerStrategy;
+import com.example.javarice_capstone.javarice_capstone.Abstracts.ComputerStrategy;
 import com.example.javarice_capstone.javarice_capstone.enums.Colors;
 import com.example.javarice_capstone.javarice_capstone.enums.Types;
 

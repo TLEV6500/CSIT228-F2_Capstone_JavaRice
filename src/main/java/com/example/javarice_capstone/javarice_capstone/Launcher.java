@@ -12,10 +12,10 @@ public class Launcher extends Application {
     @Override
     public void start(Stage stage) throws IOException {
         FXMLLoader fxmlLoader = new FXMLLoader(Launcher.class.getResource("MenuUI.fxml"));
-        Scene scene = new Scene(fxmlLoader.load());
+        Scene scene = new Scene(fxmlLoader.load(), 1230, 690);
         stage.setTitle("PLAY UNO");
+        stage.setResizable(false);
         stage.setScene(scene);
-        stage.setMaximized(true);
         stage.show();
     }
 

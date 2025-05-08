@@ -20,10 +20,20 @@ import java.util.*;
 
 public class GameSetupController {
 
-    @FXML private CheckBox allowStackingCheckBox;
-    @FXML private CheckBox allowJumpInCheckBox;
-    @FXML private CheckBox drawCardsCheckBox;
-    @FXML private CheckBox strictWildDrawFourCheckBox;
+    // --- Classic UNO ---
+    @FXML private CheckBox classicAllowJumpInCheckBox;
+    @FXML private CheckBox classicStackDrawCardsCheckBox;
+
+    // --- UNO No Mercy ---
+    @FXML private CheckBox noMercyChainAllCardsCheckBox;
+    @FXML private CheckBox noMercyJumpInWildsCheckBox;
+    @FXML private CheckBox noMercyReverseStackCheckBox;
+    @FXML private CheckBox noMercyDoubleAttackDrawsCheckBox;
+
+    // --- UNO 7-0 ---
+    @FXML private CheckBox sevenZeroSwapAnyPlayerCheckBox;
+    @FXML private CheckBox sevenZeroRotateHandsCheckBox;
+
     @FXML private Button startGameButton;
     @FXML private Button cancelButton;
     @FXML private VBox playersContainer;
@@ -136,17 +146,28 @@ public class GameSetupController {
                 Label nameLabel = (Label) entry.getChildren().get(0);
                 playerNames.add(nameLabel.getText());
             }
+
+            GameRules rules = new GameRules(
+                    classicAllowJumpInCheckBox != null && classicAllowJumpInCheckBox.isSelected(),
+                    classicStackDrawCardsCheckBox != null && classicStackDrawCardsCheckBox.isSelected(),
+                    noMercyChainAllCardsCheckBox != null && noMercyChainAllCardsCheckBox.isSelected(),
+                    noMercyJumpInWildsCheckBox != null && noMercyJumpInWildsCheckBox.isSelected(),
+                    noMercyReverseStackCheckBox != null && noMercyReverseStackCheckBox.isSelected(),
+                    noMercyDoubleAttackDrawsCheckBox != null && noMercyDoubleAttackDrawsCheckBox.isSelected(),
+                    sevenZeroSwapAnyPlayerCheckBox != null && sevenZeroSwapAnyPlayerCheckBox.isSelected(),
+                    sevenZeroRotateHandsCheckBox != null && sevenZeroRotateHandsCheckBox.isSelected()
+            );
+
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/example/javarice_capstone/javarice_capstone/GameUI.fxml"));
             Parent root = loader.load();
             GameController gameUIController = loader.getController();
-            gameUIController.startGame(numberOfPlayers, playerNames);
-            Stage stage = (Stage) startGameButton.getScene().getWindow();
 
-            Scene scene = new Scene(root, 1366, 768);
+            // Pass rules to your game controller
+            gameUIController.startGame(numberOfPlayers, playerNames, rules);
+
+            Stage stage = (Stage) startGameButton.getScene().getWindow();
+            Scene scene = new Scene(root);
             stage.setScene(scene);
-            stage.setMinWidth(1366);
-            stage.setMinHeight(768);
-            stage.setMaximized(true);
             stage.setTitle("UNO - Gameplay");
         } catch (Exception e) {
             e.printStackTrace();

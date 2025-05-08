@@ -2,7 +2,7 @@ package com.example.javarice_capstone.javarice_capstone.Models;
 
 import com.example.javarice_capstone.javarice_capstone.Abstracts.AbstractCard;
 import com.example.javarice_capstone.javarice_capstone.Abstracts.AbstractPlayer;
-import com.example.javarice_capstone.javarice_capstone.Factory.ComputerStrategy;
+import com.example.javarice_capstone.javarice_capstone.Abstracts.ComputerStrategy;
 import com.example.javarice_capstone.javarice_capstone.enums.Colors;
 
 public class PlayerComputer extends AbstractPlayer {

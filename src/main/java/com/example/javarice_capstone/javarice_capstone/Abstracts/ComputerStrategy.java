@@ -1,6 +1,5 @@
-package com.example.javarice_capstone.javarice_capstone.Factory;
+package com.example.javarice_capstone.javarice_capstone.Abstracts;
 
-import com.example.javarice_capstone.javarice_capstone.Abstracts.AbstractCard;
 import com.example.javarice_capstone.javarice_capstone.enums.Colors;
 
 import java.util.List;

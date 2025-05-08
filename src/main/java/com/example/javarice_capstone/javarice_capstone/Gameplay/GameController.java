@@ -35,6 +35,7 @@ import java.util.ResourceBundle;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
+import java.util.List;
 
 public class GameController implements Initializable {
     @FXML private VBox gamePane;
@@ -59,14 +60,17 @@ public class GameController implements Initializable {
     private final ScheduledExecutorService computerPlayerTimer = Executors.newSingleThreadScheduledExecutor();
     private boolean isFirstTurn = true;
 
+    // Store rules for this game session
+    private GameRules gameRules;
+
     private static final double PLAYER_CARD_WIDTH = 80 * 0.9;
     private static final double PLAYER_CARD_HEIGHT = 120 * 0.9;
     private static final double OPPONENT_CARD_WIDTH = 55 * 0.95;
     private static final double OPPONENT_CARD_HEIGHT = 80 * 0.95;
     private static final double COMPUTER_CARD_OVERLAP = 20;
-    private static final double PLAYER_CARD_OVERLAP = 10;
+    private static final double PLAYER_CARD_OVERLAP = 15;
     private static final int COMPUTER_OVERLAP_EXPAND_CARD_STEP = 5;
-    private static final double COMPUTER_OVERLAP_EXPAND_AMOUNT = 10;
+    private static final double COMPUTER_OVERLAP_EXPAND_AMOUNT = 8;
     private static final int MAX_RENDERED_COMPUTER_CARDS = 20;
 
     @Override
@@ -100,12 +104,14 @@ public class GameController implements Initializable {
         checkAndStartComputerTurn();
     }
 
-    public void startGame(int numPlayers, java.util.List<String> playerNames) {
+    // Now accepts rules object
+    public void startGame(int numPlayers, List<String> playerNames, GameRules rules) {
         game = new Game(numPlayers);
         for (int i = 0; i < Math.min(numPlayers, playerNames.size()); i++) {
             AbstractPlayer player = game.getPlayers().get(i);
             player.setName(playerNames.get(i));
         }
+        this.gameRules = rules; // Store the rules for use in game logic
         isFirstTurn = true;
         updateUI();
         updateGameDirectionLabel(true);
@@ -520,5 +526,10 @@ public class GameController implements Initializable {
 
     private void shutdown() {
         computerPlayerTimer.shutdownNow();
+    }
+
+    // Optionally, provide a getter if you want to query rules elsewhere
+    public GameRules getGameRules() {
+        return gameRules;
     }
 }
