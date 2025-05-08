@@ -39,6 +39,7 @@ import java.util.concurrent.TimeUnit;
 public class GameController implements Initializable {
     @FXML private VBox gamePane;
     @FXML private HBox playerHand;
+    @FXML private Label playerHandCount;
     @FXML private ImageView discardPileView;
     @FXML private Button drawButton;
     @FXML private Label statusLabel;
@@ -52,6 +53,7 @@ public class GameController implements Initializable {
     @FXML private HBox opponent1Hand, opponent2Hand, opponent3Hand;
     @FXML private VBox  opponent4Hand, opponent5Hand;
     @FXML private Label opponent1Name, opponent2Name, opponent3Name, opponent4Name, opponent5Name;
+    @FXML private Label opponent1HandCount, opponent2HandCount, opponent3HandCount, opponent4HandCount, opponent5HandCount;
 
     private Game game;
     private final ScheduledExecutorService computerPlayerTimer = Executors.newSingleThreadScheduledExecutor();
@@ -61,7 +63,11 @@ public class GameController implements Initializable {
     private static final double PLAYER_CARD_HEIGHT = 120 * 0.9;
     private static final double OPPONENT_CARD_WIDTH = 55 * 0.95;
     private static final double OPPONENT_CARD_HEIGHT = 80 * 0.95;
-    private static final double CARD_OVERLAP = 10;
+    private static final double COMPUTER_CARD_OVERLAP = 20;
+    private static final double PLAYER_CARD_OVERLAP = 10;
+    private static final int COMPUTER_OVERLAP_EXPAND_CARD_STEP = 5;
+    private static final double COMPUTER_OVERLAP_EXPAND_AMOUNT = 10;
+    private static final int MAX_RENDERED_COMPUTER_CARDS = 20;
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
@@ -110,6 +116,13 @@ public class GameController implements Initializable {
         playerHand.getChildren().clear();
         AbstractPlayer humanPlayer = game.getPlayers().get(0);
 
+        playerHand.setAlignment(Pos.CENTER);
+
+        // Show card count for player
+        if (playerHandCount != null) {
+            playerHandCount.setText("(" + humanPlayer.getHand().size() + " cards)");
+        }
+
         for (int i = 0; i < humanPlayer.getHand().size(); i++) {
             AbstractCard card = humanPlayer.getHand().get(i);
             final int cardIndex = i;
@@ -129,9 +142,8 @@ public class GameController implements Initializable {
 
                 VBox cardBox = new VBox(cardRect, cardLabel);
                 cardBox.setAlignment(Pos.CENTER);
-                // --- Overlap: set margin for player cards ---
                 if (i > 0) {
-                    HBox.setMargin(cardBox, new javafx.geometry.Insets(0, 0, 0, -CARD_OVERLAP));
+                    HBox.setMargin(cardBox, new javafx.geometry.Insets(0, 0, 0, -PLAYER_CARD_OVERLAP));
                 }
                 playerHand.getChildren().add(cardBox);
                 cardBox.setOnMouseClicked(e -> handleCardClick(cardIndex));
@@ -139,9 +151,8 @@ public class GameController implements Initializable {
             }
 
             cardView.setOnMouseClicked(e -> handleCardClick(cardIndex));
-            // --- Overlap: set margin for player cards ---
             if (i > 0) {
-                HBox.setMargin(cardView, new javafx.geometry.Insets(0, 0, 0, -CARD_OVERLAP));
+                HBox.setMargin(cardView, new javafx.geometry.Insets(0, 0, 0, -PLAYER_CARD_OVERLAP));
             }
             playerHand.getChildren().add(cardView);
         }
@@ -154,17 +165,12 @@ public class GameController implements Initializable {
             cardBack = null;
         }
 
-        // Layout: [0] = player, [1..6] = opponents
-        // Top: opponent 1, 2, 3
-        setOpponentHandHBox(1, opponent1Name, opponent1Hand, cardBack);
-        setOpponentHandHBox(2, opponent2Name, opponent2Hand, cardBack);
-        setOpponentHandHBox(3, opponent3Name, opponent3Hand, cardBack);
-        // Left: opponent 4
-        setOpponentHandVBox(4, opponent4Name, opponent4Hand, cardBack);
-        // Right: opponent 5
-        setOpponentHandVBox(5, opponent5Name, opponent5Hand, cardBack);
+        setOpponentHandHBox(1, opponent1Name, opponent1Hand, opponent1HandCount, cardBack);
+        setOpponentHandHBox(2, opponent2Name, opponent2Hand, opponent2HandCount, cardBack);
+        setOpponentHandHBox(3, opponent3Name, opponent3Hand, opponent3HandCount, cardBack);
+        setOpponentHandVBox(4, opponent4Name, opponent4Hand, opponent4HandCount, cardBack);
+        setOpponentHandVBox(5, opponent5Name, opponent5Hand, opponent5HandCount, cardBack);
 
-        // ... [rest unchanged]
         AbstractCard topCard = game.getTopCard();
         try {
             discardPileView.setImage(new Image(getClass().getResourceAsStream(topCard.getImagePath())));
@@ -184,7 +190,7 @@ public class GameController implements Initializable {
     }
 
     // For top opponents (HBox)
-    private void setOpponentHandHBox(int index, Label nameLabel, HBox handBox, Image cardBack) {
+    private void setOpponentHandHBox(int index, Label nameLabel, HBox handBox, Label handCountLabel, Image cardBack) {
         if (game.getPlayers().size() > index) {
             AbstractPlayer opponent = game.getPlayers().get(index);
             if (nameLabel != null) {
@@ -197,13 +203,27 @@ public class GameController implements Initializable {
             }
             if (handBox != null && cardBack != null) {
                 handBox.getChildren().clear();
-                for (int j = 0; j < opponent.getHand().size(); j++) {
+                int opponentHandSize = opponent.getHand().size();
+
+                // Show card count
+                if (handCountLabel != null) {
+                    handCountLabel.setText("(" + opponentHandSize + " cards)");
+                }
+
+                int cardsToRender = Math.min(opponentHandSize, MAX_RENDERED_COMPUTER_CARDS);
+
+                double overlap = COMPUTER_CARD_OVERLAP;
+                if (cardsToRender >= 10) {
+                    int overlapSteps = ((cardsToRender - 10) / COMPUTER_OVERLAP_EXPAND_CARD_STEP) + 1;
+                    overlap += overlapSteps * COMPUTER_OVERLAP_EXPAND_AMOUNT;
+                }
+
+                for (int j = 0; j < cardsToRender; j++) {
                     ImageView cardView = new ImageView(cardBack);
                     cardView.setFitHeight(OPPONENT_CARD_HEIGHT);
                     cardView.setFitWidth(OPPONENT_CARD_WIDTH);
-                    // --- Overlap: set margin for opponent cards ---
                     if (j > 0) {
-                        HBox.setMargin(cardView, new javafx.geometry.Insets(0, 0, 0, -CARD_OVERLAP));
+                        HBox.setMargin(cardView, new javafx.geometry.Insets(0, 0, 0, -overlap));
                     }
                     handBox.getChildren().add(cardView);
                 }
@@ -211,10 +231,11 @@ public class GameController implements Initializable {
         } else {
             if (nameLabel != null) nameLabel.setText("");
             if (handBox != null) handBox.getChildren().clear();
+            if (handCountLabel != null) handCountLabel.setText("(0 cards)");
         }
     }
 
-    private void setOpponentHandVBox(int index, Label nameLabel, VBox handBox, Image cardBack) {
+    private void setOpponentHandVBox(int index, Label nameLabel, VBox handBox, Label handCountLabel, Image cardBack) {
         if (game.getPlayers().size() > index) {
             AbstractPlayer opponent = game.getPlayers().get(index);
             if (nameLabel != null) {
@@ -227,13 +248,27 @@ public class GameController implements Initializable {
             }
             if (handBox != null && cardBack != null) {
                 handBox.getChildren().clear();
-                for (int j = 0; j < opponent.getHand().size(); j++) {
+                int opponentHandSize = opponent.getHand().size();
+
+                // Show card count
+                if (handCountLabel != null) {
+                    handCountLabel.setText("(" + opponentHandSize + " cards)");
+                }
+
+                int cardsToRender = Math.min(opponentHandSize, MAX_RENDERED_COMPUTER_CARDS);
+
+                double overlap = COMPUTER_CARD_OVERLAP;
+                if (cardsToRender >= 10) {
+                    int overlapSteps = ((cardsToRender - 10) / COMPUTER_OVERLAP_EXPAND_CARD_STEP) + 1;
+                    overlap += overlapSteps * COMPUTER_OVERLAP_EXPAND_AMOUNT;
+                }
+
+                for (int j = 0; j < cardsToRender; j++) {
                     ImageView cardView = new ImageView(cardBack);
                     cardView.setFitHeight(OPPONENT_CARD_WIDTH);
                     cardView.setFitWidth(OPPONENT_CARD_HEIGHT);
-                    // --- Overlap: set margin for opponent cards ---
                     if (j > 0) {
-                        VBox.setMargin(cardView, new javafx.geometry.Insets(-CARD_OVERLAP, 0, 0, 0));
+                        VBox.setMargin(cardView, new javafx.geometry.Insets(-overlap, 0, 0, 0));
                     }
                     handBox.getChildren().add(cardView);
                 }
@@ -241,6 +276,7 @@ public class GameController implements Initializable {
         } else {
             if (nameLabel != null) nameLabel.setText("");
             if (handBox != null) handBox.getChildren().clear();
+            if (handCountLabel != null) handCountLabel.setText("(0 cards)");
         }
     }
 
@@ -404,7 +440,7 @@ public class GameController implements Initializable {
             return;
         }
 
-        game.drawCardForPlayer();
+        game.drawCard();
         lastActionLabel.setText("You drew a card");
         updateUI();
     }
@@ -463,52 +499,23 @@ public class GameController implements Initializable {
             return;
         }
 
-        int cardToPlay = computer.selectCardToPlay(game.getTopCard(), game.getCurrentColor());
-        if (cardToPlay >= 0) {
-            AbstractCard selectedCard = computer.getHand().get(cardToPlay);
-
-            if (selectedCard.getColor() == Colors.WILD) {
-                Colors[] colors = { Colors.RED, Colors.BLUE, Colors.GREEN, Colors.YELLOW };
-                game.setCurrentColor(colors[(int) (Math.random() * colors.length)]);
+        // Try to play as long as possible
+        boolean hasPlayed = false;
+        while (!hasPlayed) {
+            int cardToPlay = computer.selectCardToPlay(game.getTopCard(), game.getCurrentColor());
+            if (cardToPlay >= 0) {
+                AbstractCard selectedCard = computer.getHand().get(cardToPlay);
+                // (handle wild cards/color selection if necessary)
+                game.playCard(cardToPlay);
+                hasPlayed = true;
+            } else {
+                game.drawCard();
             }
-
-            String computerAction = computer.getName() + " played " + selectedCard.toString();
-
-            switch (selectedCard.getType()) {
-                case SKIP:
-                    computerAction += " - Player skipped!";
-                    showNotification("SKIP!", Color.RED);
-                    break;
-                case REVERSE:
-                    computerAction += " - Direction reversed!";
-                    showNotification("REVERSE!", Color.ORANGE);
-                    updateGameDirectionLabel(false);
-                    break;
-                case DRAW_TWO:
-                    computerAction += " - Next player draws 2 cards!";
-                    showNotification("+2 CARDS", Color.RED);
-                    break;
-                case DRAW_FOUR:
-                    computerAction += " - Next player draws 4 cards!";
-                    showNotification("+4 CARDS", Color.DARKRED);
-                    break;
-                default:
-                    break;
-            }
-
-            lastActionLabel.setText(computerAction);
-            game.playCard(cardToPlay);
-
-            updateUI();
-            checkGameStatus();
-            checkAndStartComputerTurn();
-
-        } else {
-            game.drawCardForPlayer();
-            lastActionLabel.setText(computer.getName() + " drew a card");
-            updateUI();
-            checkAndStartComputerTurn();
         }
+
+        updateUI();
+        checkGameStatus();
+        checkAndStartComputerTurn();
     }
 
     private void shutdown() {
