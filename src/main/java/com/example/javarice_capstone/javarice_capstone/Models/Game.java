@@ -21,7 +21,10 @@ public class Game {
         players = new ArrayList<>();
 
         players.add(PlayerFactory.createPlayer("HUMAN", "You"));
-        for (int i = 1; i < numPlayers; i++) players.add(PlayerFactory.createPlayer("COMPUTER - S", "Computer " + i));
+        for (int i = 1; i < numPlayers; i++) {
+            String randomType = PlayerFactory.getRandomComputerType();
+            players.add(PlayerFactory.createPlayer(randomType, "Computer " + i));
+        }
 
         for (int i = 0; i < 7; i++) {
             for (AbstractPlayer player : players) {

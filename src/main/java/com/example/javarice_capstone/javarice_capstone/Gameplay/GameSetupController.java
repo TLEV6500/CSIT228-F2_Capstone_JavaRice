@@ -1,13 +1,10 @@
 package com.example.javarice_capstone.javarice_capstone.Gameplay;
 
-import javafx.beans.value.ObservableValue;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.CheckBox;
-import javafx.scene.control.Spinner;
-import javafx.scene.control.SpinnerValueFactory;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.layout.HBox;
@@ -23,7 +20,6 @@ import java.util.*;
 
 public class GameSetupController {
 
-    @FXML private Spinner<Integer> numberOfPlayersSpinner;
     @FXML private CheckBox allowStackingCheckBox;
     @FXML private CheckBox allowJumpInCheckBox;
     @FXML private CheckBox drawCardsCheckBox;
@@ -32,24 +28,28 @@ public class GameSetupController {
     @FXML private Button cancelButton;
     @FXML private VBox playersContainer;
     @FXML private Label dateTimeLabel;
+    @FXML private Button addPlayerButton;
+    @FXML private Button removePlayerButton;
 
     private int aiPlayerCounter = 1;
     private final String currentUser = "Player";
     private final Random random = new Random();
     private final Set<String> usedAiNames = new HashSet<>();
     private final List<String> namePool = Arrays.asList(
-            "Ven", "Raimar", "Grant", "Tim", "Romar", "Aaron", "Zillion", "Raymond", "Seth", "4 AM Gaming", "5 Cans of Red Bull", "No Sleep"
+            "Ven", "Raimar", "Grant", "Tim", "Jay Vince", "Romar", "Aaron", "Zillion", "Raymond", "Seth", "4 AM Gaming", "5 Cans of Red Bull", "No Sleep"
     );
 
+    private static final int MIN_PLAYERS = 2;
+    private static final int MAX_PLAYERS = 8;
+
     public void initialize() {
-        if (numberOfPlayersSpinner != null) {
-            numberOfPlayersSpinner.getValueFactory().setValue(4);
-            numberOfPlayersSpinner.valueProperty().addListener(this::onPlayerCountChanged);
-        }
         if (startGameButton != null) startGameButton.setOnAction(e -> handleStartGame());
         if (cancelButton != null) cancelButton.setOnAction(e -> handleCancel());
+        if (addPlayerButton != null) addPlayerButton.setOnAction(e -> handleAddPlayer());
+        if (removePlayerButton != null) removePlayerButton.setOnAction(e -> handleRemovePlayer());
         updateDateTimeLabel();
         if (playersContainer != null) initializePlayersContainer();
+        updateAddRemoveButtons();
     }
 
     private void updateDateTimeLabel() {
@@ -62,25 +62,14 @@ public class GameSetupController {
         playersContainer.getChildren().clear();
         usedAiNames.clear();
         aiPlayerCounter = 1;
-        addPlayerEntry(currentUser, "Host", true);
-        addAiPlayer("Jay Vince");
-        int aiPlayersToAdd = numberOfPlayersSpinner.getValue() - playersContainer.getChildren().size();
-        for (int i = 0; i < aiPlayersToAdd; i++) addAiPlayer(getUniqueAiName());
-    }
-
-    private void onPlayerCountChanged(ObservableValue<? extends Integer> obs, Integer oldValue, Integer newValue) {
-        if (playersContainer == null || newValue == null) return;
-        int currentCount = playersContainer.getChildren().size();
-        if (newValue > currentCount) {
-            for (int i = 0; i < newValue - currentCount; i++) addAiPlayer(getUniqueAiName());
-        } else if (newValue < currentCount) {
-            for (int i = currentCount; i > newValue; i--) removeLastAiPlayer();
-        }
+        addPlayerEntry(currentUser, "You", true);
+        addAiPlayer(getUniqueAiName());
+        updateAddRemoveButtons();
     }
 
     private void removeLastAiPlayer() {
         int idx = playersContainer.getChildren().size() - 1;
-        if (idx > 0) {
+        if (idx > 0 && playersContainer.getChildren().size() > MIN_PLAYERS) { // Never remove the host, and keep at least 2 players
             HBox entry = (HBox) playersContainer.getChildren().get(idx);
             Label nameLabel = (Label) entry.getChildren().get(0);
             usedAiNames.remove(nameLabel.getText());
@@ -116,16 +105,31 @@ public class GameSetupController {
     @FXML
     private void addAiPlayer(String name) {
         if (playersContainer != null) addPlayerEntry(name, "AI", false);
-        int currentCount = playersContainer.getChildren().size();
-        if (numberOfPlayersSpinner != null && currentCount > numberOfPlayersSpinner.getValue()) {
-            numberOfPlayersSpinner.getValueFactory().setValue(currentCount);
-        }
+        updateAddRemoveButtons();
+    }
+
+    private void handleAddPlayer() {
+        if (playersContainer.getChildren().size() < MAX_PLAYERS) addAiPlayer(getUniqueAiName());
+        updateAddRemoveButtons();
+    }
+
+    private void handleRemovePlayer() {
+        if (playersContainer.getChildren().size() > MIN_PLAYERS) removeLastAiPlayer();
+        updateAddRemoveButtons();
+    }
+
+    private void updateAddRemoveButtons() {
+        int count = playersContainer.getChildren().size();
+        if (addPlayerButton != null)
+            addPlayerButton.setDisable(count >= MAX_PLAYERS);
+        if (removePlayerButton != null)
+            removePlayerButton.setDisable(count <= MIN_PLAYERS);
     }
 
     @FXML
     private void handleStartGame() {
         try {
-            int numberOfPlayers = numberOfPlayersSpinner.getValue();
+            int numberOfPlayers = playersContainer.getChildren().size();
             List<String> playerNames = new ArrayList<>();
             for (var node : playersContainer.getChildren()) {
                 HBox entry = (HBox) node;

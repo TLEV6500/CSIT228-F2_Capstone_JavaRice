@@ -3,27 +3,36 @@ package com.example.javarice_capstone.javarice_capstone.Factory;
 import com.example.javarice_capstone.javarice_capstone.Abstracts.AbstractPlayer;
 import com.example.javarice_capstone.javarice_capstone.Models.PlayerComputer;
 import com.example.javarice_capstone.javarice_capstone.Models.PlayerHuman;
+import com.example.javarice_capstone.javarice_capstone.Strategies.AggressiveStrat;
+import com.example.javarice_capstone.javarice_capstone.Strategies.DefensiveStrat;
 import com.example.javarice_capstone.javarice_capstone.Strategies.NormalStrat;
+import com.example.javarice_capstone.javarice_capstone.Strategies.TrollStrat;
+
+import java.util.Random;
 
 public class PlayerFactory {
 
-    // Why use a Factory for player creation in the Game class?
-    //
-    // - Keeps Game class simpler by not dealing with player details.
-    // - Easy to add new player types (like AI or network players) later.
-    // - All player creation code is in one place (the Factory).
-    // - Makes it easy to pass special settings or strategies to players.
-    // - Follows good design practices (Open/Closed Principle).
+    private static final String[] COMPUTER_TYPES = {"COMPUTER - N", "COMPUTER - A", "COMPUTER - D", "COMPUTER - T"};
+    private static final Random RANDOM = new Random();
 
     public static AbstractPlayer createPlayer(String type, String name) {
         switch (type) {
             case "HUMAN":
                 return new PlayerHuman(name);
-            case "COMPUTER - S":
+            case "COMPUTER - N":
                 return new PlayerComputer(name, new NormalStrat());
+            case "COMPUTER - A":
+                return new PlayerComputer(name, new AggressiveStrat());
+            case "COMPUTER - D":
+                return new PlayerComputer(name, new DefensiveStrat());
+            case "COMPUTER - T":
+                return new PlayerComputer(name, new TrollStrat());
             default:
                 throw new IllegalArgumentException("Unknown player type: " + type);
         }
     }
 
+    public static String getRandomComputerType() {
+        return COMPUTER_TYPES[RANDOM.nextInt(COMPUTER_TYPES.length)];
+    }
 }

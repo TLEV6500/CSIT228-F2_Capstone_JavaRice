@@ -8,13 +8,14 @@ import javafx.stage.Stage;
 import java.io.IOException;
 
 public class Launcher extends Application {
+
     @Override
     public void start(Stage stage) throws IOException {
         FXMLLoader fxmlLoader = new FXMLLoader(Launcher.class.getResource("MenuUI.fxml"));
         Scene scene = new Scene(fxmlLoader.load());
         stage.setTitle("PLAY UNO");
-        stage.setMaximized(true);
         stage.setScene(scene);
+        stage.setMaximized(true);
         stage.show();
     }
 
