@@ -13,24 +13,28 @@ import java.util.concurrent.ConcurrentHashMap;
 public class SqlDatabaseManager extends DatabaseManager {
     private final Connection connection;
     private final Set<String> initializedTables = ConcurrentHashMap.newKeySet();
-    private final boolean useDedicatedTables = true; // Configurable
-    private PreparedStatement dedicatedTableSaveStmt;
-    private PreparedStatement gameDataTableSaveStmt;
+    private final boolean useDedicatedTables; // Configurable
+    private final PreparedStatement dedicatedTableSaveStmt;
+    private final PreparedStatement gameDataTableSaveStmt;
+    private final String gameDataTableName = "game_data";
+    private final String metadataTableName = "metadata";
 
-    public SqlDatabaseManager(Connection connection) throws SQLException {
+    public SqlDatabaseManager(Connection connection, Boolean useDedicated) throws SQLException {
         this.connection = connection;
+        this.useDedicatedTables = useDedicated;
         initializeCoreTables();
+
         if (useDedicatedTables) {
             dedicatedTableSaveStmt = connection.prepareStatement(
-            """
-            CREATE TABLE game_data (
-                type_name VARCHAR(255) PRIMARY KEY,
-                table_name VARCHAR(100) NOT NULL,
-                schema_version INT NOT NULL,
-                UNIQUE(table_name)
-            """);
+                    "INSERT INTO ? (id, data) VALUES (?, ?) " +
+                            "ON DUPLICATE KEY UPDATE data = VALUES(data)");
+            gameDataTableSaveStmt = null;
         } else {
-            gameDataTableSaveStmt = connection.prepareStatement("...");
+            gameDataTableSaveStmt = connection.prepareStatement(
+                    "INSERT INTO game_data (id, data_type, content) " +
+                            "VALUES (?, ?, ?) " +
+                            "ON DUPLICATE KEY UPDATE content = VALUES(content)");
+            dedicatedTableSaveStmt = null;
         }
     }
 
@@ -43,10 +47,8 @@ public class SqlDatabaseManager extends DatabaseManager {
     public void logout() throws SQLException, UnsupportedOperationException {
         synchronized (this) {
             try {
-                // 1. Clear in-memory state
                 initializedTables.clear();
 
-                // 2. Return connection to pool (if using pooling)
                 if (connection != null && !connection.isClosed()) {
                     connection.close();
                 }
@@ -59,21 +61,26 @@ public class SqlDatabaseManager extends DatabaseManager {
     @Override
     public int saveData(SerializableGameData data) throws DatabaseException {
         try {
-            ensureTableForType(data.getClass());
-            String tableName = data.getClass().getSimpleName();
-            String sql = String.format("""
-                INSERT INTO %s (id, data) 
-                VALUES (?, ?)
-                ON DUPLICATE KEY UPDATE data = VALUES(data)
-                """, tableName);
+            if (useDedicatedTables) {
+                String tableName = data.getClass().getSimpleName();
+                ensureTableForType(data.getClass());
 
-            try (PreparedStatement stmt = connection.prepareStatement(sql)) {
-                stmt.setInt(1, data.getId());
-                stmt.setBytes(2, LocalDatabaseManager.serialize(data));
-                stmt.executeUpdate();
-                return data.getId();
+                synchronized (dedicatedTableSaveStmt) {
+                    dedicatedTableSaveStmt.setString(1, tableName);
+                    dedicatedTableSaveStmt.setInt(2, data.getId());
+                    dedicatedTableSaveStmt.setBytes(3, LocalDatabaseManager.serialize(data));
+                    dedicatedTableSaveStmt.executeUpdate();
+                }
+            } else {
+                synchronized (gameDataTableSaveStmt) {
+                    gameDataTableSaveStmt.setInt(1, data.getId());
+                    gameDataTableSaveStmt.setString(2, data.getClass().getName());
+                    gameDataTableSaveStmt.setBytes(3, LocalDatabaseManager.serialize(data));
+                    gameDataTableSaveStmt.executeUpdate();
+                }
             }
-        } catch (SQLException | DatabaseException e) {
+            return data.getId();
+        } catch (SQLException e) {
             throw new DatabaseException("Failed to save " + data.getClass().getSimpleName(), e);
         }
     }
@@ -135,7 +142,6 @@ public class SqlDatabaseManager extends DatabaseManager {
                 int[] updateCounts = stmt.executeBatch();
                 connection.commit();
 
-                // Verify updates
                 for (int count : updateCounts) {
                     if (count == 0) {
                         throw new DatabaseException("No record updated for ID: " + ids[0]);
@@ -204,30 +210,51 @@ public class SqlDatabaseManager extends DatabaseManager {
     private void initializeCoreTables() {
         synchronized (this) {
             try {
-                if (!tableExists("metadata")) {
+                if (!tableExists(metadataTableName)) {
                     createMetadataTable();
                 }
-                initializedTables.add("metadata");
+                if (!useDedicatedTables && !tableExists(gameDataTableName)) {
+                    createGameDataTable();
+                }
+                initializedTables.add(metadataTableName);
+                initializedTables.add(gameDataTableName);
             } catch (SQLException e) {
                 throw new RuntimeException("Database initialization failed", e);
             }
         }
     }
 
-    private void createMetadataTable() throws SQLException {
+    private void createGameDataTable() throws SQLException {
         String sql = """
-            CREATE TABLE metadata (
-                type_name VARCHAR(255) PRIMARY KEY,
-                table_name VARCHAR(100) NOT NULL,
-                schema_version INT NOT NULL,
-                UNIQUE(table_name)
-            """;
+        CREATE TABLE IF NOT EXISTS game_data (
+            id INT NOT NULL,
+            data_type VARCHAR(255) NOT NULL,
+            content BLOB NOT NULL,
+            version INT DEFAULT 1,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            last_updated TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+            PRIMARY KEY (id, data_type)
+        )
+        """;
+
         try (Statement stmt = connection.createStatement()) {
             stmt.execute(sql);
         }
     }
 
-    // Lazy initialization for new data types
+    private void createMetadataTable() throws SQLException {
+        String sql = """
+            CREATE TABLE IF NOT EXISTS metadata (
+                type_name VARCHAR(255) PRIMARY KEY,
+                table_name VARCHAR(100) NOT NULL,
+                schema_version INT NOT NULL,
+                UNIQUE(table_name)
+            )""";
+        try (Statement stmt = connection.createStatement()) {
+            stmt.execute(sql);
+        }
+    }
+
     private void ensureTableForType(Class<? extends SerializableGameData> classType)
             throws SQLException {
         String tableName = classType.getSimpleName();
@@ -237,6 +264,9 @@ public class SqlDatabaseManager extends DatabaseManager {
                     if (useDedicatedTables) {
                         createDedicatedTable(classType);
                     }
+                    else if (!tableExists(gameDataTableName)) {
+                        createGameDataTable();
+                    }
                     registerTypeInMetadata(classType);
                     initializedTables.add(tableName);
                 }
@@ -244,25 +274,24 @@ public class SqlDatabaseManager extends DatabaseManager {
         }
     }
 
-    // Create a dedicated table for a specific class
+
     private void createDedicatedTable(Class<? extends SerializableGameData> classType)
             throws SQLException {
         String tableName = classType.getSimpleName();
         String sql = String.format("""
-            CREATE TABLE %s (
+            CREATE TABLE IF NOT EXISTS %s (
                 id INT PRIMARY KEY,
                 data BLOB NOT NULL,
                 version INT DEFAULT 1,
                 last_updated TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-            )
-            """, tableName);
+            )""", tableName);
 
         try (Statement stmt = connection.createStatement()) {
             stmt.execute(sql);
         }
     }
 
-    // Register the type in metadata table
+
     private void registerTypeInMetadata(Class<? extends SerializableGameData> classType)
             throws SQLException {
         String sql = """
@@ -277,7 +306,7 @@ public class SqlDatabaseManager extends DatabaseManager {
         }
     }
 
-    // Check if a table exists
+
     private boolean tableExists(String tableName) throws SQLException {
         DatabaseMetaData dbMeta = connection.getMetaData();
         try (ResultSet rs = dbMeta.getTables(null, null, tableName, null)) {
