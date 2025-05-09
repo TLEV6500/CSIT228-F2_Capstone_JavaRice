@@ -7,6 +7,7 @@ import com.example.javarice_capstone.javarice_capstone.enums.Colors;
 import com.example.javarice_capstone.javarice_capstone.enums.Types;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Random;
 
@@ -31,21 +32,21 @@ public class Game {
             players.add(PlayerFactory.createPlayer(randomType, "Computer " + i));
         }
 
+        // Deal 7 cards to each player as usual
         for (int i = 0; i < 7; i++) {
             for (AbstractPlayer player : players) {
                 player.addCard(deck.drawCard());
             }
         }
 
-        // Set the first player according to the fixed custom order (should be the human player, index 0)
+        // RANDOMIZE STARTING PLAYER
         currentPlayerIndex = getNextValidPlayerIndex(-1, true);
         customTurnIndex = getCustomOrderIndex(currentPlayerIndex);
-        // Direction starts as clockwise
         customOrderIsClockwise = true;
 
         AbstractCard firstCard = deck.drawCard();
-        while (firstCard.getColor() == Colors.WILD) {
-            deck.discard(firstCard);
+        while (firstCard.getType() != Types.NUMBER) {
+            deck.discard(firstCard); // Discard unwanted card to bottom of pile
             deck.shuffle();
             firstCard = deck.drawCard();
         }
@@ -100,17 +101,6 @@ public class Game {
     public AbstractCard drawCard() {
         AbstractCard card = deck.drawCard();
         getCurrentPlayer().addCard(card);
-        return card;
-    }
-
-    /**
-     * Legacy method that draws a card and advances to the next player.
-     * Used by computer players who always draw one card then end turn.
-     * @return The drawn card
-     */
-    public AbstractCard drawCardForPlayer() {
-        AbstractCard card = drawCard();
-        nextPlayer();
         return card;
     }
 
@@ -187,6 +177,27 @@ public class Game {
         return 0;
     }
 
+    public String getActionDescription(AbstractCard card) {
+        String actionText = "Played " + card.toString();
+        switch (card.getType()) {
+            case SKIP:
+                actionText += " - Player skipped!";
+                break;
+            case REVERSE:
+                actionText += " - Direction reversed!";
+                break;
+            case DRAW_TWO:
+                actionText += " - Next player draws 2 cards!";
+                break;
+            case DRAW_FOUR:
+                actionText += " - Next player draws 4 cards!";
+                break;
+            default:
+                break;
+        }
+        return actionText;
+    }
+
     public boolean isGameOver() {
         for (AbstractPlayer player : players) {
             if (player.hasWon()) return true;
@@ -195,8 +206,19 @@ public class Game {
     }
 
     public AbstractPlayer getWinner() {
-        for (AbstractPlayer player : players) {
-            if (player.hasWon()) return player;
+        for (AbstractPlayer player : getPlayers()) {
+            if (player.hasWon()) {
+                return player;
+            }
+        }
+        return null;
+    }
+
+    public AbstractPlayer getUnoPlayer() {
+        for (AbstractPlayer player : getPlayers()) {
+            if (player.hasUno()) {
+                return player;
+            }
         }
         return null;
     }

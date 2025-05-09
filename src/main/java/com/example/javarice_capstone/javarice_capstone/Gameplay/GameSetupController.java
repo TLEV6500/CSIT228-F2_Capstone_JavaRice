@@ -163,7 +163,6 @@ public class GameSetupController {
             Parent root = loader.load();
             GameController gameUIController = loader.getController();
 
-            // Pass rules to your game controller
             gameUIController.startGame(numberOfPlayers, playerNames, rules);
 
             Stage stage = (Stage) startGameButton.getScene().getWindow();
