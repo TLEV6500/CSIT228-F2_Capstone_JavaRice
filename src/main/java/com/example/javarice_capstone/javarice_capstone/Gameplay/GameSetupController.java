@@ -6,6 +6,7 @@ import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
+import javafx.scene.control.TextField;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
@@ -25,7 +26,8 @@ public class GameSetupController {
     @FXML private Label dateTimeLabel;
     @FXML private Button addPlayerButton;
     @FXML private Button removePlayerButton;
-    @FXML private Label lobbyCodeLabel;
+    @FXML
+    TextField lobbyCodeField;
 
     private static final int MIN_PLAYERS = 2;
     private static final int MAX_PLAYERS = 6;
@@ -65,8 +67,8 @@ public class GameSetupController {
     }
 
     private void updateLobbyCodeLabel(String code) {
-        if (lobbyCodeLabel != null) {
-            lobbyCodeLabel.setText(code != null && !code.isEmpty() ? "Lobby Code: " + code : "");
+        if (lobbyCodeField != null) {
+            lobbyCodeField.setText(code != null && !code.isEmpty() ? code : "");
         }
     }
 
@@ -194,10 +196,10 @@ public class GameSetupController {
 
     // Generates a random uppercase lobby code of 6 characters
     private String generateLobbyCode() {
-        String chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ123456789";
+        String chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890";
         Random rand = new Random();
         StringBuilder code = new StringBuilder();
-        for (int i = 0; i < 6; i++) {
+        for (int i = 0; i < 8; i++) {
             code.append(chars.charAt(rand.nextInt(chars.length())));
         }
         lobbyCode = code.toString();

@@ -91,11 +91,11 @@ public class MenuController {
         }
     }
 
+    // MODIFIED: Replace current scene instead of creating a new Stage for GameSetupUI
     private void launchGameSetupUI(GameSetupDialogController.Mode mode, GameSetupDialogController.MultiplayerSetupResult setupResult) {
         try {
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/example/javarice_capstone/javarice_capstone/Dialog/GameSetupUI.fxml"));
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/example/javarice_capstone/javarice_capstone/GameSetupUI.fxml"));
             Parent setupUIRoot = loader.load();
-            // You must implement this controller as needed to accept the setup result and mode
             Object setupController = loader.getController();
 
             if (mode == GameSetupDialogController.Mode.HOST) {
@@ -108,12 +108,13 @@ public class MenuController {
                         .invoke(setupController, setupResult.username, setupResult.hostCode);
             }
 
-            Stage setupStage = new Stage();
-            setupStage.setTitle(mode == GameSetupDialogController.Mode.HOST ? "Host Lobby" : "Join Lobby");
-            setupStage.initModality(javafx.stage.Modality.APPLICATION_MODAL);
-            setupStage.setScene(new Scene(setupUIRoot));
-            setupStage.setResizable(false);
-            setupStage.showAndWait();
+            // Instead of a new Stage, replace the current Scene
+            // Use any node from the current scene to get the window, e.g., hostGameCard
+            Stage stage = (Stage) hostGameCard.getScene().getWindow();
+            Scene scene = new Scene(setupUIRoot);
+            stage.setScene(scene);
+            stage.setTitle(mode == GameSetupDialogController.Mode.HOST ? "Host Lobby" : "Join Lobby");
+            // No showAndWait here, as we're on the main window
         } catch (Exception e) {
             e.printStackTrace();
             showError("Cannot launch game setup UI", "Something went wrong while launching the game setup UI.");
