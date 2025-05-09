@@ -4,6 +4,7 @@ import com.example.javarice_capstone.javarice_capstone.Models.Game;
 import com.example.javarice_capstone.javarice_capstone.Abstracts.AbstractCard;
 import com.example.javarice_capstone.javarice_capstone.Abstracts.AbstractPlayer;
 import com.example.javarice_capstone.javarice_capstone.enums.Colors;
+import com.example.javarice_capstone.javarice_capstone.enums.Types;
 import javafx.animation.FadeTransition;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
@@ -43,10 +44,8 @@ public class GameController implements Initializable {
     @FXML private HBox playerHand;
     @FXML private Label playerHandCount;
     @FXML private ImageView discardPileView;
-    @FXML private Button drawButton;
+    @FXML private ImageView drawPileView;
     @FXML private Label statusLabel;
-    @FXML private Label currentColorLabel;
-    @FXML private Rectangle colorIndicator;
     @FXML private StackPane notificationArea;
     @FXML private Label gameDirectionLabel;
     @FXML private Label lastActionLabel;
@@ -101,7 +100,7 @@ public class GameController implements Initializable {
         }
 
         updateUI();
-        drawButton.setOnAction(e -> handleDrawCard());
+        drawPileView.setOnMouseClicked(e -> handleDrawCard());
         checkAndStartComputerTurn();
     }
 
@@ -172,18 +171,31 @@ public class GameController implements Initializable {
             cardBack = null;
         }
 
-        setOpponentHandHBox(1, opponent1Name, opponent1Hand, opponent1HandCount, cardBack);
-        setOpponentHandHBox(2, opponent2Name, opponent2Hand, opponent2HandCount, cardBack);
-        setOpponentHandHBox(3, opponent3Name, opponent3Hand, opponent3HandCount, cardBack);
-        setOpponentHandVBox(4, opponent4Name, opponent4Hand, opponent4HandCount, cardBack);
-        setOpponentHandVBox(5, opponent5Name, opponent5Hand, opponent5HandCount, cardBack);
+        // Only show the card count of computers already present
+        int computerCount = game.getPlayers().size() - 1; // Assuming player 0 is always human
+
+        if (computerCount >= 1) setOpponentHandHBox(1, opponent1Name, opponent1Hand, opponent1HandCount, cardBack);
+        else                    clearOpponentHandUI(opponent1Name, opponent1Hand, opponent1HandCount);
+
+        if (computerCount >= 2) setOpponentHandHBox(2, opponent2Name, opponent2Hand, opponent2HandCount, cardBack);
+        else                    clearOpponentHandUI(opponent2Name, opponent2Hand, opponent2HandCount);
+
+        if (computerCount >= 3) setOpponentHandHBox(3, opponent3Name, opponent3Hand, opponent3HandCount, cardBack);
+        else                    clearOpponentHandUI(opponent3Name, opponent3Hand, opponent3HandCount);
+
+        if (computerCount >= 4) setOpponentHandVBox(4, opponent4Name, opponent4Hand, opponent4HandCount, cardBack);
+        else                    clearOpponentHandUI(opponent4Name, opponent4Hand, opponent4HandCount);
+
+        if (computerCount >= 5) setOpponentHandVBox(5, opponent5Name, opponent5Hand, opponent5HandCount, cardBack);
+        else                    clearOpponentHandUI(opponent5Name, opponent5Hand, opponent5HandCount);
 
         AbstractCard topCard = game.getTopCard();
         try {
             discardPileView.setImage(new Image(Objects.requireNonNull(getClass().getResourceAsStream(topCard.getImagePath()))));
+            drawPileView.setImage(new Image(Objects.requireNonNull(getClass().getResourceAsStream("/images/cards/card_back.png"))));
         } catch (Exception ignored) {}
 
-        updateColorIndicator();
+        updateWildCardColor();
         AbstractPlayer currentPlayer = game.getCurrentPlayer();
         statusLabel.setText("Current turn: " + currentPlayer.getName());
     }
@@ -194,6 +206,13 @@ public class GameController implements Initializable {
         if (opponent3Hand != null) opponent3Hand.getChildren().clear();
         if (opponent4Hand != null) opponent4Hand.getChildren().clear();
         if (opponent5Hand != null) opponent5Hand.getChildren().clear();
+    }
+
+    // Helper to clear UI for unused computer slots
+    private void clearOpponentHandUI(Label nameLabel, javafx.scene.layout.Pane handBox, Label handCountLabel) {
+        if (nameLabel != null) nameLabel.setText("");
+        if (handBox != null) handBox.getChildren().clear();
+        if (handCountLabel != null) handCountLabel.setText("");
     }
 
     // For top opponents (HBox)
@@ -235,11 +254,8 @@ public class GameController implements Initializable {
                     handBox.getChildren().add(cardView);
                 }
             }
-        } else {
-            if (nameLabel != null) nameLabel.setText("");
-            if (handBox != null) handBox.getChildren().clear();
-            if (handCountLabel != null) handCountLabel.setText("(0 cards)");
         }
+        // else branch removed
     }
 
     private void setOpponentHandVBox(int index, Label nameLabel, VBox handBox, Label handCountLabel, Image cardBack) {
@@ -280,17 +296,32 @@ public class GameController implements Initializable {
                     handBox.getChildren().add(cardView);
                 }
             }
-        } else {
-            if (nameLabel != null) nameLabel.setText("");
-            if (handBox != null) handBox.getChildren().clear();
-            if (handCountLabel != null) handCountLabel.setText("(0 cards)");
         }
+        // else branch removed
     }
 
-    private void updateColorIndicator() {
+    private void updateWildCardColor() {
+        AbstractCard topCard = game.getTopCard();
         Colors currentColor = game.getCurrentColor();
-        colorIndicator.setFill(getJavaFXColor(currentColor));
-        currentColorLabel.setText("Current Color: " + currentColor);
+
+        if (topCard == null) return;
+
+        if (topCard.getType() == Types.WILD || topCard.getType() == Types.DRAW_FOUR) {
+            if (currentColor != Colors.WILD) {
+                String imgPath = null;
+
+                if (topCard.getType() == Types.WILD) imgPath = "/images/cards/" + currentColor.name().toLowerCase() + "_card.png";
+                else if (topCard.getType() == Types.DRAW_FOUR) imgPath = "/images/cards/" + currentColor.name().toLowerCase() + "_draw_four.png";
+
+                if (imgPath != null) {
+                    try {
+                        discardPileView.setImage(new Image(Objects.requireNonNull(getClass().getResourceAsStream(imgPath))));
+                    } catch (Exception ignored) {
+                    }
+                }
+            }
+        }
+
     }
 
     private Color getJavaFXColor(Colors cardColor) {
@@ -513,7 +544,7 @@ public class GameController implements Initializable {
                 shutdown();
 
                 try {
-                    FXMLLoader loader = new FXMLLoader(getClass().getResource("gameSetupUI.fxml"));
+                    FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/example/javarice_capstone/javarice_capstone/GameSetupUI.fxml"));
                     Parent root = loader.load();
                     Stage stage = (Stage) statusLabel.getScene().getWindow();
                     stage.getScene().setRoot(root);
@@ -551,18 +582,20 @@ public class GameController implements Initializable {
     private void playComputerTurn() {
         AbstractPlayer computer = game.getCurrentPlayer();
         boolean isComputer = computer.getClass().getSimpleName().toLowerCase().contains("computer");
-        if (!isComputer) {
-            return;
-        }
+        if (!isComputer) return;
 
-        // Try to play as long as possible
         boolean hasPlayed = false;
         while (!hasPlayed) {
             int cardToPlay = computer.selectCardToPlay(game.getTopCard(), game.getCurrentColor());
             if (cardToPlay >= 0) {
                 AbstractCard selectedCard = computer.getHand().get(cardToPlay);
-                // (handle wild cards/color selection if necessary)
+                Types type = selectedCard.getType();
                 game.playCard(cardToPlay);
+
+                if (type == Types.WILD || type == Types.DRAW_FOUR) {
+                    Colors newColor = Game.getRandomColorExcept(game.getCurrentColor());
+                    game.setCurrentColor(newColor);
+                }
                 hasPlayed = true;
             } else {
                 game.drawCard();
@@ -578,8 +611,4 @@ public class GameController implements Initializable {
         computerPlayerTimer.shutdownNow();
     }
 
-    // Optionally, provide a getter if you want to query rules elsewhere
-    public GameRules getGameRules() {
-        return gameRules;
-    }
 }

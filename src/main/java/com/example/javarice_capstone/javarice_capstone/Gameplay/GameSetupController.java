@@ -60,6 +60,7 @@ public class GameSetupController {
         updateDateTimeLabel();
         if (playersContainer != null) initializePlayersContainer();
         updateAddRemoveButtons();
+
     }
 
     private void updateDateTimeLabel() {
@@ -71,9 +72,9 @@ public class GameSetupController {
     private void initializePlayersContainer() {
         playersContainer.getChildren().clear();
         usedAiNames.clear();
-        aiPlayerCounter = 1;
+        aiPlayerCounter = 3;
         addPlayerEntry(currentUser, "You", true);
-        addAiPlayer(getUniqueAiName());
+        for (int i = 0; i < 3; i++) addAiPlayer(getUniqueAiName());
         updateAddRemoveButtons();
     }
 

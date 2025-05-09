@@ -3,12 +3,12 @@ package com.example.javarice_capstone.javarice_capstone.Models;
 import com.example.javarice_capstone.javarice_capstone.Abstracts.AbstractCard;
 import com.example.javarice_capstone.javarice_capstone.Abstracts.AbstractPlayer;
 import com.example.javarice_capstone.javarice_capstone.Factory.PlayerFactory;
-import com.example.javarice_capstone.javarice_capstone.Factory.UnlimitedCardFactory;
 import com.example.javarice_capstone.javarice_capstone.enums.Colors;
 import com.example.javarice_capstone.javarice_capstone.enums.Types;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Random;
 
 public class Game {
     private final Deck deck;
@@ -22,7 +22,7 @@ public class Game {
     private boolean customOrderIsClockwise = true;
 
     public Game(int numPlayers) {
-        deck = new Deck(new UnlimitedCardFactory());
+        deck = new Deck();
         players = new ArrayList<>();
 
         players.add(PlayerFactory.createPlayer("HUMAN", "You"));
@@ -79,7 +79,6 @@ public class Game {
             player.playCard(cardIndex);
             deck.discard(card);
 
-            // Handle special cards
             if (card.getType() != Types.NUMBER) {
                 handleSpecialCard(card);
             } else {
@@ -125,7 +124,7 @@ public class Game {
 
             case REVERSE:
                 currentColor = card.getColor();
-                customOrderIsClockwise = !customOrderIsClockwise; // Toggle direction
+                customOrderIsClockwise = !customOrderIsClockwise;
                 nextPlayer();
                 break;
 
@@ -145,9 +144,7 @@ public class Game {
             case DRAW_FOUR:
                 nextPlayer();
                 AbstractPlayer drawFourPlayer = getCurrentPlayer();
-                for (int i = 0; i < 4; i++) {
-                    drawFourPlayer.addCard(deck.drawCard());
-                }
+                for (int i = 0; i < 4; i++) drawFourPlayer.addCard(deck.drawCard());
                 nextPlayer();
                 break;
         }
@@ -174,6 +171,15 @@ public class Game {
         return 0;
     }
 
+    public static Colors getRandomColorExcept(Colors exclude) {
+        List<Colors> possibleColors = new ArrayList<>();
+        for (Colors color : Colors.values()) {
+            if (color != Colors.WILD && color != exclude) possibleColors.add(color);
+        }
+        int idx = new Random().nextInt(possibleColors.size());
+        return possibleColors.get(idx);
+    }
+
     private int getCustomOrderIndex(int playerIdx) {
         for (int i = 0; i < CUSTOM_ORDER.length; i++) {
             if (CUSTOM_ORDER[i] == playerIdx) return i;
@@ -198,4 +204,5 @@ public class Game {
     public List<AbstractPlayer> getPlayers() {
         return players;
     }
+
 }
