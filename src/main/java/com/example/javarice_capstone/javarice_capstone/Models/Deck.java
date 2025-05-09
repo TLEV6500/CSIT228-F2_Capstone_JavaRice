@@ -15,7 +15,6 @@ import java.util.List;
 public class Deck {
     protected List<AbstractCard> cards;
     protected final List<AbstractCard> discardPile;
-
     public Deck() {
         cards = new ArrayList<>();
         discardPile = new ArrayList<>();

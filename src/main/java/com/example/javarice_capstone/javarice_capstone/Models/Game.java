@@ -25,7 +25,6 @@ public class Game {
     public Game(int numPlayers) {
         deck = new Deck();
         players = new ArrayList<>();
-
         players.add(PlayerFactory.createPlayer("HUMAN", "You"));
         for (int i = 1; i < numPlayers; i++) {
             String randomType = PlayerFactory.getRandomComputerType();
@@ -75,11 +74,9 @@ public class Game {
         AbstractPlayer player = getCurrentPlayer();
         AbstractCard card = player.getHand().get(cardIndex);
         AbstractCard topCard = getTopCard();
-
         if (card.canPlayOn(topCard) || card.getColor() == getCurrentColor()) {
             player.playCard(cardIndex);
             deck.discard(card);
-
             if (card.getType() != Types.NUMBER) {
                 handleSpecialCard(card);
             } else {
@@ -120,7 +117,7 @@ public class Game {
 
             case DRAW_TWO:
                 currentColor = card.getColor();
-                nextPlayer();
+                nextPlayer();            
                 AbstractPlayer nextPlayer = getCurrentPlayer();
                 nextPlayer.addCard(deck.drawCard());
                 nextPlayer.addCard(deck.drawCard());

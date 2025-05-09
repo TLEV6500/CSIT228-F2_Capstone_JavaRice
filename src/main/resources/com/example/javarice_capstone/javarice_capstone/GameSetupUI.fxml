@@ -7,7 +7,6 @@
 <?import javafx.scene.layout.*?>
 
 <StackPane prefWidth="1230" prefHeight="690" styleClass="root-pane" stylesheets="@css/gameSetup.css" xmlns="http://javafx.com/javafx/11.0.14-internal" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.example.javarice_capstone.javarice_capstone.Gameplay.GameSetupController">
-
     <BorderPane>
         <top>
             <HBox alignment="CENTER" styleClass="header-container">
@@ -22,7 +21,6 @@
                         <padding>
                             <Insets bottom="20.0" left="20.0" right="20.0" top="20.0" />
                         </padding>
-
                         <Label styleClass="section-header" text="Game Setup" />
 
                         <!-- Classic UNO -->
@@ -118,7 +116,6 @@
                         <Region HBox.hgrow="ALWAYS" />
                         <Label fx:id="dateTimeLabel" styleClass="datetime-label" text="2025-04-21 08:18:33" />
                     </HBox>
-
                     <!-- Add/Remove Player Controls -->
                     <HBox alignment="CENTER_LEFT" spacing="10.0">
                         <Button fx:id="addPlayerButton" text="Add Player" />
