@@ -5,11 +5,11 @@
 <?import javafx.scene.shape.*?>
 <?import javafx.scene.text.*?>
 
-<StackPane prefHeight="768.0" prefWidth="1366.0" styleClass="root-pane"
+<StackPane prefWidth="1230" prefHeight="690" styleClass="root-pane"
            stylesheets="@css/menu.css"
            xmlns="http://javafx.com/javafx/11.0.14-internal"
            xmlns:fx="http://javafx.com/fxml/1"
-           fx:controller="com.example.javarice_capstone.javarice_capstone.MenuController">
+           fx:controller="com.example.javarice_capstone.javarice_capstone.Gameplay.MenuController">
 
     <Rectangle styleClass="background-rect" StackPane.alignment="CENTER" />
 
