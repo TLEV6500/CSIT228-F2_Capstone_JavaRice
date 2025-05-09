@@ -3,33 +3,76 @@
 <?import javafx.scene.control.*?>
 <?import javafx.scene.image.*?>
 <?import javafx.scene.layout.*?>
-<?import javafx.scene.shape.*?>
 
-<BorderPane xmlns="http://javafx.com/javafx/11.0.14-internal" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.example.javarice_capstone.javarice_capstone.GameController">
+<BorderPane prefHeight="690" prefWidth="1230" xmlns="http://javafx.com/javafx/11.0.14-internal" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.example.javarice_capstone.javarice_capstone.Gameplay.GameController">
+
+    <!-- Top Opponents -->
+    <top>
+        <HBox fx:id="topOpponentsBox" alignment="CENTER" prefHeight="120" spacing="100">
+            <VBox alignment="CENTER" spacing="5">
+                <Label fx:id="opponent1Name" text="Opponent 1" />
+                <HBox fx:id="opponent1Hand" alignment="CENTER" spacing="3" />
+                <Label fx:id="opponent1HandCount" style="-fx-font-size:10px;-fx-text-fill:#333;" text="(0 cards)" />
+            </VBox>
+            <VBox alignment="CENTER" spacing="5">
+                <Label fx:id="opponent2Name" text="Opponent 2" />
+                <HBox fx:id="opponent2Hand" alignment="CENTER" spacing="3" />
+                <Label fx:id="opponent2HandCount" style="-fx-font-size:10px;-fx-text-fill:#333;" text="(0 cards)" />
+            </VBox>
+            <VBox alignment="CENTER" spacing="5">
+                <Label fx:id="opponent3Name" text="Opponent 3" />
+                <HBox fx:id="opponent3Hand" alignment="CENTER" spacing="3" />
+                <Label fx:id="opponent3HandCount" style="-fx-font-size:10px;-fx-text-fill:#333;" text="(0 cards)" />
+            </VBox>
+        </HBox>
+    </top>
+
+    <!-- Left Opponent 4 -->
+    <left>
+        <VBox alignment="CENTER" prefWidth="120" spacing="1.0">
+            <Label fx:id="opponent4Name" text="Opponent 4" />
+            <VBox fx:id="opponent4Hand" alignment="CENTER" spacing="3" />
+            <Label fx:id="opponent4HandCount" style="-fx-font-size:10px;-fx-text-fill:#333;" text="(0 cards)" />
+        </VBox>
+    </left>
+
+    <!-- Right Opponent 5 -->
+    <right>
+        <VBox alignment="CENTER" prefWidth="120" spacing="5">
+            <Label fx:id="opponent5Name" text="Opponent 5" />
+            <VBox fx:id="opponent5Hand" alignment="CENTER" spacing="3" />
+            <Label fx:id="opponent5HandCount" style="-fx-font-size:10px;-fx-text-fill:#333;" text="(0 cards)" />
+        </VBox>
+    </right>
+
+    <!-- Center Gameplay Area (shortened) -->
     <center>
-        <VBox fx:id="gamePane" alignment="CENTER" spacing="10">
-            <VBox fx:id="opponentArea" alignment="CENTER" spacing="20" />
-
-            <HBox alignment="CENTER" spacing="30">
+        <VBox fx:id="gamePane" alignment="CENTER" prefHeight="360" prefWidth="600.0" spacing="10">
+            <HBox alignment="CENTER" spacing="50.0">
                 <VBox alignment="CENTER">
                     <Label text="Discard Pile" />
-                    <ImageView fx:id="discardPileView" fitHeight="150" fitWidth="100" preserveRatio="true" />
+                    <ImageView fx:id="discardPileView" fitHeight="120" fitWidth="80" preserveRatio="true" />
                 </VBox>
-
                 <VBox alignment="CENTER">
                     <Label text="Draw Pile" />
-                    <Button fx:id="drawButton" text="Draw Card" />
-                </VBox>
-
-                <VBox alignment="CENTER" spacing="5">
-                    <Label fx:id="currentColorLabel" text="Current Color: RED" />
-                    <Rectangle fx:id="colorIndicator" height="50" width="50" />
+               <ImageView fx:id="drawPileView" fitHeight="120" fitWidth="80" preserveRatio="true" />
                 </VBox>
             </HBox>
-
             <Label fx:id="statusLabel" text="Your turn!" />
-
-            <HBox fx:id="playerHand" alignment="CENTER" spacing="5" />
         </VBox>
     </center>
+
+    <!-- Bottom Player Row with Scroll and Card Count -->
+    <bottom>
+        <VBox alignment="CENTER" prefHeight="150" spacing="5">
+            <HBox alignment="CENTER" spacing="15">
+                <Label text="You" />
+                <Label fx:id="playerHandCount" text="(0 cards)" />
+            </HBox>
+            <ScrollPane fitToHeight="true" fitToWidth="true" hbarPolicy="ALWAYS" style="-fx-background:transparent; -fx-background-color:transparent;" vbarPolicy="NEVER">
+                <HBox fx:id="playerHand" alignment="CENTER" spacing="5" />
+            </ScrollPane>
+        </VBox>
+    </bottom>
+
 </BorderPane>
