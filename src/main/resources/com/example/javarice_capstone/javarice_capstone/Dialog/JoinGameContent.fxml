@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<VBox alignment="CENTER" spacing="12" xmlns="http://javafx.com/javafx/11.0.14-internal" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.example.javarice_capstone.javarice_capstone.Factory.GameSetupDialogController$JoinGameContentController">
+
+    <HBox alignment="CENTER" spacing="8">
+        <Label style="-fx-font-size: 15px; -fx-text-fill: #fff;" text="Username:">
+         <HBox.margin>
+            <Insets right="10.0" />
+         </HBox.margin></Label>
+        <TextField fx:id="usernameTextField" prefHeight="45.0" prefWidth="200.0" promptText="Enter your username" style="                     -fx-font-size: 15px;                     -fx-background-radius: 7;                     -fx-background-color: #f2f2f2;                     -fx-border-color: #ffd54f;                     -fx-border-radius: 7;                     -fx-border-width: 2;                     -fx-text-fill: #414345;                     -fx-padding: 4 8 4 8;                    " />
+    </HBox>
+
+    <HBox alignment="CENTER" spacing="8">
+        <Label style="-fx-font-size: 15px; -fx-text-fill: #fff;" text="Host Code:">
+         <HBox.margin>
+            <Insets right="10.0" />
+         </HBox.margin></Label>
+        <TextField fx:id="hostCodeTextField" prefHeight="45.0" prefWidth="200.0" promptText="Enter Lobby Code" style="                     -fx-font-size: 15px;                     -fx-background-radius: 7;                     -fx-background-color: #f2f2f2;                     -fx-border-color: #ffd54f;                     -fx-border-radius: 7;                     -fx-border-width: 2;                     -fx-text-fill: #414345;                     -fx-padding: 4 8 4 8;                    " />
+    </HBox>
+
+    <HBox alignment="CENTER" spacing="18">
+        <Button fx:id="okButton" defaultButton="true" onAction="#joinButtonClicked" style="-fx-background-color: #34C275; -fx-text-fill: #fff; -fx-font-weight: bold; -fx-background-radius: 7; -fx-pref-width: 90; -fx-pref-height: 40;" text="Join" />
+        <Button fx:id="cancelButton" cancelButton="true" onAction="#cancelClicked" style="-fx-background-color: #ef5350; -fx-text-fill: #fff; -fx-font-weight: bold; -fx-background-radius: 7; -fx-pref-width: 90; -fx-pref-height: 40;" text="Cancel" />
+      <VBox.margin>
+         <Insets top="15.0" />
+      </VBox.margin>
+    </HBox>
+</VBox>

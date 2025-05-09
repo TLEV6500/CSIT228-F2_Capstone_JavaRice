@@ -24,4 +24,6 @@ public abstract class AbstractCard {
     }
 
     public abstract String getImagePath();
+
+    public abstract int getValue();
 }

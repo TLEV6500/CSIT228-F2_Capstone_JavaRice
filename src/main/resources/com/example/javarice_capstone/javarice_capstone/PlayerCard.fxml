@@ -1,15 +1,26 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import javafx.scene.layout.*?>
-<?import javafx.scene.image.*?>
-<?import javafx.scene.control.*?>
+<?import javafx.scene.image.ImageView?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.layout.VBox?>
 
-<?import javafx.scene.shape.Circle?>
-<StackPane styleClass="player-card" maxWidth="180" maxHeight="240" minWidth="180" minHeight="240" xmlns="http://javafx.com/javafx/11.0.14-internal" xmlns:fx="http://javafx.com/fxml/1">
-    <VBox alignment="CENTER" spacing="10" styleClass="player-card-content">
-        <!-- Replace with ImageView for profile pic when available -->
-        <Circle radius="48" styleClass="player-avatar-placeholder"/>
-        <Label fx:id="playerNameLabel" styleClass="player-name" text="Player Name"/>
-        <!-- Additional stats or info can be added here -->
-    </VBox>
-</StackPane>
+<VBox xmlns="http://javafx.com/javafx/11.0.14-internal"
+      xmlns:fx="http://javafx.com/fxml/1"
+      alignment="CENTER"
+      spacing="8.0"
+      styleClass="player-entry">
+
+    <ImageView fx:id="avatarImageView"
+               fitHeight="80.0"
+               fitWidth="60.0"
+               preserveRatio="true"
+               pickOnBounds="true"
+               styleClass="player-avatar"/>
+
+    <Label fx:id="nameLabel"
+           text="Player Name"
+           styleClass="player-name"
+           maxWidth="80"
+           wrapText="true"
+           alignment="CENTER"/>
+</VBox>

@@ -29,6 +29,11 @@ public class CardAction extends AbstractCard {
     }
 
     @Override
+    public int getValue() {
+        return -1;
+    }
+
+    @Override
     public String toString() {
         return getColor() + " " + getType();
     }

@@ -12,14 +12,15 @@ public class CardNumber extends AbstractCard {
         this.number = number;
     }
 
-    public int getNumber() {
+    @Override
+    public int getValue() {
         return number;
     }
 
     @Override
     public boolean canPlayOn(AbstractCard other) {
         return this.getColor() == other.getColor()
-                || (other instanceof CardNumber && ((CardNumber) other).getNumber() == this.number);
+                || (other instanceof CardNumber && ((CardNumber) other).getValue() == this.number);
     }
 
     @Override

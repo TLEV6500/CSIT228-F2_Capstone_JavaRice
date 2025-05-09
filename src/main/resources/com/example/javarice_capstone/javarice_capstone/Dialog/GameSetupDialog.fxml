@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.layout.StackPane?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.shape.Line?>
+
+<VBox xmlns="http://javafx.com/javafx"
+      xmlns:fx="http://javafx.com/fxml"
+      fx:controller="com.example.javarice_capstone.javarice_capstone.Factory.GameSetupDialogController"
+      alignment="CENTER"
+      spacing="20"
+      style="-fx-background-color:linear-gradient(to bottom,#232526,#414345); -fx-padding:30;">
+    <Label fx:id="titleLabel"
+           text="Game Setup"
+           style="-fx-font-size: 24px; -fx-font-weight: bold; -fx-text-fill: #ffd54f;"/>
+    <Line startX="0" endX="250" stroke="#ffd54f" strokeWidth="1.5"/>
+
+    <StackPane fx:id="contentPane" minHeight="120"/>
+
+</VBox>
