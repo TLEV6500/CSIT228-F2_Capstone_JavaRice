@@ -39,7 +39,7 @@ public class LocalDatabaseManager extends DatabaseManager {
     }
 
     @Override
-    public void logout() {
+    public void logout() throws UnsupportedOperationException {
         synchronized (lock) {
             tables.clear();
         }

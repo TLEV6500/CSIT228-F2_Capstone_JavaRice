@@ -9,7 +9,7 @@ import java.util.List;
 
 public abstract class DatabaseManager implements AutoCloseable {
 
-    public abstract void logout();
+    public abstract void logout() throws Exception;
 
     // CRUD Operations
     public abstract int saveData(SerializableGameData data) throws DatabaseException;

@@ -40,7 +40,7 @@ public class SqlDatabaseManager extends DatabaseManager {
     }
 
     @Override
-    public void logout() {
+    public void logout() throws SQLException, UnsupportedOperationException {
         synchronized (this) {
             try {
                 // 1. Clear in-memory state
