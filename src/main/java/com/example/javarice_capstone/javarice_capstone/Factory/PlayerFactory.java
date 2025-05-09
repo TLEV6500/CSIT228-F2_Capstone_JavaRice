@@ -12,17 +12,11 @@ public class PlayerFactory {
     private static final Random RANDOM = new Random();
 
     public static AbstractPlayer createPlayer(String type, String name) {
-        switch (type) {
-            case "HUMAN":
-                return new PlayerHuman(name);
-            case "COMPUTER - N":
-            case "COMPUTER - A":
-            case "COMPUTER - D":
-            case "COMPUTER - T":
-                return new PlayerComputer(name, StrategyFactory.createStrategy(type));
-            default:
-                throw new IllegalArgumentException("Unknown player type: " + type);
-        }
+        return switch (type) {
+            case "HUMAN" -> new PlayerHuman(name);
+            case "COMPUTER - N", "COMPUTER - A", "COMPUTER - D", "COMPUTER - T" -> new PlayerComputer(name, StrategyFactory.createStrategy(type));
+            default -> throw new IllegalArgumentException("Unknown player type: " + type);
+        };
     }
 
     public static String getRandomComputerType() {

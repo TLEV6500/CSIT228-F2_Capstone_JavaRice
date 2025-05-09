@@ -21,4 +21,9 @@ public class GameRound implements SerializableGameData {
     public int getNextId() {
         return ID++;
     }
+
+    @Override
+    public String[] getDataFields() {
+        return new String[] { "id", "playerIds", "winner", "duration", "isOngoing" };
+    }
 }

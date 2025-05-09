@@ -12,9 +12,15 @@ public class PlayerScoreHistory implements SerializableGameData {
     public int getId() {
         return id;
     }
+
     private static int ID = 0;
     @Override
     public int getNextId() {
         return ID++;
+    }
+
+    @Override
+    public String[] getDataFields() {
+        return new String[] { "id", "history" };
     }
 }
