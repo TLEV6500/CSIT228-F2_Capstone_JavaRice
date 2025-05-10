@@ -43,7 +43,7 @@ public class MenuController {
 
     private void handleHostGame() {
         try {
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/example/javarice_capstone/javarice_capstone/Dialog/GameSetupDialog.fxml"));
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/example/javarice_capstone/javarice_capstone/SetupDialog.fxml"));
             Parent dialogRoot = loader.load();
             GameSetupDialogController dialogController = loader.getController();
 
@@ -62,13 +62,13 @@ public class MenuController {
             });
         } catch (Exception e) {
             e.printStackTrace();
-            showError("Cannot load host game setup dialog", "Make sure GameSetupDialog.fxml exists in the resources folder.");
+            showError("Cannot load host game setup dialog", "Make sure SetupDialog.fxml exists in the resources folder.");
         }
     }
 
     private void handleJoinGame() {
         try {
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/example/javarice_capstone/javarice_capstone/Dialog/GameSetupDialog.fxml"));
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/example/javarice_capstone/javarice_capstone/SetupDialog.fxml"));
             Parent dialogRoot = loader.load();
             GameSetupDialogController dialogController = loader.getController();
 
@@ -83,15 +83,14 @@ public class MenuController {
             dialogStage.showAndWait();
 
             dialogController.getJoinGameResult().ifPresent(result -> {
-                launchGameSetupUI(GameSetupDialogController.Mode.JOIN, result);
+
             });
         } catch (Exception e) {
             e.printStackTrace();
-            showError("Cannot load join game setup dialog", "Make sure GameSetupDialog.fxml exists in the resources folder.");
+            showError("Cannot load join game setup dialog", "Make sure SetupDialog.fxml exists in the resources folder.");
         }
     }
 
-    // MODIFIED: Replace current scene instead of creating a new Stage for GameSetupUI
     private void launchGameSetupUI(GameSetupDialogController.Mode mode, GameSetupDialogController.MultiplayerSetupResult setupResult) {
         try {
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/example/javarice_capstone/javarice_capstone/GameSetupUI.fxml"));
@@ -127,7 +126,7 @@ public class MenuController {
 
     private void handleSingleplayer() {
         try {
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/example/javarice_capstone/javarice_capstone/Dialog/GameSetupDialog.fxml"));
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/example/javarice_capstone/javarice_capstone/SetupDialog.fxml"));
             Parent dialogRoot = loader.load();
             GameSetupDialogController dialogController = loader.getController();
 
@@ -151,7 +150,7 @@ public class MenuController {
             });
         } catch (Exception e) {
             e.printStackTrace();
-            showError("Cannot load singleplayer dialog", "Make sure GameSetupDialog.fxml exists in the resources folder.");
+            showError("Cannot load singleplayer dialog", "Make sure SetupDialog.fxml exists in the resources folder.");
         }
     }
 

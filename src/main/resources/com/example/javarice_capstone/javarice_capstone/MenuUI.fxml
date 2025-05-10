@@ -6,42 +6,46 @@
 <?import javafx.scene.shape.*?>
 <?import javafx.scene.text.*?>
 
-<StackPane prefWidth="1230" prefHeight="690" styleClass="root-pane"
-           stylesheets="@css/menu.css"
-           xmlns="http://javafx.com/javafx/11.0.14-internal"
-           xmlns:fx="http://javafx.com/fxml/1"
-           fx:controller="com.example.javarice_capstone.javarice_capstone.Gameplay.MenuController">
+<StackPane prefHeight="690" prefWidth="1230" styleClass="root-pane" stylesheets="@css/menu.css" xmlns="http://javafx.com/javafx/11.0.14-internal" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.example.javarice_capstone.javarice_capstone.Gameplay.MenuController">
 
     <Rectangle styleClass="background-rect" StackPane.alignment="CENTER" />
 
     <VBox alignment="CENTER" spacing="30" styleClass="content-container">
 
-        <Label styleClass="game-title" text="UNO">
-            <font>
-                <Font name="Arial Black" size="100.0" />
-            </font>
-        </Label>
+        <Label styleClass="game-title" text="PLAY UNO"/>
 
         <HBox alignment="CENTER" spacing="25" styleClass="menu-cards-container">
 
-            <VBox fx:id="singleplayerCard" alignment="CENTER" spacing="33" styleClass="menu-card card-green" prefWidth="247.5" prefHeight="405">
-                <ImageView fx:id="singleplayerImageView" fitHeight="337.5" fitWidth="247.5" pickOnBounds="true" preserveRatio="true"/>
-                <Label text="Play Singleplayer" styleClass="card-label green"/>
+            <VBox fx:id="singleplayerCard" alignment="CENTER" prefHeight="405" prefWidth="247.5" spacing="10" styleClass="menu-card card-green">
+                <ImageView fx:id="singleplayerImageView" fitHeight="337.5" fitWidth="247.5" pickOnBounds="true" preserveRatio="true" />
+                <Label styleClass="card-label green" text="PLAY SINGLEPLAYER" textFill="WHITE">
+               <font>
+                  <Font name="Arial Black" size="16.0" />
+               </font></Label>
             </VBox>
 
-            <VBox fx:id="hostGameCard" alignment="CENTER" spacing="33" styleClass="menu-card card-blue" prefWidth="247.5" prefHeight="405">
-                <ImageView fx:id="hostgameImageView" fitHeight="337.5" fitWidth="247.5" pickOnBounds="true" preserveRatio="true"/>
-                <Label text="Host Game" styleClass="card-label blue"/>
+            <VBox fx:id="hostGameCard" alignment="CENTER" prefHeight="405" prefWidth="247.5" spacing="10" styleClass="menu-card card-blue">
+                <ImageView fx:id="hostgameImageView" fitHeight="337.5" fitWidth="247.5" pickOnBounds="true" preserveRatio="true" />
+                <Label styleClass="card-label blue" text="HOST GAME" textFill="WHITE">
+               <font>
+                  <Font name="Arial Black" size="16.0" />
+               </font></Label>
             </VBox>
 
-            <VBox fx:id="joinGameCard" alignment="CENTER" spacing="33" styleClass="menu-card card-yellow" prefWidth="247.5" prefHeight="405">
-                <ImageView fx:id="joingameImageView" fitHeight="337.5" fitWidth="247.5" pickOnBounds="true" preserveRatio="true"/>
-                <Label text="Join Game" styleClass="card-label blue"/>
+            <VBox fx:id="joinGameCard" alignment="CENTER" prefHeight="405" prefWidth="247.5" spacing="10" styleClass="menu-card card-yellow">
+                <ImageView fx:id="joingameImageView" fitHeight="337.5" fitWidth="247.5" pickOnBounds="true" preserveRatio="true" />
+                <Label styleClass="card-label yellow" text="JOIN GAME" textFill="WHITE">
+               <font>
+                  <Font name="Arial Black" size="16.0" />
+               </font></Label>
             </VBox>
 
-            <VBox fx:id="exitCard" alignment="CENTER" spacing="33" styleClass="menu-card card-red" prefWidth="247.5" prefHeight="405">
-                <ImageView fx:id="exitImageView" fitHeight="337.5" fitWidth="247.5" pickOnBounds="true" preserveRatio="true"/>
-                <Label text="Exit" styleClass="card-label red"/>
+            <VBox fx:id="exitCard" alignment="CENTER" prefHeight="405" prefWidth="247.5" spacing="10" styleClass="menu-card card-red">
+                <ImageView fx:id="exitImageView" fitHeight="337.5" fitWidth="247.5" pickOnBounds="true" preserveRatio="true" />
+                <Label styleClass="card-label red" text="EXIT" textFill="WHITE">
+               <font>
+                  <Font name="Arial Black" size="16.0" />
+               </font></Label>
             </VBox>
 
         </HBox>

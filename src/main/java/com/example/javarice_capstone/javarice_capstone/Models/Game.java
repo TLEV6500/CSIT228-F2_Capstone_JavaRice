@@ -70,6 +70,19 @@ public class Game {
         return lastPlayedCard;
     }
 
+    public boolean isPlayersTurn(int playerIndex) {
+        return getCurrentPlayer() == getPlayers().get(playerIndex);
+    }
+
+    public boolean playWildCard(int cardIndex, Colors chosenColor) {
+        handleWildColorSelection(chosenColor);
+        return playCard(cardIndex);
+    }
+
+    public void playerDrawCard(int playerIndex) {
+        getPlayers().get(playerIndex).addCard(drawCard());
+    }
+
     public Colors getCurrentColor() {
         return currentColor;
     }
@@ -129,19 +142,6 @@ public class Game {
 
     public void handleWildColorSelection(Colors color) {
         setCurrentColor(color);
-    }
-
-    public void handleSevenSwap(int targetPlayerIndex) {
-        AbstractPlayer currentPlayer = getCurrentPlayer();
-        AbstractPlayer targetPlayer = players.get(targetPlayerIndex);
-        List<AbstractCard> temp = new ArrayList<>(currentPlayer.getHand());
-        replaceHand(currentPlayer, targetPlayer.getHand());
-        replaceHand(targetPlayer, temp);
-    }
-
-    private void replaceHand(AbstractPlayer player, List<AbstractCard> newHand) {
-        player.getHand().clear();
-        player.getHand().addAll(newHand);
     }
 
     public void nextPlayer() {

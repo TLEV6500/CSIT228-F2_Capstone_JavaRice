@@ -3,7 +3,6 @@ package com.example.javarice_capstone.javarice_capstone.Factory;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
 import javafx.scene.layout.StackPane;
-import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 
@@ -37,15 +36,15 @@ public class GameSetupDialogController {
             String title;
             switch (mode) {
                 case SINGLEPLAYER:
-                    fxml = "/com/example/javarice_capstone/javarice_capstone/Dialog/SinglePlayerContent.fxml";
+                    fxml = "/com/example/javarice_capstone/javarice_capstone/SinglePlayerContent.fxml";
                     title = "Singleplayer Setup";
                     break;
                 case HOST:
-                    fxml = "/com/example/javarice_capstone/javarice_capstone/Dialog/HostGameContent.fxml";
+                    fxml = "/com/example/javarice_capstone/javarice_capstone/HostGameContent.fxml";
                     title = "Host Game Setup";
                     break;
                 case JOIN:
-                    fxml = "/com/example/javarice_capstone/javarice_capstone/Dialog/JoinGameContent.fxml";
+                    fxml = "/com/example/javarice_capstone/javarice_capstone/JoinGameContent.fxml";
                     title = "Join Game Setup";
                     break;
                 default:
@@ -215,7 +214,6 @@ public class GameSetupDialogController {
         }
     }
 
-    // Join Game dialog controller (updated to match new FXML: username + host code)
     public static class JoinGameContentController {
         @FXML private TextField usernameTextField;
         @FXML private TextField hostCodeTextField;
@@ -232,7 +230,26 @@ public class GameSetupDialogController {
         private void joinButtonClicked() {
             String username = usernameTextField.getText() != null ? usernameTextField.getText().trim() : "";
             String hostCode = hostCodeTextField.getText() != null ? hostCodeTextField.getText().trim() : "";
-            if (!username.isEmpty() && !hostCode.isEmpty()) {
+
+            boolean valid = true;
+
+            usernameTextField.getStyleClass().remove("error");
+            hostCodeTextField.getStyleClass().remove("error");
+
+            if (username.isEmpty()) {
+                if (!usernameTextField.getStyleClass().contains("error")) {
+                    usernameTextField.getStyleClass().add("error");
+                }
+                valid = false;
+            }
+            if (hostCode.isEmpty()) {
+                if (!hostCodeTextField.getStyleClass().contains("error")) {
+                    hostCodeTextField.getStyleClass().add("error");
+                }
+                valid = false;
+            }
+
+            if (valid) {
                 parent.onJoinGameOk(username, hostCode);
             }
         }
@@ -242,4 +259,5 @@ public class GameSetupDialogController {
             parent.onJoinGameCancel();
         }
     }
+
 }

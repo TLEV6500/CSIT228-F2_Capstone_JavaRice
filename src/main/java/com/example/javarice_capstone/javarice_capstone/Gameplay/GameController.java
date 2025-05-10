@@ -50,7 +50,6 @@ public class GameController implements Initializable {
     @FXML private Label gameDirectionLabel;
     @FXML private Label lastActionLabel;
 
-    // Opponent UI references
     @FXML private HBox opponent1Hand, opponent2Hand, opponent3Hand;
     @FXML private VBox  opponent4Hand, opponent5Hand;
     @FXML private Label opponent1Name, opponent2Name, opponent3Name, opponent4Name, opponent5Name;
@@ -60,7 +59,7 @@ public class GameController implements Initializable {
     private final ScheduledExecutorService computerPlayerTimer = Executors.newSingleThreadScheduledExecutor();
     private boolean isFirstTurn = true;
 
-    private boolean isSingleplayer = true; // <-- Set this according to your game setup logic
+    private boolean isSingleplayer = true;
 
     private static final int MAX_RENDERED_COMPUTER_CARDS = 20;
     private static final double PLAYER_CARD_WIDTH = 70;
@@ -192,6 +191,7 @@ public class GameController implements Initializable {
             }
         }
     }
+
     private void updateDiscardAndDrawPiles() {
         AbstractCard topCard = game.getTopCard();
         try {
@@ -199,6 +199,7 @@ public class GameController implements Initializable {
             drawPileView.setImage(new Image(Objects.requireNonNull(getClass().getResourceAsStream("/images/cards/card_back.png"))));
         } catch (Exception ignored) {}
     }
+
     private void clearOpponentHands() {
         if (opponent1Hand != null) opponent1Hand.getChildren().clear();
         if (opponent2Hand != null) opponent2Hand.getChildren().clear();
@@ -206,11 +207,13 @@ public class GameController implements Initializable {
         if (opponent4Hand != null) opponent4Hand.getChildren().clear();
         if (opponent5Hand != null) opponent5Hand.getChildren().clear();
     }
+
     private void clearOpponentHandUI(Label nameLabel, javafx.scene.layout.Pane handBox, Label handCountLabel) {
         if (nameLabel != null) nameLabel.setText("");
         if (handBox != null) handBox.getChildren().clear();
         if (handCountLabel != null) handCountLabel.setText("");
     }
+
     private void setOpponentHandHBox(int index, Label nameLabel, HBox handBox, Label handCountLabel, Image cardBack) {
         if (game.getPlayers().size() > index) {
             AbstractPlayer opponent = game.getPlayers().get(index);
@@ -245,6 +248,7 @@ public class GameController implements Initializable {
             }
         }
     }
+
     private void setOpponentHandVBox(int index, Label nameLabel, VBox handBox, Label handCountLabel, Image cardBack) {
         if (game.getPlayers().size() > index) {
             AbstractPlayer opponent = game.getPlayers().get(index);
@@ -279,6 +283,7 @@ public class GameController implements Initializable {
             }
         }
     }
+
     private void updateWildCardColor() {
         AbstractCard topCard = game.getTopCard();
         Colors currentColor = game.getCurrentColor();
@@ -296,6 +301,7 @@ public class GameController implements Initializable {
             }
         }
     }
+
     private Color getJavaFXColor(Colors cardColor) {
         return switch (cardColor) {
             case RED -> Color.RED;
@@ -303,7 +309,6 @@ public class GameController implements Initializable {
             case GREEN -> Color.GREEN;
             case YELLOW -> Color.YELLOW;
             case WILD -> Color.BLACK;
-            default -> Color.GRAY;
         };
     }
 
@@ -312,37 +317,25 @@ public class GameController implements Initializable {
     }
 
     private void handleCardClick(int cardIndex) {
-        if (game.getCurrentPlayer() != game.getPlayers().get(0)) {
+        if (!game.isPlayersTurn(0)) {
             return;
         }
         AbstractCard card = game.getPlayers().get(0).getHand().get(cardIndex);
 
+        boolean playResult;
         if (card.getType() == Types.WILD || card.getType() == Types.DRAW_FOUR) {
             Colors chosenColor = showColorSelectionDialog();
-            if (chosenColor != null) {
-                game.handleWildColorSelection(chosenColor);
-                if (game.playCard(cardIndex)) {
-                    updateLastAction(card);
-                    updateUI();
-                    handleGameRulesAfterTurn();
-                    checkGameStatus();
-                    checkAndStartComputerTurn();
-                }
-            }
+            playResult = chosenColor != null && game.playWildCard(cardIndex, chosenColor);
         } else {
-            if (game.playCard(cardIndex)) {
-                updateLastAction(card);
-                updateUI();
-                handleGameRulesAfterTurn();
-                checkGameStatus();
-                checkAndStartComputerTurn();
-            } else {
-                Alert alert = new Alert(Alert.AlertType.WARNING);
-                alert.setTitle("Invalid Move");
-                alert.setHeaderText("You can't play this card");
-                alert.setContentText("The card must match the color or number/type of the top discard card.");
-                alert.showAndWait();
-            }
+            playResult = game.playCard(cardIndex);
+        }
+
+        if (playResult) {
+            updateLastAction(card);
+            updateUI();
+            game.handleGameRulesAfterTurn();
+            checkGameStatus();
+            checkAndStartComputerTurn();
         }
     }
 
@@ -366,6 +359,7 @@ public class GameController implements Initializable {
                 break;
         }
     }
+
     private void showNotification(String message, Color color) {
         Text notification = new Text(message);
         notification.setFont(Font.font("System", FontWeight.BOLD, 24));
@@ -382,6 +376,7 @@ public class GameController implements Initializable {
 
         fadeOut.setOnFinished(e -> notificationArea.getChildren().clear());
     }
+
     private void updateGameDirectionLabel(boolean isClockwise) {
         if (isFirstTurn) {
             gameDirectionLabel.setText("Direction: Clockwise →");
@@ -395,7 +390,6 @@ public class GameController implements Initializable {
         }
     }
 
-    // Show color selection dialog and return chosen color, or null if cancelled
     private Colors showColorSelectionDialog() {
         Dialog<Colors> dialog = new Dialog<>();
         dialog.setTitle("Choose a Color");
@@ -441,13 +435,11 @@ public class GameController implements Initializable {
     }
 
     private void handleDrawCard() {
-        if (game.getCurrentPlayer() != game.getPlayers().get(0)) {
-            return;
-        }
-        game.drawCard();
+        if (!game.isPlayersTurn(0)) return;
+        game.playerDrawCard(0);
         lastActionLabel.setText("You drew a card");
         updateUI();
-        handleGameRulesAfterTurn();
+        game.handleGameRulesAfterTurn();
     }
 
     private void checkGameStatus() {
@@ -488,7 +480,7 @@ public class GameController implements Initializable {
 
     private void showSingleplayerWinDialog(String winnerName) {
         try {
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/example/javarice_capstone/javarice_capstone/Dialog/GameSetupDialog.fxml" ));
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/example/javarice_capstone/javarice_capstone/SetupDialog.fxml"));
             Parent dialogRoot = loader.load();
 
             GameSetupDialogController dialogController = loader.getController();
