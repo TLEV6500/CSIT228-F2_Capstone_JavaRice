@@ -28,6 +28,7 @@ public class AggressiveStrat implements ComputerStrategy {
                 return i;
             }
         }
+
         return -1;
     }
 

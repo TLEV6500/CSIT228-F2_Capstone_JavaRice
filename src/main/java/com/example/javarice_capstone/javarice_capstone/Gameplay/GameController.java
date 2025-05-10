@@ -331,9 +331,7 @@ public class GameController implements Initializable {
     }
 
     private void handleCardClick(int cardIndex) {
-        if (!game.isPlayersTurn(0)) {
-            return;
-        }
+        if (!game.isPlayersTurn(0)) return;
         AbstractCard card = game.getPlayers().get(0).getHand().get(cardIndex);
 
         boolean playResult;
@@ -350,9 +348,6 @@ public class GameController implements Initializable {
             game.handleGameRulesAfterTurn();
             checkGameStatus();
 
-            // Advance to the next player (fixes turn tracking)
-            game.nextPlayer();
-            updateUI();
             checkAndStartComputerTurn();
         }
     }
@@ -458,7 +453,11 @@ public class GameController implements Initializable {
         lastActionLabel.setText("You drew a card");
         updateUI();
         game.handleGameRulesAfterTurn();
+        checkGameStatus();
+
+        checkAndStartComputerTurn();
     }
+
 
     private void checkGameStatus() {
         AbstractPlayer winner = game.getWinner();
@@ -554,14 +553,13 @@ public class GameController implements Initializable {
 
             isComputerTurnActive = true;
             lastAIAction = null;
-            ((PlayerComputer) currentPlayer).resetAITurnState();
             scheduleNextAIStep();
         }
     }
 
     private void scheduleNextAIStep() {
         if (!isComputerTurnActive) return;
-        computerPlayerTimer.schedule(() -> Platform.runLater(this::stepComputerTurn), 900, TimeUnit.MILLISECONDS);
+        computerPlayerTimer.schedule(() -> Platform.runLater(this::stepComputerTurn), 1500, TimeUnit.MILLISECONDS);
     }
 
     private void stepComputerTurn() {
@@ -580,16 +578,10 @@ public class GameController implements Initializable {
         if (result == ComputerActionResult.PLAYED) {
             handleGameRulesAfterTurn();
             checkGameStatus();
-            game.nextPlayer();
             isComputerTurnActive = false;
             checkAndStartComputerTurn();
-        } else if (result == ComputerActionResult.DRAWN) scheduleNextAIStep();
-        else if (result == ComputerActionResult.DONE) {
-            handleGameRulesAfterTurn();
-            checkGameStatus();
-            game.nextPlayer();
-            isComputerTurnActive = false;
-            checkAndStartComputerTurn();
+        } else if (result == ComputerActionResult.DRAWN) {
+            scheduleNextAIStep();
         }
     }
 
