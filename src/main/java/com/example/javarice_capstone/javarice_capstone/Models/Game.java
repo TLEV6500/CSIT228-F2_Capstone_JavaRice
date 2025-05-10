@@ -21,6 +21,7 @@ public class Game {
     private boolean customOrderIsClockwise = true;
 
     private AbstractCard lastPlayedCard = null;
+    private int stackedDrawCards = 0;
 
     public Game(int numPlayers) {
         deck = new Deck();
@@ -32,7 +33,7 @@ public class Game {
             players.add(PlayerFactory.createPlayer(randomType, "Computer " + i));
         }
 
-        for (int i = 0; i < 1; i++) {
+        for (int i = 0; i < 7; i++) {
             for (AbstractPlayer player : players) {
                 player.addCard(deck.drawCard());
             }
@@ -193,6 +194,45 @@ public class Game {
             tries++;
         }
         return 0;
+    }
+
+    public void handleGameRulesAfterTurn() {
+        applyStackDrawRule();
+    }
+
+    private void applyStackDrawRule() {
+        AbstractCard topCard = getTopCard();
+        if (topCard.getType() == Types.DRAW_TWO || topCard.getType() == Types.DRAW_FOUR) {
+            AbstractPlayer player = getCurrentPlayer();
+            int stackAmount = 0;
+
+            if (topCard.getType() == Types.DRAW_TWO) {
+                stackAmount = 2;
+            } else if (topCard.getType() == Types.DRAW_FOUR) {
+                stackAmount = 4;
+            }
+            stackedDrawCards += stackAmount;
+
+            boolean stacked = false;
+            for (int i = 0; i < player.getHand().size(); i++) {
+                AbstractCard card = player.getHand().get(i);
+                if (card.getType() == topCard.getType()) {
+                    playCard(i);
+                    stacked = true;
+                    break;
+                }
+            }
+
+            if (!stacked) {
+                for (int i = 0; i < stackedDrawCards; i++) {
+                    player.addCard(drawCard());
+                }
+                stackedDrawCards = 0;
+                nextPlayer();
+            }
+        } else {
+            stackedDrawCards = 0;
+        }
     }
 
     private int getCustomOrderIndex(int playerIdx) {

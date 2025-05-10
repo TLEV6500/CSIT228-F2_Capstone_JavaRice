@@ -307,47 +307,8 @@ public class GameController implements Initializable {
         };
     }
 
-    // --- Only stacking draw card rules enabled, jump-in removed ---
-
-    // Stacking Draw Rule: Proper stacking +2 and +4 cards (transfers and accumulates)
-    private void applyStackDrawRule() {
-        AbstractCard topCard = game.getTopCard();
-        if (topCard.getType() == Types.DRAW_TWO || topCard.getType() == Types.DRAW_FOUR) {
-            AbstractPlayer player = game.getCurrentPlayer();
-            int stackAmount = 0;
-
-            if (topCard.getType() == Types.DRAW_TWO) {
-                stackAmount = 2;
-            } else if (topCard.getType() == Types.DRAW_FOUR) {
-                stackAmount = 4;
-            }
-            stackedDrawCards += stackAmount;
-
-            boolean stacked = false;
-            for (int i = 0; i < player.getHand().size(); i++) {
-                AbstractCard card = player.getHand().get(i);
-                if (card.getType() == topCard.getType()) {
-                    game.playCard(i);
-                    stacked = true;
-                    break;
-                }
-            }
-
-            if (!stacked) {
-                for (int i = 0; i < stackedDrawCards; i++) {
-                    player.addCard(game.drawCard());
-                }
-                stackedDrawCards = 0;
-                game.nextPlayer();
-            }
-        } else {
-            stackedDrawCards = 0;
-        }
-    }
-
-    // Always call stacking draw rules after every turn
     private void handleGameRulesAfterTurn() {
-        applyStackDrawRule();
+        game.handleGameRulesAfterTurn();
     }
 
     private void handleCardClick(int cardIndex) {
