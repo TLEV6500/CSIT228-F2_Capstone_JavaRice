@@ -98,22 +98,15 @@ public class MenuController {
             Object setupController = loader.getController();
 
             if (mode == GameSetupDialogController.Mode.HOST) {
-                // setupHost(String username)
-                setupController.getClass().getMethod("setupHost", String.class)
-                        .invoke(setupController, setupResult.username);
+                setupController.getClass().getMethod("setupHost", String.class).invoke(setupController, setupResult.username);
             } else if (mode == GameSetupDialogController.Mode.JOIN) {
-                // setupJoin(String username, String hostCode)
-                setupController.getClass().getMethod("setupJoin", String.class, String.class)
-                        .invoke(setupController, setupResult.username, setupResult.hostCode);
+                setupController.getClass().getMethod("setupJoin", String.class, String.class).invoke(setupController, setupResult.username, setupResult.hostCode);
             }
 
-            // Instead of a new Stage, replace the current Scene
-            // Use any node from the current scene to get the window, e.g., hostGameCard
             Stage stage = (Stage) hostGameCard.getScene().getWindow();
             Scene scene = new Scene(setupUIRoot);
             stage.setScene(scene);
             stage.setTitle(mode == GameSetupDialogController.Mode.HOST ? "Host Lobby" : "Join Lobby");
-            // No showAndWait here, as we're on the main window
         } catch (Exception e) {
             e.printStackTrace();
             showError("Cannot launch game setup UI", "Something went wrong while launching the game setup UI.");

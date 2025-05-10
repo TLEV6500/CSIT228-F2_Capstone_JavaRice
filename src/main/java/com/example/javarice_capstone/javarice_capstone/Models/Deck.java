@@ -1,10 +1,6 @@
-// src/main/java/com/example/javarice_capstone/javarice_capstone/Models/Deck.java
-
 package com.example.javarice_capstone.javarice_capstone.Models;
 
 import com.example.javarice_capstone.javarice_capstone.Abstracts.AbstractCard;
-import com.example.javarice_capstone.javarice_capstone.Models.CardAction;
-import com.example.javarice_capstone.javarice_capstone.Models.CardNumber;
 import com.example.javarice_capstone.javarice_capstone.enums.Colors;
 import com.example.javarice_capstone.javarice_capstone.enums.Types;
 

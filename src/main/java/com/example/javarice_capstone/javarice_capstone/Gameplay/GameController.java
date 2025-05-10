@@ -20,6 +20,7 @@ import javafx.scene.control.Dialog;
 import javafx.scene.control.Label;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
+import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
@@ -49,6 +50,7 @@ public class GameController implements Initializable {
     @FXML private StackPane notificationArea;
     @FXML private Label gameDirectionLabel;
     @FXML private Label lastActionLabel;
+    @FXML private BorderPane rootBorderPane;
 
     @FXML private HBox opponent1Hand, opponent2Hand, opponent3Hand;
     @FXML private VBox  opponent4Hand, opponent5Hand;
@@ -62,10 +64,10 @@ public class GameController implements Initializable {
     private boolean isSingleplayer = true;
 
     private static final int MAX_RENDERED_COMPUTER_CARDS = 20;
-    private static final double PLAYER_CARD_WIDTH = 70;
-    private static final double PLAYER_CARD_HEIGHT = 110;
-    private static final double OPPONENT_CARD_WIDTH = 50;
-    private static final double OPPONENT_CARD_HEIGHT = 75;
+    private static final double PLAYER_CARD_WIDTH = 65;
+    private static final double PLAYER_CARD_HEIGHT = 105;
+    private static final double OPPONENT_CARD_WIDTH = 45;
+    private static final double OPPONENT_CARD_HEIGHT = 70;
     private static final double COMPUTER_CARD_OVERLAP = 20;
     private static final double PLAYER_CARD_OVERLAP = 15;
     private static final int COMPUTER_OVERLAP_EXPAND_CARD_STEP = 2;
@@ -98,6 +100,16 @@ public class GameController implements Initializable {
             lastActionBox.setAlignment(Pos.CENTER);
             gamePane.getChildren().add(lastActionBox);
         }
+
+        Platform.runLater(() -> {
+            BorderPane rootBorderPane = this.rootBorderPane;
+            Scene scene = rootBorderPane.getScene();
+            if (scene != null) {
+                rootBorderPane.maxWidthProperty().bind(scene.widthProperty().multiply(0.95));
+                rootBorderPane.maxHeightProperty().bind(scene.heightProperty().multiply(0.9));
+            }
+        });
+
         updateUI();
         drawPileView.setOnMouseClicked(e -> handleDrawCard());
         checkAndStartComputerTurn();
@@ -133,10 +145,9 @@ public class GameController implements Initializable {
     }
 
     private void updatePlayerHandCount(AbstractPlayer player) {
-        if (playerHandCount != null) {
-            playerHandCount.setText("(" + player.getHand().size() + " cards)");
-        }
+        if (playerHandCount != null) playerHandCount.setText("(" + player.getHand().size() + " cards)");
     }
+
     private void renderPlayerHand(AbstractPlayer player) {
         List<AbstractCard> hand = player.getHand();
         for (int i = 0; i < hand.size(); i++) {
@@ -147,6 +158,7 @@ public class GameController implements Initializable {
             playerHand.getChildren().add(cardNode);
         }
     }
+
     private Node createCardNode(AbstractCard card, int cardIndex) {
         try {
             ImageView cardView = new ImageView(new Image(Objects.requireNonNull(getClass().getResourceAsStream(card.getImagePath()))));
@@ -166,6 +178,7 @@ public class GameController implements Initializable {
             return cardBox;
         }
     }
+
     private Image loadCardBackImage() {
         try {
             return new Image(Objects.requireNonNull(getClass().getResourceAsStream("/images/cards/card_back.png")));
@@ -173,6 +186,7 @@ public class GameController implements Initializable {
             return null;
         }
     }
+
     private void updateOpponentHands(Image cardBack) {
         int computerCount = game.getPlayers().size() - 1;
         Object[][] opponents = {
@@ -335,6 +349,10 @@ public class GameController implements Initializable {
             updateUI();
             game.handleGameRulesAfterTurn();
             checkGameStatus();
+
+            // Advance to the next player (fixes turn tracking)
+            game.nextPlayer();
+            updateUI();
             checkAndStartComputerTurn();
         }
     }
@@ -562,13 +580,14 @@ public class GameController implements Initializable {
         if (result == ComputerActionResult.PLAYED) {
             handleGameRulesAfterTurn();
             checkGameStatus();
+            game.nextPlayer();
             isComputerTurnActive = false;
             checkAndStartComputerTurn();
-        } else if (result == ComputerActionResult.DRAWN) {
-            scheduleNextAIStep();
-        } else if (result == ComputerActionResult.DONE) {
+        } else if (result == ComputerActionResult.DRAWN) scheduleNextAIStep();
+        else if (result == ComputerActionResult.DONE) {
             handleGameRulesAfterTurn();
             checkGameStatus();
+            game.nextPlayer();
             isComputerTurnActive = false;
             checkAndStartComputerTurn();
         }

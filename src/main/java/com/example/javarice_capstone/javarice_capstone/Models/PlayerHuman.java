@@ -11,7 +11,7 @@ public class PlayerHuman extends AbstractPlayer {
 
     @Override
     public int selectCardToPlay(AbstractCard topCard, Colors currentColor) {
-        return -1; // Not implemented; handled by the game UI
+        return -1; // Handled by the GUI, not needed
     }
 
 }

@@ -77,7 +77,6 @@ public class GameSetupDialogController {
         }
     }
 
-    // --- For Win Dialog ---
     public void setCustomWinModeMainMenuOnly(String message, Runnable mainMenuCallback) {
         titleLabel.setText("Game Over");
 
@@ -99,11 +98,11 @@ public class GameSetupDialogController {
         contentPane.getChildren().setAll(vbox);
     }
 
-    // --- Callbacks for dialog results ---
     void onSingleplayerOk(int playerCount) {
         selectedPlayerCount = Optional.of(playerCount);
         closeDialog();
     }
+
     void onSingleplayerCancel() {
         selectedPlayerCount = Optional.empty();
         closeDialog();
@@ -188,7 +187,6 @@ public class GameSetupDialogController {
         }
     }
 
-    // Host Game dialog controller (updated to match new FXML: username only, "Next" button)
     public static class HostGameContentController {
         @FXML private TextField usernameTextField;
         @FXML private Button Host;

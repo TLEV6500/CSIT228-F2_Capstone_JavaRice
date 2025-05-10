@@ -8,13 +8,13 @@ import java.util.Random;
 
 public class PlayerFactory {
 
-    private static final String[] COMPUTER_TYPES = {"COMPUTER - N", "COMPUTER - A", "COMPUTER - D", "COMPUTER - T"};
+    private static final String[] COMPUTER_TYPES = {"COMPUTER - N", "COMPUTER - A", "COMPUTER - D"};
     private static final Random RANDOM = new Random();
 
     public static AbstractPlayer createPlayer(String type, String name) {
         return switch (type) {
             case "HUMAN" -> new PlayerHuman(name);
-            case "COMPUTER - N", "COMPUTER - A", "COMPUTER - D", "COMPUTER - T" -> new PlayerComputer(name, StrategyFactory.createStrategy(type));
+            case "COMPUTER - N", "COMPUTER - A", "COMPUTER - D" -> new PlayerComputer(name, StrategyFactory.createStrategy(type));
             default -> throw new IllegalArgumentException("Unknown player type: " + type);
         };
     }

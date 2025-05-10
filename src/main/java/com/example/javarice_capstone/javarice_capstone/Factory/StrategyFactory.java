@@ -9,7 +9,6 @@ public class StrategyFactory {
             case "COMPUTER - N" -> new NormalStrat();
             case "COMPUTER - A" -> new AggressiveStrat();
             case "COMPUTER - D" -> new DefensiveStrat();
-            case "COMPUTER - T" -> new TrollStrat();
             default -> throw new IllegalArgumentException("Unknown strategy type: " + type);
         };
     }

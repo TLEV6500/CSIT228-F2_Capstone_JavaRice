@@ -135,9 +135,7 @@ public class Game {
     }
 
     public AbstractCard drawCard() {
-        AbstractCard card = deck.drawCard();
-        getCurrentPlayer().addCard(card);
-        return card;
+        return deck.drawCard();
     }
 
     public void handleWildColorSelection(Colors color) {

@@ -23,6 +23,7 @@ public class PlayerComputer extends AbstractPlayer {
     public ComputerActionResult stepTurn(Game game) {
         int cardToPlay = selectCardToPlay(game.getTopCard(), game.getCurrentColor());
         if (cardToPlay >= 0) {
+            // Play a card from hand
             AbstractCard selectedCard = getHand().get(cardToPlay);
             Types type = selectedCard.getType();
             game.playCard(cardToPlay);
@@ -32,18 +33,21 @@ public class PlayerComputer extends AbstractPlayer {
                 game.setCurrentColor(newColor);
             }
 
-            hasDrawnCardThisTurn = false;
+            hasDrawnCardThisTurn = false; // Reset for next turn
             return ComputerActionResult.PLAYED;
         } else if (!hasDrawnCardThisTurn) {
+            // No playable card, draw a card
             game.drawCard();
-            hasDrawnCardThisTurn = true;
+            hasDrawnCardThisTurn = true; // Mark that we have drawn this turn
             return ComputerActionResult.DRAWN;
         } else {
+            // Just drew a card, now try to play it immediately
             int drawnIndex = getHand().size() - 1;
+            AbstractCard justDrawn = getHand().get(drawnIndex);
             AbstractCard topCard = game.getTopCard();
             Colors currentColor = game.getCurrentColor();
-            AbstractCard justDrawn = getHand().get(drawnIndex);
             if (justDrawn.canPlayOn(topCard) || justDrawn.getColor() == currentColor) {
+                // Play the just-drawn card
                 Types type = justDrawn.getType();
                 game.playCard(drawnIndex);
                 if (type == Types.WILD || type == Types.DRAW_FOUR) {
@@ -53,6 +57,7 @@ public class PlayerComputer extends AbstractPlayer {
                 hasDrawnCardThisTurn = false;
                 return ComputerActionResult.PLAYED;
             } else {
+                // Cannot play, end turn
                 hasDrawnCardThisTurn = false;
                 return ComputerActionResult.DONE;
             }
