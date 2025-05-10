@@ -33,7 +33,7 @@ public class Game {
             players.add(PlayerFactory.createPlayer(randomType, "Computer " + i));
         }
 
-        for (int i = 0; i < 1; i++) {
+        for (int i = 0; i < 7; i++) {
             for (AbstractPlayer player : players) {
                 player.addCard(deck.drawCard());
             }

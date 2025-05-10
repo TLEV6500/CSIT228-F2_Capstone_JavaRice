@@ -118,7 +118,7 @@ public class GameController implements Initializable {
         }
         isFirstTurn = true;
         updateUI();
-        updateGameDirectionLabel(true);
+        updateGameDirectionLabel();
     }
 
     private void updateUI() {
@@ -137,32 +137,23 @@ public class GameController implements Initializable {
 
         AbstractPlayer currentPlayer = game.getCurrentPlayer();
 
-        // statusLabel shows current turn
         if (statusLabel != null) {
-            statusLabel.setText("Current turn: " + currentPlayer.getName());
+            statusLabel.setText("TURN: " + currentPlayer.getName());
         }
 
-        // direction shows direction
-        if (direction != null) {
-            direction.setText(game.isCustomOrderClockwise()
-                    ? "Direction: Clockwise →"
-                    : "Direction: Counter-clockwise ←"
-            );
-        }
+        updateGameDirectionLabel();
 
-        // prev_move_Label shows last move
         if (prev_move_Label != null && lastPlayedCard != null) {
-            prev_move_Label.setText("Previous Move: " + game.getActionDescription(lastPlayedCard));
+            prev_move_Label.setText("PREV MOVE: " + game.getActionDescription(lastPlayedCard));
         }
 
         if (game.isPlayersTurn(0) && (game.getTopCard().getType() == Types.DRAW_TWO || game.getTopCard().getType() == Types.DRAW_FOUR)) {
             if (game.canCurrentPlayerStackDraw()) {
-                String stackMsg = game.getTopCard().getType() == Types.DRAW_TWO
-                        ? "Computer played +2! You can stack a +2 card!"
-                        : "Computer played +4! You can stack a +4 card!";
-                showNotification(stackMsg, Color.DARKGREEN);
+                String stackMsg = game.getTopCard().getType() == Types.DRAW_TWO ? "Computer played +2! You can stack a +2 card!" : "Computer played +4! You can stack a +4 card!";
+                if (prev_move_Label != null) prev_move_Label.setText(stackMsg);
             }
         }
+
     }
 
     private void updatePlayerHandCount(AbstractPlayer player) {
@@ -252,7 +243,9 @@ public class GameController implements Initializable {
     private void setOpponentHandHBox(int index, Label nameLabel, HBox handBox, Label handCountLabel, Image cardBack) {
         if (game.getPlayers().size() > index) {
             AbstractPlayer opponent = game.getPlayers().get(index);
+            if (nameLabel != null) nameLabel.setText(opponent.getName());
             setPlayerLabelStyle(index, nameLabel, game.getCurrentPlayer() == opponent);
+
             if (handBox != null && cardBack != null) {
                 handBox.getChildren().clear();
                 int opponentHandSize = opponent.getHand().size();
@@ -280,18 +273,12 @@ public class GameController implements Initializable {
     private void setPlayerLabelStyle(int index, Label nameLabel, boolean isCurrentTurn) {
         if (nameLabel != null) {
             if (isCurrentTurn) {
-                if (index == 0) {
-                    nameLabel.setStyle("-fx-font-weight: bold; -fx-text-fill: green;");
-                    if (playerLabel != null) playerLabel.setStyle("-fx-font-weight: bold; -fx-text-fill: blue;");
-                } else {
-                    nameLabel.setStyle("-fx-font-weight: bold; -fx-text-fill: blue;");
-                    if (playerLabel != null) playerLabel.setStyle("");
-                }
+                nameLabel.setStyle("-fx-font-weight: bold; -fx-text-fill: blue;");
+                if (index == 0 && playerLabel != null) playerLabel.setStyle("-fx-font-weight: bold; -fx-text-fill: blue;");
+                if (index != 0 && playerLabel != null) playerLabel.setStyle("");
             } else {
                 nameLabel.setStyle("");
-                if (index == 0 && playerLabel != null) {
-                    playerLabel.setStyle("");
-                }
+                if (index == 0 && playerLabel != null) playerLabel.setStyle("");
             }
         }
     }
@@ -299,7 +286,9 @@ public class GameController implements Initializable {
     private void setOpponentHandVBox(int index, Label nameLabel, VBox handBox, Label handCountLabel, Image cardBack) {
         if (game.getPlayers().size() > index) {
             AbstractPlayer opponent = game.getPlayers().get(index);
+            if (nameLabel != null) nameLabel.setText(opponent.getName());
             setPlayerLabelStyle(index, nameLabel, game.getCurrentPlayer() == opponent);
+
             if (handBox != null && cardBack != null) {
                 handBox.getChildren().clear();
                 int opponentHandSize = opponent.getHand().size();
@@ -380,17 +369,14 @@ public class GameController implements Initializable {
 
     private void updateLastAction(AbstractCard card) {
         lastPlayedCard = card;
-        // Update prev_move_Label if present
-        if (prev_move_Label != null) {
-            prev_move_Label.setText("Previous Move: " + game.getActionDescription(card));
-        }
+        if (prev_move_Label != null) prev_move_Label.setText("PREV MOVE: " + game.getActionDescription(card));
         switch (card.getType()) {
             case SKIP:
                 showNotification("SKIP!", Color.RED);
                 break;
             case REVERSE:
                 showNotification("REVERSE!", Color.ORANGE);
-                if (direction != null) direction.setText(game.isCustomOrderClockwise() ? "Direction: Clockwise →" : "Direction: Counter-clockwise ←");
+                updateGameDirectionLabel();
                 break;
             case DRAW_TWO:
                 showNotification("+2 CARDS", Color.RED);
@@ -424,9 +410,9 @@ public class GameController implements Initializable {
         });
     }
 
-    private void updateGameDirectionLabel(boolean isClockwise) {
+    private void updateGameDirectionLabel() {
         if (direction != null) {
-            direction.setText(isClockwise ? "Direction: Clockwise →" : "Direction: Counter-clockwise ←");
+            direction.setText(game.isCustomOrderClockwise()? "↻" : "↺");
         }
     }
 
@@ -509,7 +495,7 @@ public class GameController implements Initializable {
                     game = new Game(6);
                     isFirstTurn = true;
                     updateUI();
-                    updateGameDirectionLabel(true);
+                    updateGameDirectionLabel();
                 }
             }
             return;
@@ -581,7 +567,7 @@ public class GameController implements Initializable {
         boolean isComputer = currentPlayer instanceof PlayerComputer;
         if (isComputer) {
             Platform.runLater(() -> {
-                statusLabel.setText("Current turn: " + currentPlayer.getName() + " (thinking...)");
+                statusLabel.setText("TURN: " + currentPlayer.getName() + " (THINKING...)");
             });
 
             isComputerTurnActive = true;
@@ -598,7 +584,7 @@ public class GameController implements Initializable {
         if (!isComputerTurnActive || isShuttingDown) return;
 
         try {
-            computerPlayerTimer.schedule(() -> Platform.runLater(this::stepComputerTurn), 1000, TimeUnit.MILLISECONDS);
+            computerPlayerTimer.schedule(() -> Platform.runLater(this::stepComputerTurn), 1250, TimeUnit.MILLISECONDS);
         } catch (RejectedExecutionException ignored) {
         }
     }

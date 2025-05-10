@@ -15,7 +15,7 @@
     </ComboBox>
 
     <HBox alignment="CENTER" spacing="18">
-        <Button fx:id="okButton" defaultButton="true" onAction="#okClicked" style="-fx-background-color: #34C275; -fx-text-fill: #fff; -fx-font-weight: bold; -fx-background-radius: 7; -fx-pref-width: 90; -fx-pref-height: 40;" text="Next" />
+        <Button fx:id="okButton" defaultButton="true" onAction="#okClicked" style="-fx-background-color: #34C275; -fx-text-fill: #fff; -fx-font-weight: bold; -fx-background-radius: 7; -fx-pref-width: 90; -fx-pref-height: 40;" text="PLAY" />
         <Button fx:id="cancelButton" cancelButton="true" onAction="#cancelClicked" style="-fx-background-color: #ef5350; -fx-text-fill: #fff; -fx-font-weight: bold; -fx-background-radius: 7; -fx-pref-width: 90; -fx-pref-height: 40;" text="Cancel" />
     </HBox>
 

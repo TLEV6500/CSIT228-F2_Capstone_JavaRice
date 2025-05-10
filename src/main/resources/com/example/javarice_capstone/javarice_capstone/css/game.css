@@ -1,0 +1,104 @@
+.root {
+    -fx-background-color: #292c34;
+}
+
+#rootBorderPane {
+    -fx-background-radius: 18;
+    -fx-background-color: #343746;
+    -fx-border-color: #ffd54f;
+    -fx-border-radius: 18;
+    -fx-border-width: 2;
+}
+
+HBox, VBox {
+    -fx-background-color: transparent;
+}
+
+#topOpponentsBox {
+    -fx-padding: 20 0 10 0;
+}
+
+#opponent1Name, #opponent2Name, #opponent3Name, #opponent4Name, #opponent5Name, #playerLabel {
+    -fx-text-fill: #ffd54f;
+    -fx-font-size: 16px;
+    -fx-font-weight: bold;
+    -fx-effect: dropshadow(gaussian, #232526, 2, 0.7, 0, 1);
+}
+
+#opponent1HandCount, #opponent2HandCount, #opponent3HandCount, #opponent4HandCount, #opponent5HandCount, #playerHandCount {
+    -fx-text-fill: #aaa;
+    -fx-font-size: 12px;
+    -fx-padding: 0 0 0 2;
+}
+
+#statusLabel {
+    -fx-text-fill: #81c784;
+    -fx-font-size: 22px;
+    -fx-font-weight: bold;
+    -fx-effect: dropshadow(gaussian, #292c34, 3, 0.7, 0, 1);
+    -fx-padding: 0 0 8 0;
+}
+
+#direction {
+    -fx-text-fill: #81c784;
+    -fx-font-size: 100px;
+    -fx-font-weight: bold;
+    -fx-effect: dropshadow(gaussian, #292c34, 3, 0.7, 0, 1);
+    -fx-padding: 0 0 -15 0;
+}
+
+#prev_move_Label {
+    -fx-text-fill: #ffd54f;
+    -fx-font-size: 15px;
+    -fx-font-weight: bold;
+}
+
+/* Removed yellowish-blue effect and border from drawPileView and discardPileView */
+#drawPileView, #discardPileView {
+    -fx-effect: dropshadow(gaussian, #232526, 8, 0.10, 0, 2);
+    -fx-background-radius: 12;
+    -fx-border-radius: 12;
+    -fx-border-color: transparent;
+    -fx-background-color: #232526;
+}
+
+#playerHand {
+    -fx-spacing: 8;
+    -fx-padding: 10 4 10 4;
+}
+
+HBox, VBox {
+    -fx-spacing: 5;
+    -fx-alignment: center;
+}
+
+.card {
+    -fx-background-color: #fffde7;
+    -fx-border-color: #ffd54f;
+    -fx-border-radius: 8;
+    -fx-background-radius: 8;
+    -fx-padding: 8 12 8 12;
+    -fx-font-size: 20px;
+    -fx-font-family: monospace;
+    -fx-effect: dropshadow(gaussian, #ffd54f, 2, 0.3, 0, 1);
+    -fx-cursor: hand;
+    -fx-transition: scale 0.1s;
+}
+
+.card:hover {
+    -fx-background-color: #ffd54f;
+    -fx-text-fill: #232526;
+    -fx-scale-x: 1.08;
+    -fx-scale-y: 1.08;
+}
+
+.card.selected {
+    -fx-background-color: #81c784;
+    -fx-text-fill: #232526;
+    -fx-border-color: #232526;
+}
+
+.label {
+    -fx-font-family: "Arial Black", Arial, sans-serif;
+    -fx-font-smoothing-type: lcd;
+}
