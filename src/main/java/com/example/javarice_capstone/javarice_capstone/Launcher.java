@@ -1,5 +1,6 @@
 package com.example.javarice_capstone.javarice_capstone;
 
+import com.example.javarice_capstone.javarice_capstone.Server.XAMPP_Initializer;
 import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
@@ -20,6 +21,7 @@ public class Launcher extends Application {
     }
 
     public static void main(String[] args) {
+        XAMPP_Initializer.start();
         launch();
     }
 }
