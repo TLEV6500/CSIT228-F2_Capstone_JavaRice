@@ -36,6 +36,7 @@ import javafx.util.Duration;
 import java.net.URL;
 import java.util.*;
 import java.util.concurrent.Executors;
+import java.util.concurrent.RejectedExecutionException;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.List;
@@ -60,8 +61,8 @@ public class GameController implements Initializable {
     private Game game;
     private final ScheduledExecutorService computerPlayerTimer = Executors.newSingleThreadScheduledExecutor();
     private boolean isFirstTurn = true;
-
     private boolean isSingleplayer = true;
+    private boolean isShuttingDown = false;
 
     private static final int MAX_RENDERED_COMPUTER_CARDS = 20;
     private static final double PLAYER_CARD_WIDTH = 65;
@@ -507,6 +508,11 @@ public class GameController implements Initializable {
 
     private void showSingleplayerWinDialog(String winnerName) {
         try {
+            isShuttingDown = true;
+            isComputerTurnActive = false;
+
+            shutdown();
+
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/example/javarice_capstone/javarice_capstone/SetupDialog.fxml"));
             Parent dialogRoot = loader.load();
 
@@ -521,16 +527,7 @@ public class GameController implements Initializable {
             dialogStage.showAndWait();
         } catch (Exception e) {
             e.printStackTrace();
-            shutdown();
-            try {
-                FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/example/javarice_capstone/javarice_capstone/MenuUI.fxml"));
-                Parent root = loader.load();
-                Stage stage = (Stage) statusLabel.getScene().getWindow();
-                stage.getScene().setRoot(root);
-                stage.setTitle("UNO - Setup Game");
-            } catch (Exception ex) {
-                ex.printStackTrace();
-            }
+            goToMainMenu();
         }
     }
 
@@ -540,17 +537,31 @@ public class GameController implements Initializable {
             Parent root = loader.load();
             Stage stage = (Stage) statusLabel.getScene().getWindow();
             stage.getScene().setRoot(root);
-            stage.setTitle("UNO - Setup Game");
+            stage.setTitle("UNO - Main Menu");
         } catch (Exception e) {
             e.printStackTrace();
         }
     }
 
     private void shutdown() {
-        computerPlayerTimer.shutdownNow();
+        isShuttingDown = true;
+        isComputerTurnActive = false;
+
+        try {
+            computerPlayerTimer.shutdown();
+            if (!computerPlayerTimer.awaitTermination(500, TimeUnit.MILLISECONDS)) {
+                computerPlayerTimer.shutdownNow();
+            }
+        } catch (InterruptedException e) {
+            computerPlayerTimer.shutdownNow();
+            Thread.currentThread().interrupt();
+        } catch (Exception ignored) {
+        }
     }
 
     private void checkAndStartComputerTurn() {
+        if (isShuttingDown) return;
+
         AbstractPlayer currentPlayer = game.getCurrentPlayer();
         boolean isComputer = currentPlayer instanceof PlayerComputer;
         if (isComputer) {
@@ -560,17 +571,25 @@ public class GameController implements Initializable {
 
             isComputerTurnActive = true;
             lastAIAction = null;
-            scheduleNextAIStep();
+
+            try {
+                scheduleNextAIStep();
+            } catch (RejectedExecutionException ignored) {
+            }
         }
     }
 
     private void scheduleNextAIStep() {
-        if (!isComputerTurnActive) return;
-        computerPlayerTimer.schedule(() -> Platform.runLater(this::stepComputerTurn), 1000, TimeUnit.MILLISECONDS);
+        if (!isComputerTurnActive || isShuttingDown) return;
+
+        try {
+            computerPlayerTimer.schedule(() -> Platform.runLater(this::stepComputerTurn), 1000, TimeUnit.MILLISECONDS);
+        } catch (RejectedExecutionException ignored) {
+        }
     }
 
     private void stepComputerTurn() {
-        if (!isComputerTurnActive) return;
+        if (!isComputerTurnActive || isShuttingDown) return;
 
         AbstractPlayer computer = game.getCurrentPlayer();
         if (!(computer instanceof PlayerComputer)) {
@@ -586,9 +605,13 @@ public class GameController implements Initializable {
             handleGameRulesAfterTurn();
             checkGameStatus();
             isComputerTurnActive = false;
-            checkAndStartComputerTurn();
-        } else if (result == ComputerActionResult.DRAWN) {
-            scheduleNextAIStep();
+
+            if (!isShuttingDown) checkAndStartComputerTurn();
+        } else if (result == ComputerActionResult.DRAWN && !isShuttingDown) {
+            try {
+                scheduleNextAIStep();
+            } catch (RejectedExecutionException ignored) {
+            }
         }
     }
 

@@ -22,10 +22,6 @@ public class GameSetupDialogController {
     private Optional<MultiplayerSetupResult> hostGameResult = Optional.empty();
     private Optional<MultiplayerSetupResult> joinGameResult = Optional.empty();
 
-    private Runnable onTryAgain = null, onMainMenu = null;
-
-    private boolean customWinModeShown = false; // Add a flag
-
     @FXML
     public void initialize() {
         setMode(Mode.SINGLEPLAYER);
@@ -55,34 +51,33 @@ public class GameSetupDialogController {
             }
             titleLabel.setText(title);
 
-            javafx.fxml.FXMLLoader loader = new javafx.fxml.FXMLLoader(getClass().getResource(fxml));
-            javafx.scene.Parent content = loader.load();
+            if (!fxml.isEmpty()) {
+                javafx.fxml.FXMLLoader loader = new javafx.fxml.FXMLLoader(getClass().getResource(fxml));
+                javafx.scene.Parent content = loader.load();
 
-            switch (mode) {
-                case SINGLEPLAYER:
-                    SingleplayerContentController singleCtrl = loader.getController();
-                    singleCtrl.init(this);
-                    break;
-                case HOST:
-                    HostGameContentController hostCtrl = loader.getController();
-                    hostCtrl.init(this);
-                    break;
-                case JOIN:
-                    JoinGameContentController joinCtrl = loader.getController();
-                    joinCtrl.init(this);
-                    break;
+                switch (mode) {
+                    case SINGLEPLAYER:
+                        SingleplayerContentController singleCtrl = loader.getController();
+                        singleCtrl.init(this);
+                        break;
+                    case HOST:
+                        HostGameContentController hostCtrl = loader.getController();
+                        hostCtrl.init(this);
+                        break;
+                    case JOIN:
+                        JoinGameContentController joinCtrl = loader.getController();
+                        joinCtrl.init(this);
+                        break;
+                }
+
+                contentPane.getChildren().setAll(content);
             }
-
-            contentPane.getChildren().setAll(content);
         } catch (Exception e) {
             e.printStackTrace();
         }
     }
 
     public void setCustomWinModeMainMenuOnly(String message, Runnable mainMenuCallback) {
-        if (customWinModeShown) return;
-        customWinModeShown = true;
-
         titleLabel.setText("Game Over");
 
         VBox vbox = new VBox(20);
