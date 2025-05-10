@@ -142,6 +142,16 @@ public class GameController implements Initializable {
 
         AbstractPlayer currentPlayer = game.getCurrentPlayer();
         statusLabel.setText("Current turn: " + currentPlayer.getName());
+
+        if (game.isPlayersTurn(0) && (game.getTopCard().getType() == Types.DRAW_TWO || game.getTopCard().getType() == Types.DRAW_FOUR)) {
+            if (game.canCurrentPlayerStackDraw()) {
+                String stackMsg = game.getTopCard().getType() == Types.DRAW_TWO
+                        ? "Computer played +2! You can stack a +2 card!"
+                        : "Computer played +4! You can stack a +4 card!";
+                showNotification(stackMsg, Color.DARKGREEN);
+            }
+        }
+
     }
 
     private void updatePlayerHandCount(AbstractPlayer player) {
@@ -501,10 +511,7 @@ public class GameController implements Initializable {
             Parent dialogRoot = loader.load();
 
             GameSetupDialogController dialogController = loader.getController();
-            dialogController.setCustomWinModeMainMenuOnly(winnerName + " has won the Game!", () -> {
-                ((Stage) dialogRoot.getScene().getWindow()).close();
-                goToMainMenu();
-            } );
+            dialogController.setCustomWinModeMainMenuOnly(winnerName + " has won the Game!", this::goToMainMenu);
 
             Stage dialogStage = new Stage();
             dialogStage.setTitle("Game Over");
@@ -559,7 +566,7 @@ public class GameController implements Initializable {
 
     private void scheduleNextAIStep() {
         if (!isComputerTurnActive) return;
-        computerPlayerTimer.schedule(() -> Platform.runLater(this::stepComputerTurn), 1500, TimeUnit.MILLISECONDS);
+        computerPlayerTimer.schedule(() -> Platform.runLater(this::stepComputerTurn), 1000, TimeUnit.MILLISECONDS);
     }
 
     private void stepComputerTurn() {

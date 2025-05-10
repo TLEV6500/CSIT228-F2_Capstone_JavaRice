@@ -19,23 +19,22 @@ public class PlayerComputer extends AbstractPlayer {
     }
 
     public ComputerActionResult stepTurn(Game game) {
-        while (true) {
-            int cardToPlay = selectCardToPlay(game.getTopCard(), game.getCurrentColor());
-            if (cardToPlay >= 0) {
-                AbstractCard selectedCard = getHand().get(cardToPlay);
-                Types type = selectedCard.getType();
-                game.playCard(cardToPlay);
+        int cardToPlay = selectCardToPlay(game.getTopCard(), game.getCurrentColor());
+        if (cardToPlay >= 0) {
+            AbstractCard selectedCard = getHand().get(cardToPlay);
+            Types type = selectedCard.getType();
+            game.playCard(cardToPlay);
 
-                if (type == Types.WILD || type == Types.DRAW_FOUR) {
-                    Colors newColor = Game.getRandomColorExcept(game.getCurrentColor());
-                    game.setCurrentColor(newColor);
-                }
-
-                return ComputerActionResult.PLAYED;
-            } else {
-                AbstractCard drawn = game.drawCard();
-                addCard(drawn);
+            if (type == Types.WILD || type == Types.DRAW_FOUR) {
+                Colors newColor = Game.getRandomColorExcept(game.getCurrentColor());
+                game.setCurrentColor(newColor);
             }
+
+            return ComputerActionResult.PLAYED;
+        } else {
+            AbstractCard drawn = game.drawCard();
+            addCard(drawn);
+            return ComputerActionResult.DRAWN;
         }
     }
 

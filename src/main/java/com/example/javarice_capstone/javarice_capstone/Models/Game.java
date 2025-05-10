@@ -33,7 +33,7 @@ public class Game {
             players.add(PlayerFactory.createPlayer(randomType, "Computer " + i));
         }
 
-        for (int i = 0; i < 7; i++) {
+        for (int i = 0; i < 1; i++) {
             for (AbstractPlayer player : players) {
                 player.addCard(deck.drawCard());
             }
@@ -76,11 +76,20 @@ public class Game {
 
     public boolean playWildCard(int cardIndex, Colors chosenColor) {
         handleWildColorSelection(chosenColor);
-        return playCard(cardIndex);
+        boolean result = playCard(cardIndex);
+        if (result) {
+            AbstractPlayer player = getCurrentPlayer();
+            System.out.println(player.getName() + ":\tCHANGED COLOR TO --> " + chosenColor);
+        }
+        return result;
     }
 
     public void playerDrawCard(int playerIndex) {
-        getPlayers().get(playerIndex).addCard(drawCard());
+        AbstractPlayer player = getPlayers().get(playerIndex);
+        AbstractCard drawnCard = drawCard();
+        player.addCard(drawnCard);
+
+        System.out.println(player.getName() + ":\tDREW CARD --> " + drawnCard.toString());
     }
 
     public Colors getCurrentColor() {
@@ -122,6 +131,8 @@ public class Game {
             AbstractCard playedCard = player.playCard(cardIndex);
             deck.discard(playedCard);
             lastPlayedCard = playedCard;
+
+            System.out.println(player.getName() + ":\tPLAYED --> " + playedCard.toString());
 
             if (card.getType() != Types.NUMBER) {
                 handleSpecialCard(card);
@@ -204,24 +215,19 @@ public class Game {
             AbstractPlayer player = getCurrentPlayer();
             int stackAmount = 0;
 
-            if (topCard.getType() == Types.DRAW_TWO) {
-                stackAmount = 2;
-            } else if (topCard.getType() == Types.DRAW_FOUR) {
-                stackAmount = 4;
-            }
+            if (topCard.getType() == Types.DRAW_TWO) stackAmount = 2;
+            else if (topCard.getType() == Types.DRAW_FOUR) stackAmount = 4;
             stackedDrawCards += stackAmount;
 
-            boolean stacked = false;
-            for (int i = 0; i < player.getHand().size(); i++) {
-                AbstractCard card = player.getHand().get(i);
+            boolean canStack = false;
+            for (AbstractCard card : player.getHand()) {
                 if (card.getType() == topCard.getType()) {
-                    playCard(i);
-                    stacked = true;
+                    canStack = true;
                     break;
                 }
             }
 
-            if (!stacked) {
+            if (!canStack) {
                 for (int i = 0; i < stackedDrawCards; i++) {
                     player.addCard(drawCard());
                 }
@@ -231,6 +237,19 @@ public class Game {
         } else {
             stackedDrawCards = 0;
         }
+    }
+
+    public boolean canCurrentPlayerStackDraw() {
+        AbstractCard topCard = getTopCard();
+        if (topCard.getType() == Types.DRAW_TWO || topCard.getType() == Types.DRAW_FOUR) {
+            AbstractPlayer player = getCurrentPlayer();
+            for (AbstractCard card : player.getHand()) {
+                if (card.getType() == topCard.getType()) {
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 
     private int getCustomOrderIndex(int playerIdx) {

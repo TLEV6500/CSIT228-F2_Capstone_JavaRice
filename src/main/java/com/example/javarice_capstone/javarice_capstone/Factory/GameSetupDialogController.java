@@ -24,6 +24,8 @@ public class GameSetupDialogController {
 
     private Runnable onTryAgain = null, onMainMenu = null;
 
+    private boolean customWinModeShown = false; // Add a flag
+
     @FXML
     public void initialize() {
         setMode(Mode.SINGLEPLAYER);
@@ -78,6 +80,9 @@ public class GameSetupDialogController {
     }
 
     public void setCustomWinModeMainMenuOnly(String message, Runnable mainMenuCallback) {
+        if (customWinModeShown) return;
+        customWinModeShown = true;
+
         titleLabel.setText("Game Over");
 
         VBox vbox = new VBox(20);
@@ -91,7 +96,8 @@ public class GameSetupDialogController {
         mainMenuBtn.setStyle("-fx-background-color: #ef5350; -fx-text-fill: #fff; -fx-font-weight: bold; -fx-background-radius: 7;");
         mainMenuBtn.setOnAction(e -> {
             if (mainMenuCallback != null) mainMenuCallback.run();
-            closeDialog();
+            javafx.stage.Window win = ((Button) e.getSource()).getScene().getWindow();
+            if (win instanceof Stage) ((Stage) win).close();
         });
 
         vbox.getChildren().addAll(msg, mainMenuBtn);
@@ -127,8 +133,11 @@ public class GameSetupDialogController {
     }
 
     private void closeDialog() {
-        Stage stage = (Stage) contentPane.getScene().getWindow();
-        stage.close();
+        if (contentPane == null) return;
+        javafx.scene.Scene scene = contentPane.getScene();
+        if (scene == null) return;
+        javafx.stage.Window window = scene.getWindow();
+        if (window instanceof Stage) ((Stage) window).close();
     }
 
     public Optional<Integer> getSelectedPlayerCount() {
