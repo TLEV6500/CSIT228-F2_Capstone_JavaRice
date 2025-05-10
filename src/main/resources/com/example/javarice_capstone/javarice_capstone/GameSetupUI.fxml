@@ -45,25 +45,9 @@
                     <Label fx:id="statusLabel" styleClass="status-label" text="Waiting for players..."/>
                 </HBox>
 
-                <!-- Main SplitPane: Left = Players, Right = Chat -->
-                <SplitPane dividerPositions="0.48" styleClass="lobby-splitpane" VBox.vgrow="ALWAYS">
-                    <!-- Players List Pane (left, unchanged) -->
-                    <ScrollPane fitToHeight="true" fitToWidth="true" styleClass="players-scroll">
-                        <HBox fx:id="playersContainer" spacing="8" styleClass="players-list"/>
-                    </ScrollPane>
-
-                    <!-- Chat Pane (right, unchanged) -->
-                    <VBox spacing="8.0" styleClass="chat-container" prefHeight="160" maxHeight="180">
-                        <Label styleClass="section-header" text="Lobby Chat"/>
-                        <ScrollPane fitToWidth="true" fitToHeight="true" styleClass="chat-scroll" prefHeight="100" maxHeight="120">
-                            <VBox fx:id="chatMessagesContainer" spacing="4" styleClass="chat-messages"/>
-                        </ScrollPane>
-                        <HBox spacing="6.0">
-                            <TextField fx:id="chatInputField" promptText="Type a message..." HBox.hgrow="ALWAYS"/>
-                            <Button fx:id="sendChatButton" text="Send"/>
-                        </HBox>
-                    </VBox>
-                </SplitPane>
+                <ScrollPane fitToHeight="true" fitToWidth="true" styleClass="players-scroll">
+                    <HBox fx:id="playersContainer" spacing="8" styleClass="players-list"/>
+                </ScrollPane>
 
             </VBox>
         </center>

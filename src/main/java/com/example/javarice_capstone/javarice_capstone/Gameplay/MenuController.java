@@ -30,10 +30,10 @@ public class MenuController {
 
     @FXML
     private void initialize() {
-        singleplayerImageView.setImage(new Image(getClass().getResourceAsStream("/images/cards/green_card.png")));
-        hostgameImageView.setImage(new Image(getClass().getResourceAsStream("/images/cards/blue_card.png")));
-        joingameImageView.setImage(new Image(getClass().getResourceAsStream("/images/cards/yellow_card.png")));
-        exitImageView.setImage(new Image(getClass().getResourceAsStream("/images/cards/red_card.png")));
+        singleplayerImageView.setImage(new Image(getClass().getResourceAsStream("/images/cards/green_1.png")));
+        hostgameImageView.setImage(new Image(getClass().getResourceAsStream("/images/cards/blue_6.png")));
+        joingameImageView.setImage(new Image(getClass().getResourceAsStream("/images/cards/yellow_reverse.png")));
+        exitImageView.setImage(new Image(getClass().getResourceAsStream("/images/cards/red_skip.png")));
 
         singleplayerCard.setOnMouseClicked(e -> handleSingleplayer());
         hostGameCard.setOnMouseClicked(e -> handleHostGame());

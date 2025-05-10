@@ -1,5 +1,6 @@
 package com.example.javarice_capstone.javarice_capstone.Gameplay;
 
+import com.example.javarice_capstone.javarice_capstone.Factory.GameSetupDialogController;
 import com.example.javarice_capstone.javarice_capstone.Models.*;
 import com.example.javarice_capstone.javarice_capstone.enums.*;
 import com.example.javarice_capstone.javarice_capstone.Abstracts.*;
@@ -11,6 +12,7 @@ import javafx.fxml.Initializable;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.Parent;
+import javafx.scene.Scene;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.scene.control.ButtonType;
@@ -26,6 +28,7 @@ import javafx.scene.shape.Rectangle;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
 import javafx.scene.text.Text;
+import javafx.stage.Modality;
 import javafx.stage.Stage;
 import javafx.util.Duration;
 
@@ -57,6 +60,8 @@ public class GameController implements Initializable {
     private final ScheduledExecutorService computerPlayerTimer = Executors.newSingleThreadScheduledExecutor();
     private boolean isFirstTurn = true;
 
+    private boolean isSingleplayer = true; // <-- Set this according to your game setup logic
+
     private static final int MAX_RENDERED_COMPUTER_CARDS = 20;
     private static final double PLAYER_CARD_WIDTH = 70;
     private static final double PLAYER_CARD_HEIGHT = 110;
@@ -67,10 +72,8 @@ public class GameController implements Initializable {
     private static final int COMPUTER_OVERLAP_EXPAND_CARD_STEP = 2;
     private static final double COMPUTER_OVERLAP_EXPAND_AMOUNT = 5;
 
-    // For stacked draw rule
     private int stackedDrawCards = 0;
 
-    // --- AI step-by-step state ---
     private boolean isComputerTurnActive = false;
     private ComputerActionResult lastAIAction = null;
 
@@ -489,26 +492,29 @@ public class GameController implements Initializable {
     private void checkGameStatus() {
         AbstractPlayer winner = game.getWinner();
         if (winner != null) {
-            Alert alert = new Alert(Alert.AlertType.INFORMATION);
-            alert.setTitle("Game Over");
-            alert.setHeaderText(winner.getName() + " wins!");
-            alert.setContentText("Game finished.");
-            alert.showAndWait();
+            if (isSingleplayer) {
+                showSingleplayerWinDialog(winner.getName());
+            } else {
+                Alert alert = new Alert(Alert.AlertType.INFORMATION);
+                alert.setTitle("Game Over");
+                alert.setHeaderText(winner.getName() + " wins!");
+                alert.setContentText("Game finished.");
+                alert.showAndWait();
 
-            shutdown();
-
-            try {
-                FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/example/javarice_capstone/javarice_capstone/GameSetupUI.fxml"));
-                Parent root = loader.load();
-                Stage stage = (Stage) statusLabel.getScene().getWindow();
-                stage.getScene().setRoot(root);
-                stage.setTitle("UNO - Setup Game");
-            } catch (Exception e) {
-                e.printStackTrace();
-                game = new Game(6);
-                isFirstTurn = true;
-                updateUI();
-                updateGameDirectionLabel(true);
+                shutdown();
+                try {
+                    FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/example/javarice_capstone/javarice_capstone/GameSetupUI.fxml"));
+                    Parent root = loader.load();
+                    Stage stage = (Stage) statusLabel.getScene().getWindow();
+                    stage.getScene().setRoot(root);
+                    stage.setTitle("UNO - Setup Game");
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    game = new Game(6);
+                    isFirstTurn = true;
+                    updateUI();
+                    updateGameDirectionLabel(true);
+                }
             }
             return;
         }
@@ -517,6 +523,54 @@ public class GameController implements Initializable {
             statusLabel.setText(unoPlayer.getName() + " has UNO!");
             showNotification("UNO!", Color.PURPLE);
         }
+    }
+
+    private void showSingleplayerWinDialog(String winnerName) {
+        try {
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/example/javarice_capstone/javarice_capstone/Dialog/GameSetupDialog.fxml" ));
+            Parent dialogRoot = loader.load();
+
+            GameSetupDialogController dialogController = loader.getController();
+            dialogController.setCustomWinModeMainMenuOnly(winnerName + " has won the Game!", () -> {
+                ((Stage) dialogRoot.getScene().getWindow()).close();
+                goToMainMenu();
+            } );
+
+            Stage dialogStage = new Stage();
+            dialogStage.setTitle("Game Over");
+            dialogStage.initModality(Modality.APPLICATION_MODAL);
+            dialogStage.setScene(new Scene(dialogRoot));
+            dialogStage.setResizable(false);
+            dialogStage.showAndWait();
+        } catch (Exception e) {
+            e.printStackTrace();
+            shutdown();
+            try {
+                FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/example/javarice_capstone/javarice_capstone/MenuUI.fxml"));
+                Parent root = loader.load();
+                Stage stage = (Stage) statusLabel.getScene().getWindow();
+                stage.getScene().setRoot(root);
+                stage.setTitle("UNO - Setup Game");
+            } catch (Exception ex) {
+                ex.printStackTrace();
+            }
+        }
+    }
+
+    private void goToMainMenu() {
+        try {
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/example/javarice_capstone/javarice_capstone/MenuUI.fxml"));
+            Parent root = loader.load();
+            Stage stage = (Stage) statusLabel.getScene().getWindow();
+            stage.getScene().setRoot(root);
+            stage.setTitle("UNO - Setup Game");
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void shutdown() {
+        computerPlayerTimer.shutdownNow();
     }
 
     private void checkAndStartComputerTurn() {
@@ -567,7 +621,4 @@ public class GameController implements Initializable {
         }
     }
 
-    private void shutdown() {
-        computerPlayerTimer.shutdownNow();
-    }
 }

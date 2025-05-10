@@ -3,6 +3,8 @@ package com.example.javarice_capstone.javarice_capstone.Factory;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
 import javafx.scene.layout.StackPane;
+import javafx.scene.layout.HBox;
+import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 
 import java.util.Optional;
@@ -14,12 +16,14 @@ public class GameSetupDialogController {
     public enum MultiplayerType { NONE, HOST, JOIN }
     private MultiplayerType multiplayerType = MultiplayerType.NONE;
 
-    public enum Mode { SINGLEPLAYER, HOST, JOIN }
+    public enum Mode { SINGLEPLAYER, HOST, JOIN, WIN }
     private Mode mode = Mode.SINGLEPLAYER;
 
     private Optional<Integer> selectedPlayerCount = Optional.empty();
     private Optional<MultiplayerSetupResult> hostGameResult = Optional.empty();
     private Optional<MultiplayerSetupResult> joinGameResult = Optional.empty();
+
+    private Runnable onTryAgain = null, onMainMenu = null;
 
     @FXML
     public void initialize() {
@@ -74,6 +78,28 @@ public class GameSetupDialogController {
         }
     }
 
+    // --- For Win Dialog ---
+    public void setCustomWinModeMainMenuOnly(String message, Runnable mainMenuCallback) {
+        titleLabel.setText("Game Over");
+
+        VBox vbox = new VBox(20);
+        vbox.setAlignment(javafx.geometry.Pos.CENTER);
+
+        Label msg = new Label(message);
+        msg.setStyle("-fx-font-size: 18px; -fx-text-fill: #ffd54f; -fx-font-weight: bold;");
+        msg.setWrapText(true);
+
+        Button mainMenuBtn = new Button("Main Menu");
+        mainMenuBtn.setStyle("-fx-background-color: #ef5350; -fx-text-fill: #fff; -fx-font-weight: bold; -fx-background-radius: 7;");
+        mainMenuBtn.setOnAction(e -> {
+            if (mainMenuCallback != null) mainMenuCallback.run();
+            closeDialog();
+        });
+
+        vbox.getChildren().addAll(msg, mainMenuBtn);
+        contentPane.getChildren().setAll(vbox);
+    }
+
     // --- Callbacks for dialog results ---
     void onSingleplayerOk(int playerCount) {
         selectedPlayerCount = Optional.of(playerCount);
@@ -114,13 +140,12 @@ public class GameSetupDialogController {
     public static class MultiplayerSetupResult {
         public final MultiplayerType type;
         public final String username;
-        public final Integer playerCount;
+        public final String extra1;
         public final String hostCode;
-
-        public MultiplayerSetupResult(MultiplayerType type, String username, Integer playerCount, String hostCode) {
+        public MultiplayerSetupResult(MultiplayerType type, String username, String extra1, String hostCode) {
             this.type = type;
             this.username = username;
-            this.playerCount = playerCount;
+            this.extra1 = extra1;
             this.hostCode = hostCode;
         }
     }

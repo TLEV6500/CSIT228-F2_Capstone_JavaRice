@@ -194,7 +194,7 @@ public class GameSetupController {
         }
     }
 
-    // Generates a random uppercase lobby code of 6 characters
+    // Generates a random uppercase lobby code of 8 characters
     private String generateLobbyCode() {
         String chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890";
         Random rand = new Random();
