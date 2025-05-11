@@ -21,6 +21,8 @@
 ### Graphical User Interface
 - Built an interactive JavaFX interface for the whole game with event listeners for drawing and playing a card.
 - Ensured the GUI is user-friendly with simple designs and easy to understand layout. Used some UNO colors in the design of the game.
+![Image](https://github.com/user-attachments/assets/287f918a-a0bd-4074-b276-b67e9b98bb82)
+  ![Image](https://github.com/user-attachments/assets/1b5a17eb-b42e-4d26-ae0b-5532e11e652f)
 
 ### Database Connectivity
 - ??
