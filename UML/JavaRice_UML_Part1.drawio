@@ -790,7 +790,7 @@
     </mxGraphModel>
   </diagram>
   <diagram id="gWfThMOxZmU0YmiOM_K2" name="Use Case Diagram">
-    <mxGraphModel dx="1677" dy="993" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="413" pageHeight="291" background="#F4F4F4" math="0" shadow="0">
+    <mxGraphModel dx="2012" dy="1192" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="413" pageHeight="291" background="#F4F4F4" math="0" shadow="0">
       <root>
         <mxCell id="0" />
         <mxCell id="1" parent="0" />
