@@ -91,21 +91,14 @@ public class GameSetupController {
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/example/javarice_capstone/javarice_capstone/PlayerCard.fxml"));
             VBox playerBox = loader.load();
 
-            if (isHostEntry) {
-                playerBox.getStyleClass().add("host-player");
-            } else {
-                playerBox.getStyleClass().add("player");
-            }
+            if (isHostEntry) playerBox.getStyleClass().add("host-player");
+            else playerBox.getStyleClass().add("player");
 
             ImageView avatar = (ImageView) playerBox.lookup("#avatarImageView");
-            if (avatar != null) {
-                avatar.setImage(new Image(getClass().getResourceAsStream("/images/cards/card_back.png")));
-            }
+            if (avatar != null) avatar.setImage(new Image(getClass().getResourceAsStream("/images/cards/card_back.png")));
 
             Label nameLabel = (Label) playerBox.lookup("#nameLabel");
-            if (nameLabel != null) {
-                nameLabel.setText(name);
-            }
+            if (nameLabel != null) nameLabel.setText(name);
 
             playersContainer.getChildren().add(playerBox);
         } catch (IOException e) {

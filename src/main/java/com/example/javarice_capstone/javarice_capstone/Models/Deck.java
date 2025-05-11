@@ -9,8 +9,8 @@ import java.util.Collections;
 import java.util.List;
 
 public class Deck {
-    protected List<AbstractCard> cards;
-    protected final List<AbstractCard> discardPile;
+    private List<AbstractCard> cards;
+    private final List<AbstractCard> discardPile;
     public Deck() {
         cards = new ArrayList<>();
         discardPile = new ArrayList<>();
