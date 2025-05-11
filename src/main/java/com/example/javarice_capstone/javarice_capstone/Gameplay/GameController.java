@@ -176,8 +176,6 @@ public class GameController implements Initializable {
             return cardView;
         } catch (Exception exception) {
             Rectangle cardRect = new Rectangle(PLAYER_CARD_WIDTH, PLAYER_CARD_HEIGHT);
-            cardRect.setFill(getJavaFXColor(card.getColor()));
-            cardRect.setStroke(Color.BLACK);
 
             Label cardLabel = new Label(card.toString());
             VBox cardBox = new VBox(cardRect, cardLabel);
@@ -325,16 +323,6 @@ public class GameController implements Initializable {
                 }
             }
         }
-    }
-
-    private Color getJavaFXColor(Colors cardColor) {
-        return switch (cardColor) {
-            case RED -> Color.RED;
-            case BLUE -> Color.BLUE;
-            case GREEN -> Color.GREEN;
-            case YELLOW -> Color.YELLOW;
-            case WILD -> Color.BLACK;
-        };
     }
 
     private void handleGameRulesAfterTurn() {

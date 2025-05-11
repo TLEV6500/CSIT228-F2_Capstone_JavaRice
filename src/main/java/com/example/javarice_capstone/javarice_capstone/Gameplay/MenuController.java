@@ -16,8 +16,8 @@ import java.util.*;
 
 public class MenuController {
     @FXML private VBox singleplayerCard;
-    @FXML private VBox hostGameCard; // changed from HostGame
-    @FXML private VBox joinGameCard; // changed from JoinGame
+    @FXML private VBox hostGameCard;
+    @FXML private VBox joinGameCard;
     @FXML private VBox exitCard;
 
     @FXML private ImageView singleplayerImageView;
