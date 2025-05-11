@@ -9,20 +9,18 @@
 
 ### Object-Oriented Programming Principles
 - Employed classes and interfaces to encapsulate UNO-specific game rules (encapsulation and abstraction).
-- Leveraged inheritance for different card types and polymorphism for handling various card actions.
+- Used Inheritance for different card types (CardNumber and CardAction) and polymorphism for overriding functions which have different usages.
 - Implemented interfaces for certain interaction points (e.g., user input handling) and used abstract classes for shared behaviors.
 
 ### Java Generics
-- Utilized generic collections (e.g., List<Card>, Map<Player, Score>) to store dynamic data and ensure type safety.
-- Employed a custom generic helper class to demonstrate reusability in sorting or filtering game elements.
+- ??
 
 ### Multithreading and Concurrency
-- Introduced threading for background tasks such as animated card shuffling or timer-based events.
-- Synchronized shared resources between multiple threads to prevent race conditions (e.g., game state updates).
+- ??
 
 ### Graphical User Interface
-- Built an interactive JavaFX interface with event listeners for drawing and playing cards.
-- Ensured the GUI is user-friendly with intuitive layouts, clear instructions, and consistent visual design.
+- Built an interactive JavaFX interface for the whole game with event listeners for drawing and playing a card.
+- Ensured the GUI is user-friendly with simple designs and easy to understand layout. Used some UNO colors in the design of the game.
 
 ### Database Connectivity
 - ??
