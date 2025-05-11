@@ -20,8 +20,8 @@ import java.util.*;
 
 public class GameSetupController {
 
-    @FXML private Button bottomButton1; // Will be Start Game or Ready
-    @FXML private Button bottomButton2; // Will be Leave Lobby
+    @FXML private Button startGameButton; // Will be Start Game or Ready
+    @FXML private Button cancelButton; // Will be Leave Lobby
     @FXML private HBox playersContainer;
     @FXML private Label dateTimeLabel;
     @FXML
@@ -107,16 +107,16 @@ public class GameSetupController {
     }
 
     private void updateBottomButtons() {
-        if (bottomButton1 != null && bottomButton2 != null) {
+        if (startGameButton != null && cancelButton != null) {
             if (isHost) {
-                bottomButton1.setText("Start Game");
-                bottomButton1.setOnAction(e -> handleStartGame());
+                startGameButton.setText("Start Game");
+                startGameButton.setOnAction(e -> handleStartGame());
             } else {
-                bottomButton1.setText("Ready");
-                bottomButton1.setOnAction(e -> handleReady());
+                startGameButton.setText("Ready");
+                startGameButton.setOnAction(e -> handleReady());
             }
-            bottomButton2.setText("Leave Lobby");
-            bottomButton2.setOnAction(e -> handleLeaveLobby());
+            cancelButton.setText("Leave Lobby");
+            cancelButton.setOnAction(e -> handleLeaveLobby());
         }
     }
 
@@ -138,7 +138,7 @@ public class GameSetupController {
 
             gameUIController.startGame(numberOfPlayers, playerNames);
 
-            Stage stage = (Stage) bottomButton1.getScene().getWindow();
+            Stage stage = (Stage) startGameButton.getScene().getWindow();
             Scene scene = new Scene(root);
             stage.setScene(scene);
             stage.setTitle("UNO - Gameplay");
@@ -157,7 +157,7 @@ public class GameSetupController {
         try {
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/example/javarice_capstone/javarice_capstone/MenuUI.fxml"));
             Parent root = loader.load();
-            Stage stage = (Stage) bottomButton2.getScene().getWindow();
+            Stage stage = (Stage) cancelButton.getScene().getWindow();
             stage.getScene().setRoot(root);
             stage.setTitle("UNO - Setup Game");
         } catch (IOException e) {
