@@ -17,4 +17,5 @@ module com.example.javarice_capstone.javarice_capstone {
     opens com.example.javarice_capstone.javarice_capstone.Gameplay to javafx.fxml;
 
     opens com.example.javarice_capstone.javarice_capstone.Factory to javafx.fxml;
+    opens com.example.javarice_capstone.javarice_capstone.Multiplayer to javafx.fxml;
 }

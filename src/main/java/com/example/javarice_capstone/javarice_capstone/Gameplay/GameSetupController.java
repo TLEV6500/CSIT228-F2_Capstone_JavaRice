@@ -1,5 +1,6 @@
 package com.example.javarice_capstone.javarice_capstone.Gameplay;
 
+import com.example.javarice_capstone.javarice_capstone.Multiplayer.GenerateLobbyCode;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
@@ -26,8 +27,7 @@ public class GameSetupController {
     @FXML private Label dateTimeLabel;
     @FXML private Button addPlayerButton;
     @FXML private Button removePlayerButton;
-    @FXML
-    TextField lobbyCodeField;
+    @FXML public TextField lobbyCodeField;
 
     private static final int MIN_PLAYERS = 2;
     private static final int MAX_PLAYERS = 6;
@@ -46,7 +46,7 @@ public class GameSetupController {
         isJoin = false;
         if (username != null && !username.isEmpty()) currentUser = username;
         initializePlayersContainer();
-        updateLobbyCodeLabel(generateLobbyCode());
+        updateLobbyCodeLabel(GenerateLobbyCode.GenerateLobbyCode());
         updateAddRemoveButtons();
     }
 
@@ -192,17 +192,5 @@ public class GameSetupController {
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
-    }
-
-    // Generates a random uppercase lobby code of 6 characters
-    private String generateLobbyCode() {
-        String chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890";
-        Random rand = new Random();
-        StringBuilder code = new StringBuilder();
-        for (int i = 0; i < 8; i++) {
-            code.append(chars.charAt(rand.nextInt(chars.length())));
-        }
-        lobbyCode = code.toString();
-        return lobbyCode;
     }
 }

@@ -85,7 +85,7 @@ public class GameSetupDialogController {
     }
 
     void onHostGameOk(String username) {
-        hostGameResult = Optional.of(new MultiplayerSetupResult(MultiplayerType.HOST, username, null, null));
+        hostGameResult = Optional.of(new MultiplayerSetupResult(MultiplayerType.HOST, username, null, null, null));
         closeDialog();
     }
     void onHostGameCancel() {
@@ -93,8 +93,8 @@ public class GameSetupDialogController {
         closeDialog();
     }
 
-    void onJoinGameOk(String username, String hostCode) {
-        joinGameResult = Optional.of(new MultiplayerSetupResult(MultiplayerType.JOIN, username, null, hostCode));
+    void onJoinGameOk(String username, String lobbyAddress,String lobbyCode) {
+        joinGameResult = Optional.of(new MultiplayerSetupResult(MultiplayerType.JOIN, username, null, lobbyAddress, lobbyCode));
         closeDialog();
     }
     void onJoinGameCancel() {
@@ -115,13 +115,15 @@ public class GameSetupDialogController {
         public final MultiplayerType type;
         public final String username;
         public final Integer playerCount;
-        public final String hostCode;
+        public final String lobbyAddress;
+        public final String lobbyCode;
 
-        public MultiplayerSetupResult(MultiplayerType type, String username, Integer playerCount, String hostCode) {
+        public MultiplayerSetupResult(MultiplayerType type, String username, Integer playerCount, String lobbyAddress, String lobbyCode) {
             this.type = type;
             this.username = username;
             this.playerCount = playerCount;
-            this.hostCode = hostCode;
+            this.lobbyAddress = lobbyAddress;
+            this.lobbyCode = lobbyCode;
         }
     }
 
@@ -161,60 +163,6 @@ public class GameSetupDialogController {
         @FXML
         private void cancelClicked() {
             parent.onSingleplayerCancel();
-        }
-    }
-
-    // Host Game dialog controller (updated to match new FXML: username only, "Next" button)
-    public static class HostGameContentController {
-        @FXML private TextField usernameTextField;
-        @FXML private Button Host;
-        @FXML private Button cancelButton;
-
-        private GameSetupDialogController parent;
-
-        public void init(GameSetupDialogController parent) {
-            this.parent = parent;
-        }
-
-        @FXML
-        private void hostButtonClicked() {
-            String username = usernameTextField.getText() != null ? usernameTextField.getText().trim() : "";
-            if (!username.isEmpty()) {
-                parent.onHostGameOk(username);
-            }
-        }
-
-        @FXML
-        private void cancelClicked() {
-            parent.onHostGameCancel();
-        }
-    }
-
-    // Join Game dialog controller (updated to match new FXML: username + host code)
-    public static class JoinGameContentController {
-        @FXML private TextField usernameTextField;
-        @FXML private TextField hostCodeTextField;
-        @FXML private Button okButton;
-        @FXML private Button cancelButton;
-
-        private GameSetupDialogController parent;
-
-        public void init(GameSetupDialogController parent) {
-            this.parent = parent;
-        }
-
-        @FXML
-        private void joinButtonClicked() {
-            String username = usernameTextField.getText() != null ? usernameTextField.getText().trim() : "";
-            String hostCode = hostCodeTextField.getText() != null ? hostCodeTextField.getText().trim() : "";
-            if (!username.isEmpty() && !hostCode.isEmpty()) {
-                parent.onJoinGameOk(username, hostCode);
-            }
-        }
-
-        @FXML
-        private void cancelClicked() {
-            parent.onJoinGameCancel();
         }
     }
 }

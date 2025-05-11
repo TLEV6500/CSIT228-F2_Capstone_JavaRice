@@ -1,4 +1,4 @@
-package com.example.javarice_capstone.javarice_capstone.Server;
+package com.example.javarice_capstone.javarice_capstone.Multiplayer;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -14,9 +14,15 @@ public class XAMPP_Initializer {
     private static final String XAMPP_DEFAULT_PATH = "C:\\xampp\\xampp-control.exe";
     private static final String APACHE_BIN = "C:\\xampp\\apache\\bin\\httpd.exe";
     private static final String MYSQL_BIN = "C:\\xampp\\mysql\\bin\\mysqld.exe";
+    private static boolean apacheWasAlreadyRunning = false;
+    private static boolean mysqlWasAlreadyRunning = false;
 
     public static void start(){
         install();
+
+        apacheWasAlreadyRunning = isServiceStarted("Apache2.4");
+        mysqlWasAlreadyRunning = isServiceStarted("mysql");
+
         startXAMPP();
         startServices();
         addShutdownHook();
@@ -107,22 +113,30 @@ public class XAMPP_Initializer {
 
     public static void stopXAMPP() {
         try {
-            System.out.println("🛑 Stopping Apache and MySQL services...");
+            System.out.println("🛑 Attempting to stop Apache and MySQL services...");
 
-            // Stop Apache
-            ProcessBuilder apacheStop = new ProcessBuilder("cmd", "/c", "sc stop Apache2.4");
-            apacheStop.inheritIO();
-            apacheStop.start().waitFor();
+            if (!apacheWasAlreadyRunning && isServiceStarted("Apache2.4")) {
+                ProcessBuilder apacheStop = new ProcessBuilder("cmd", "/c", "sc stop Apache2.4");
+                apacheStop.inheritIO();
+                apacheStop.start().waitFor();
+                System.out.println("✅ Apache stopped.");
+            } else {
+                System.out.println("ℹ️ Apache was already running before. Not stopping.");
+            }
 
-            // Stop MySQL
-            ProcessBuilder mysqlStop = new ProcessBuilder("cmd", "/c", "sc stop mysql");
-            mysqlStop.inheritIO();
-            mysqlStop.start().waitFor();
-            System.out.println("✅ Apache and MySQL services stopped.");
+            if (!mysqlWasAlreadyRunning && isServiceStarted("mysql")) {
+                ProcessBuilder mysqlStop = new ProcessBuilder("cmd", "/c", "sc stop mysql");
+                mysqlStop.inheritIO();
+                mysqlStop.start().waitFor();
+                System.out.println("✅ MySQL stopped.");
+            } else {
+                System.out.println("ℹ️ MySQL was already running before. Not stopping.");
+            }
         } catch (IOException | InterruptedException e) {
             e.printStackTrace();
         }
     }
+
 
     public static void installServices() {
         try {
@@ -130,7 +144,6 @@ public class XAMPP_Initializer {
                 System.out.println("✅ Apache and MySQL services are already installed.");
                 return;
             }
-
             // Install Apache as a service
             Process apacheService = new ProcessBuilder("cmd.exe", "/c", "\"" + APACHE_BIN + "\" -k install")
                     .inheritIO()
@@ -148,6 +161,23 @@ public class XAMPP_Initializer {
             e.printStackTrace();
         }
     }
+
+    public static boolean isServiceStarted(String serviceName) {
+        try {
+            ProcessBuilder pb = new ProcessBuilder("cmd", "/c", "sc query " + serviceName);
+            Process process = pb.start();
+
+            try (InputStream is = process.getInputStream()) {
+                String output = new String(is.readAllBytes());
+
+                return output.contains("STATE") && output.contains("RUNNING");
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+
 
     public static boolean isServiceInstalled(String serviceName) {
         try {
@@ -167,15 +197,23 @@ public class XAMPP_Initializer {
 
     public static void startServices() {
         try {
-            Process startApache = new ProcessBuilder("cmd.exe", "/c", "net start Apache2.4")
-                    .inheritIO()
-                    .start();
-            startApache.waitFor();
+            if (!isServiceStarted("Apache2.4")) {
+                new ProcessBuilder("cmd.exe", "/c", "net start Apache2.4")
+                        .inheritIO()
+                        .start()
+                        .waitFor();
+            } else {
+                System.out.println("🔄 Apache is already running.");
+            }
 
-            Process startMySQL = new ProcessBuilder("cmd.exe", "/c", "net start mysql")
-                    .inheritIO()
-                    .start();
-            startMySQL.waitFor();
+            if (!isServiceStarted("mysql")) {
+                new ProcessBuilder("cmd.exe", "/c", "net start mysql")
+                        .inheritIO()
+                        .start()
+                        .waitFor();
+            } else {
+                System.out.println("🔄 MySQL is already running.");
+            }
 
             System.out.println("✅ Apache and MySQL services started.");
         } catch (IOException | InterruptedException e) {
@@ -218,6 +256,20 @@ public class XAMPP_Initializer {
 
     // Shutdown hook to stop XAMPP when the Java application exits
     public static void addShutdownHook() {
-        Runtime.getRuntime().addShutdownHook(new Thread(XAMPP_Initializer::stopXAMPP));
+        Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+            // Stop services
+            stopXAMPP();
+
+            // Remove hosted lobby if it exists
+            if (SessionState.LobbyCode != null) {
+                System.out.println("🧹 Cleaning up hosted lobby: " + SessionState.LobbyCode);
+                boolean deleted = LobbyManager.deleteLobby(SessionState.LobbyCode);
+                if (deleted) {
+                    System.out.println("✅ Lobby deleted from database.");
+                } else {
+                    System.out.println("⚠️ Failed to delete lobby.");
+                }
+            }
+        }));
     }
 }

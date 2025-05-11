@@ -105,7 +105,7 @@ public class MenuController {
             } else if (mode == GameSetupDialogController.Mode.JOIN) {
                 // setupJoin(String username, String hostCode)
                 setupController.getClass().getMethod("setupJoin", String.class, String.class)
-                        .invoke(setupController, setupResult.username, setupResult.hostCode);
+                        .invoke(setupController, setupResult.username, setupResult.lobbyCode);
             }
 
             // Instead of a new Stage, replace the current Scene

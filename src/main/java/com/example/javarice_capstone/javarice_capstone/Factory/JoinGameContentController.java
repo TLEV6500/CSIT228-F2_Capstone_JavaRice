@@ -1,0 +1,61 @@
+package com.example.javarice_capstone.javarice_capstone.Factory;
+
+import com.example.javarice_capstone.javarice_capstone.Multiplayer.JoinLobby;
+import com.example.javarice_capstone.javarice_capstone.Multiplayer.SessionState;
+import javafx.fxml.FXML;
+import javafx.scene.control.Alert;
+import javafx.scene.control.Button;
+import javafx.scene.control.TextField;
+
+public class JoinGameContentController {
+    @FXML private TextField lobbyAddressTextField;
+    @FXML private TextField usernameTextField;
+    @FXML private TextField lobbyCodeTextField;
+    @FXML private Button okButton;
+    @FXML private Button cancelButton;
+
+    private GameSetupDialogController parent;
+
+    public void init(GameSetupDialogController parent) {
+        this.parent = parent;
+    }
+
+    @FXML
+    private void joinButtonClicked() {
+        String username = usernameTextField.getText() != null ? usernameTextField.getText().trim() : "";
+        String lobbyAddress = lobbyAddressTextField.getText() != null ? lobbyAddressTextField.getText().trim() : "";
+        String lobbyCode = lobbyCodeTextField.getText() != null ? lobbyCodeTextField.getText().trim() : "";
+
+        if (username.isEmpty() || lobbyAddress.isEmpty() || lobbyCode.isEmpty()) {
+            showAlert(Alert.AlertType.WARNING, "Missing Information", "Please fill in both username and host code.");
+            return;
+        }
+
+        SessionState.LobbyCode = lobbyCode;
+        SessionState.LobbyConnection = lobbyAddress;
+
+        String joinResult = JoinLobby.joinLobby(username, lobbyAddress, lobbyCode);
+
+        if (joinResult.startsWith("Player")) {
+            // Successfully joined, continue to parent
+            parent.onJoinGameOk(username, lobbyAddress, lobbyCode);
+        } else {
+            // Failed to join, show error
+            showAlert(Alert.AlertType.ERROR, "Join Failed", joinResult);
+        }
+    }
+
+    @FXML
+    private void cancelClicked() {
+        parent.onJoinGameCancel();
+    }
+
+    private void showAlert(Alert.AlertType type, String title, String content) {
+        Alert alert = new Alert(type);
+        alert.setTitle(title);
+        alert.setHeaderText(null);
+        alert.setContentText(content);
+        alert.showAndWait();
+    }
+
+}

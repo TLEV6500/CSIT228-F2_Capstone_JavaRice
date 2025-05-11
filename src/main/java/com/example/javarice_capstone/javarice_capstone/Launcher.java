@@ -1,12 +1,15 @@
 package com.example.javarice_capstone.javarice_capstone;
 
-import com.example.javarice_capstone.javarice_capstone.Server.XAMPP_Initializer;
+import com.example.javarice_capstone.javarice_capstone.Multiplayer.XAMPP_Initializer;
 import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
 
 import java.io.IOException;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.SQLException;
 
 public class Launcher extends Application {
 
@@ -20,7 +23,7 @@ public class Launcher extends Application {
         stage.show();
     }
 
-    public static void main(String[] args) {
+    public static void main(String[] args) throws SQLException {
         XAMPP_Initializer.start();
         launch();
     }
