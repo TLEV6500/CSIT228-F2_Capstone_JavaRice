@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
+<?import javafx.geometry.*?>
 <?import javafx.scene.control.*?>
 <?import javafx.scene.image.*?>
 <?import javafx.scene.layout.*?>
@@ -73,10 +74,13 @@
         </right>
 
         <center>
-            <HBox alignment="CENTER" spacing="80">
-                 <ImageView fx:id="drawPileView" fitHeight="140.0" fitWidth="100.0" preserveRatio="true" />
+            <HBox alignment="CENTER" spacing="100.0" maxHeight="400">
+                 <ImageView fx:id="drawPileView" fitHeight="140.0" fitWidth="100.0" preserveRatio="true">
+               <HBox.margin>
+                  <Insets right="25.0" />
+               </HBox.margin></ImageView>
                 <VBox alignment="CENTER" spacing="14">
-                    <Label fx:id="direction" text="Your turn!">
+                    <Label fx:id="direction" text="T">
                         <font>
                             <Font name="Arial" size="100.00" />
                         </font>
@@ -92,7 +96,10 @@
                   </font>
                </Label>
                 </VBox>
-                 <ImageView fx:id="discardPileView" fitHeight="140.0" fitWidth="100.0" preserveRatio="true" />
+                 <ImageView fx:id="discardPileView" fitHeight="140.0" fitWidth="100.0" preserveRatio="true">
+               <HBox.margin>
+                  <Insets left="25.0" />
+               </HBox.margin></ImageView>
             </HBox>
         </center>
 

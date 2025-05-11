@@ -88,20 +88,16 @@ public class GameController implements Initializable {
     public void initialize(URL location, ResourceBundle resources) {
         game = new Game(6);
 
-        // notificationArea setup, if not found
         if (notificationArea == null) {
             notificationArea = new StackPane();
             notificationArea.setPrefHeight(50);
-            // You may want to add notificationArea somewhere if needed
         }
-
-        // Bind rootBorderPane size to the scene
         Platform.runLater(() -> {
             BorderPane root = this.rootBorderPane;
             Scene scene = root.getScene();
             if (scene != null) {
-                root.maxWidthProperty().bind(scene.widthProperty().multiply(0.95));
-                root.maxHeightProperty().bind(scene.heightProperty().multiply(0.9));
+                root.maxWidthProperty().bind(scene.widthProperty().multiply(0.96));
+                root.maxHeightProperty().bind(scene.heightProperty().multiply(0.93));
             }
         });
 
@@ -347,7 +343,8 @@ public class GameController implements Initializable {
 
     private void handleCardClick(int cardIndex) {
         if (!game.isPlayersTurn(0)) return;
-        AbstractCard card = game.getPlayers().get(0).getHand().get(cardIndex);
+        AbstractPlayer player = game.getPlayers().get(0);
+        AbstractCard card = player.getHand().get(cardIndex);
 
         boolean playResult;
         if (card.getType() == Types.WILD || card.getType() == Types.DRAW_FOUR) {
@@ -358,18 +355,17 @@ public class GameController implements Initializable {
         }
 
         if (playResult) {
-            updateLastAction(card);
+            updateLastAction(player, card);
             updateUI();
             game.handleGameRulesAfterTurn();
             checkGameStatus();
-
             checkAndStartComputerTurn();
         }
     }
 
-    private void updateLastAction(AbstractCard card) {
+    private void updateLastAction(AbstractPlayer player, AbstractCard card) {
         lastPlayedCard = card;
-        if (prev_move_Label != null) prev_move_Label.setText("PREV MOVE: " + game.getActionDescription(card));
+        if (prev_move_Label != null) prev_move_Label.setText(player.getName() + " PLAYED " + card.toString());
         switch (card.getType()) {
             case SKIP:
                 showNotification("SKIP!", Color.RED);
@@ -463,7 +459,6 @@ public class GameController implements Initializable {
     private void handleDrawCard() {
         if (!game.isPlayersTurn(0)) return;
         game.playerDrawCard(0);
-        if (prev_move_Label != null) prev_move_Label.setText("Previous Move: You drew a card");
         updateUI();
         game.handleGameRulesAfterTurn();
         checkGameStatus();
@@ -600,6 +595,12 @@ public class GameController implements Initializable {
 
         PlayerComputer pc = (PlayerComputer) computer;
         ComputerActionResult result = pc.stepTurn(game);
+
+        if (result == ComputerActionResult.PLAYED) {
+            AbstractCard lastCard = game.getLastPlayedCard();
+            updateLastAction(computer, lastCard);
+        }
+
         updateUI();
 
         if (result == ComputerActionResult.PLAYED) {
@@ -615,4 +616,5 @@ public class GameController implements Initializable {
             }
         }
     }
+
 }
