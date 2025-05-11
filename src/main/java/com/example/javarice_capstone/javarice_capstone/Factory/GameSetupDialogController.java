@@ -3,14 +3,10 @@ package com.example.javarice_capstone.javarice_capstone.Factory;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
-import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
-import javafx.stage.Modality;
 import javafx.stage.Stage;
-import javafx.stage.Window;
-import javafx.stage.StageStyle;
 
 import java.util.Optional;
 
@@ -104,17 +100,19 @@ public class GameSetupDialogController {
         vbox.getChildren().addAll(msg, mainMenuBtn);
         contentPane.getChildren().setAll(vbox);
     }
+
     void onSingleplayerOk(int playerCount) {
         selectedPlayerCount = Optional.of(playerCount);
         closeDialog();
     }
+
     void onSingleplayerCancel() {
         selectedPlayerCount = Optional.empty();
         closeDialog();
     }
 
     void onHostGameOk(String username) {
-        hostGameResult = Optional.of(new MultiplayerSetupResult(MultiplayerType.HOST, username, null, null, null));
+        hostGameResult = Optional.of(new MultiplayerSetupResult(MultiplayerType.HOST, username, null, null));
         closeDialog();
     }
     void onHostGameCancel() {
@@ -122,8 +120,8 @@ public class GameSetupDialogController {
         closeDialog();
     }
 
-    void onJoinGameOk(String username, String lobbyAddress,String lobbyCode) {
-        joinGameResult = Optional.of(new MultiplayerSetupResult(MultiplayerType.JOIN, username, null, lobbyAddress, lobbyCode));
+    void onJoinGameOk(String username, String lobbyAddress, String lobbyCode) {
+        joinGameResult = Optional.of(new MultiplayerSetupResult(MultiplayerType.JOIN, username, lobbyAddress, lobbyCode));
         closeDialog();
     }
     void onJoinGameCancel() {
@@ -146,14 +144,11 @@ public class GameSetupDialogController {
     public static class MultiplayerSetupResult {
         public final MultiplayerType type;
         public final String username;
-        public final Integer playerCount;
         public final String lobbyAddress;
         public final String lobbyCode;
-
-        public MultiplayerSetupResult(MultiplayerType type, String username, Integer playerCount, String lobbyAddress, String lobbyCode) {
+        public MultiplayerSetupResult(MultiplayerType type, String username, String lobbyAddress, String lobbyCode) {
             this.type = type;
             this.username = username;
-            this.playerCount = playerCount;
             this.lobbyAddress = lobbyAddress;
             this.lobbyCode = lobbyCode;
         }
@@ -167,34 +162,59 @@ public class GameSetupDialogController {
         return joinGameResult;
     }
 
-    public static class SingleplayerContentController {
-        @FXML private ComboBox<Integer> playerCountComboBox;
-        @FXML private Button okButton;
-        @FXML private Button cancelButton;
+
+    public static class ExitConfirmationDialogController {
+        @FXML private Label messageLabel;
+        @FXML private Button yesButton;
+        @FXML private Button noButton;
 
         private GameSetupDialogController parent;
 
-        public void init(GameSetupDialogController parent) {
+        public void init(GameSetupDialogController parent, String message) {
             this.parent = parent;
-            playerCountComboBox.getItems().setAll(2, 3, 4, 5, 6);
+            messageLabel.setText(message);
         }
 
         @FXML
-        private void initialize() {
-            playerCountComboBox.getSelectionModel().selectFirst();
+        private void yesButtonClicked() {
+            parent.onExitConfirmation(true);
         }
 
         @FXML
-        private void okClicked() {
-            Integer count = playerCountComboBox.getValue();
-            if (count != null) {
-                parent.onSingleplayerOk(count);
-            }
-        }
-
-        @FXML
-        private void cancelClicked() {
-            parent.onSingleplayerCancel();
+        private void noButtonClicked() {
+            parent.onExitConfirmation(false);
         }
     }
+
+    private Boolean exitConfirmed = null;
+
+    public void onExitConfirmation(boolean confirmed) {
+        this.exitConfirmed = confirmed;
+        if (contentPane != null && contentPane.getScene() != null && contentPane.getScene().getWindow() instanceof Stage stage) {
+            stage.close();
+        }
+    }
+
+    public void showExitGameDialog(String message, Runnable onYes, Runnable onNo) {
+        try {
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/example/javarice_capstone/javarice_capstone/ExitDialogContent.fxml"));
+            Parent exitDialog = loader.load();
+            ExitConfirmationDialogController controller = loader.getController();
+            controller.init(this, message);
+
+            controller.yesButton.setOnAction(e -> {
+                contentPane.getChildren().clear();
+                if (onYes != null) onYes.run();
+            });
+            controller.noButton.setOnAction(e -> {
+                contentPane.getChildren().clear();
+                if (onNo != null) onNo.run();
+            });
+
+            contentPane.getChildren().setAll(exitDialog);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
 }

@@ -1,5 +1,6 @@
 package com.example.javarice_capstone.javarice_capstone.Gameplay;
 
+import com.example.javarice_capstone.javarice_capstone.Multiplayer.SessionState;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
@@ -40,7 +41,7 @@ public class GameSetupController {
         isJoin = false;
         if (username != null && !username.isEmpty()) currentUser = username;
         initializePlayersContainer();
-        updateLobbyCodeLabel(generateLobbyCode());
+        updateLobbyCodeLabel(SessionState.LobbyCode);
         updateBottomButtons();
     }
 

@@ -56,7 +56,6 @@ public class HostGameContentController {
 
     @FXML
     private void cancelClicked() {
-
         parent.onHostGameCancel();
         SessionState.LobbyConnection = null;
         SessionState.LobbyCode = null;

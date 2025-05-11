@@ -35,6 +35,7 @@ public class JoinGameContentController {
         SessionState.LobbyConnection = lobbyAddress;
 
         String joinResult = JoinLobby.joinLobby(username, lobbyAddress, lobbyCode);
+        System.out.println(joinResult);
 
         if (joinResult.startsWith("Player")) {
             // Successfully joined, continue to parent
@@ -48,6 +49,8 @@ public class JoinGameContentController {
     @FXML
     private void cancelClicked() {
         parent.onJoinGameCancel();
+        SessionState.LobbyConnection = null;
+        SessionState.LobbyCode = null;
     }
 
     private void showAlert(Alert.AlertType type, String title, String content) {

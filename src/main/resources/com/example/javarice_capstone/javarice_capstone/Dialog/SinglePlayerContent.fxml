@@ -4,7 +4,7 @@
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 
-<VBox alignment="CENTER" spacing="12" xmlns="http://javafx.com/javafx/11.0.14-internal" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.example.javarice_capstone.javarice_capstone.Factory.GameSetupDialogController$SingleplayerContentController">
+<VBox alignment="CENTER" spacing="12" xmlns="http://javafx.com/javafx/11.0.14-internal" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.example.javarice_capstone.javarice_capstone.Factory.SingleplayerContentController">
 
     <Label style="-fx-font-size: 16px; -fx-text-fill: #fff; " text="How many players do you want to play with?" wrapText="true" />
 

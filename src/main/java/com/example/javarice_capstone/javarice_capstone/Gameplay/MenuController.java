@@ -101,7 +101,7 @@ public class MenuController {
             if (mode == GameSetupDialogController.Mode.HOST) {
                 setupController.getClass().getMethod("setupHost", String.class).invoke(setupController, setupResult.username);
             } else if (mode == GameSetupDialogController.Mode.JOIN) {
-                setupController.getClass().getMethod("setupJoin", String.class, String.class).invoke(setupController, setupResult.username, setupResult.hostCode);
+                setupController.getClass().getMethod("setupJoin", String.class, String.class).invoke(setupController, setupResult.username, setupResult.lobbyCode);
             }
 
             Stage stage = (Stage) hostGameCard.getScene().getWindow();
