@@ -7,10 +7,6 @@ import com.example.javarice_capstone.javarice_capstone.enums.Types;
 
 import java.util.List;
 
-/**
- * Aggressive strategy: Play the first action card (not NUMBER) you can.
- * If none, play any valid card.
- */
 public class AggressiveStrat implements ComputerStrategy {
 
     @Override
@@ -32,6 +28,7 @@ public class AggressiveStrat implements ComputerStrategy {
                 return i;
             }
         }
+
         return -1;
     }
 

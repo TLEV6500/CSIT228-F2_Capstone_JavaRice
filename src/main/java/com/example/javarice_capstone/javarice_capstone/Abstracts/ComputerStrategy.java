@@ -6,4 +6,5 @@ import java.util.List;
 
 public interface ComputerStrategy {
     int selectCardToPlay(List<AbstractCard> hand, AbstractCard topCard, Colors currentColor);
+
 }

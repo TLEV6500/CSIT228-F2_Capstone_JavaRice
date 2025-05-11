@@ -1,26 +1,20 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import javafx.scene.image.ImageView?>
-<?import javafx.scene.control.Label?>
-<?import javafx.scene.layout.VBox?>
+<?import javafx.geometry.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.image.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.text.*?>
 
-<VBox xmlns="http://javafx.com/javafx/11.0.14-internal"
-      xmlns:fx="http://javafx.com/fxml/1"
-      alignment="CENTER"
-      spacing="8.0"
-      styleClass="player-entry">
+<VBox alignment="CENTER" spacing="8.0" styleClass="player-entry" xmlns="http://javafx.com/javafx/11.0.14-internal" xmlns:fx="http://javafx.com/fxml/1">
 
-    <ImageView fx:id="avatarImageView"
-               fitHeight="80.0"
-               fitWidth="60.0"
-               preserveRatio="true"
-               pickOnBounds="true"
-               styleClass="player-avatar"/>
+    <ImageView fx:id="avatarImageView" fitHeight="277.0" fitWidth="196.0" pickOnBounds="true" preserveRatio="true" styleClass="player-avatar">
+      <VBox.margin>
+         <Insets bottom="5.0" />
+      </VBox.margin></ImageView>
+    <Label fx:id="nameLabel" alignment="CENTER" styleClass="player-name" text="Player Name" textFill="WHITE" wrapText="true">
+      <font>
+         <Font name="Arial Black" size="14.0" />
+      </font></Label>
 
-    <Label fx:id="nameLabel"
-           text="Player Name"
-           styleClass="player-name"
-           maxWidth="80"
-           wrapText="true"
-           alignment="CENTER"/>
 </VBox>

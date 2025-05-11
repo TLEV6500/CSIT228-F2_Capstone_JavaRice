@@ -7,9 +7,6 @@ import com.example.javarice_capstone.javarice_capstone.enums.Types;
 
 import java.util.List;
 
-/**
- * Defensive strategy: Play NUMBER cards first, keep action cards for later.
- */
 public class DefensiveStrat implements ComputerStrategy {
 
     @Override

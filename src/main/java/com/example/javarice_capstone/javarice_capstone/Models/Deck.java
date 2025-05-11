@@ -1,10 +1,6 @@
-// src/main/java/com/example/javarice_capstone/javarice_capstone/Models/Deck.java
-
 package com.example.javarice_capstone.javarice_capstone.Models;
 
 import com.example.javarice_capstone.javarice_capstone.Abstracts.AbstractCard;
-import com.example.javarice_capstone.javarice_capstone.Models.CardAction;
-import com.example.javarice_capstone.javarice_capstone.Models.CardNumber;
 import com.example.javarice_capstone.javarice_capstone.enums.Colors;
 import com.example.javarice_capstone.javarice_capstone.enums.Types;
 
@@ -13,8 +9,8 @@ import java.util.Collections;
 import java.util.List;
 
 public class Deck {
-    protected List<AbstractCard> cards;
-    protected final List<AbstractCard> discardPile;
+    private List<AbstractCard> cards;
+    private final List<AbstractCard> discardPile;
     public Deck() {
         cards = new ArrayList<>();
         discardPile = new ArrayList<>();

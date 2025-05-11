@@ -1,16 +1,19 @@
 package com.example.javarice_capstone.javarice_capstone.Gameplay;
 
+import com.example.javarice_capstone.javarice_capstone.Factory.GameSetupDialogController;
 import com.example.javarice_capstone.javarice_capstone.Models.*;
 import com.example.javarice_capstone.javarice_capstone.enums.*;
 import com.example.javarice_capstone.javarice_capstone.Abstracts.*;
 import javafx.animation.FadeTransition;
 import javafx.application.Platform;
+import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.fxml.Initializable;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.Parent;
+import javafx.scene.Scene;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.scene.control.ButtonType;
@@ -18,6 +21,7 @@ import javafx.scene.control.Dialog;
 import javafx.scene.control.Label;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
+import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
@@ -26,76 +30,81 @@ import javafx.scene.shape.Rectangle;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
 import javafx.scene.text.Text;
+import javafx.stage.Modality;
 import javafx.stage.Stage;
+import javafx.stage.StageStyle;
+import javafx.stage.Window;
 import javafx.util.Duration;
 
 import java.net.URL;
 import java.util.*;
 import java.util.concurrent.Executors;
+import java.util.concurrent.RejectedExecutionException;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.List;
 
 public class GameController implements Initializable {
-    @FXML private VBox gamePane;
+
     @FXML private HBox playerHand;
     @FXML private Label playerHandCount;
     @FXML private ImageView discardPileView;
     @FXML private ImageView drawPileView;
     @FXML private Label statusLabel;
     @FXML private StackPane notificationArea;
-    @FXML private Label gameDirectionLabel;
-    @FXML private Label lastActionLabel;
+    @FXML private BorderPane rootBorderPane;
+    @FXML private Button exitButton;
 
-    // Opponent UI references
     @FXML private HBox opponent1Hand, opponent2Hand, opponent3Hand;
     @FXML private VBox  opponent4Hand, opponent5Hand;
     @FXML private Label opponent1Name, opponent2Name, opponent3Name, opponent4Name, opponent5Name;
     @FXML private Label opponent1HandCount, opponent2HandCount, opponent3HandCount, opponent4HandCount, opponent5HandCount;
 
+    @FXML private Label direction;
+    @FXML private Label prev_move_Label;
+    @FXML private Label playerLabel;
+
     private Game game;
     private final ScheduledExecutorService computerPlayerTimer = Executors.newSingleThreadScheduledExecutor();
     private boolean isFirstTurn = true;
+    private boolean isSingleplayer = true;
+    private boolean isShuttingDown = false;
 
     private static final int MAX_RENDERED_COMPUTER_CARDS = 20;
-    private static final double PLAYER_CARD_WIDTH = 70;
-    private static final double PLAYER_CARD_HEIGHT = 110;
-    private static final double OPPONENT_CARD_WIDTH = 50;
-    private static final double OPPONENT_CARD_HEIGHT = 75;
+    private static final double PLAYER_CARD_WIDTH = 65;
+    private static final double PLAYER_CARD_HEIGHT = 105;
+    private static final double OPPONENT_CARD_WIDTH = 45;
+    private static final double OPPONENT_CARD_HEIGHT = 70;
     private static final double COMPUTER_CARD_OVERLAP = 20;
     private static final double PLAYER_CARD_OVERLAP = 15;
     private static final int COMPUTER_OVERLAP_EXPAND_CARD_STEP = 2;
     private static final double COMPUTER_OVERLAP_EXPAND_AMOUNT = 5;
 
-    // For stacked draw rule
     private int stackedDrawCards = 0;
 
-    // --- AI step-by-step state ---
     private boolean isComputerTurnActive = false;
     private ComputerActionResult lastAIAction = null;
+
+    // Store the last played card for the prev_move_Label
+    private AbstractCard lastPlayedCard = null;
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
         game = new Game(6);
+
         if (notificationArea == null) {
             notificationArea = new StackPane();
             notificationArea.setPrefHeight(50);
-            gamePane.getChildren().add(1, notificationArea);
         }
-        if (gameDirectionLabel == null) {
-            gameDirectionLabel = new Label("Direction: Clockwise →");
-            gameDirectionLabel.setStyle("-fx-font-weight: bold;");
-            HBox directionBox = new HBox(gameDirectionLabel);
-            directionBox.setAlignment(Pos.CENTER);
-            gamePane.getChildren().add(directionBox);
-        }
-        if (lastActionLabel == null) {
-            lastActionLabel = new Label("Game started!");
-            lastActionLabel.setStyle("-fx-font-style: italic;");
-            HBox lastActionBox = new HBox(lastActionLabel);
-            lastActionBox.setAlignment(Pos.CENTER);
-            gamePane.getChildren().add(lastActionBox);
-        }
+        Platform.runLater(() -> {
+            BorderPane root = this.rootBorderPane;
+            Scene scene = root.getScene();
+            if (scene != null) {
+                root.maxWidthProperty().bind(scene.widthProperty().multiply(0.93));
+                root.maxHeightProperty().bind(scene.heightProperty().multiply(0.90));
+            }
+        });
+
         updateUI();
         drawPileView.setOnMouseClicked(e -> handleDrawCard());
         checkAndStartComputerTurn();
@@ -109,7 +118,7 @@ public class GameController implements Initializable {
         }
         isFirstTurn = true;
         updateUI();
-        updateGameDirectionLabel(true);
+        updateGameDirectionLabel();
     }
 
     private void updateUI() {
@@ -127,14 +136,30 @@ public class GameController implements Initializable {
         updateWildCardColor();
 
         AbstractPlayer currentPlayer = game.getCurrentPlayer();
-        statusLabel.setText("Current turn: " + currentPlayer.getName());
+
+        if (statusLabel != null) {
+            statusLabel.setText("TURN: " + currentPlayer.getName());
+        }
+
+        updateGameDirectionLabel();
+
+        if (prev_move_Label != null && lastPlayedCard != null) {
+            prev_move_Label.setText("PREV MOVE: " + game.getActionDescription(lastPlayedCard));
+        }
+
+        if (game.isPlayersTurn(0) && (game.getTopCard().getType() == Types.DRAW_TWO || game.getTopCard().getType() == Types.DRAW_FOUR)) {
+            if (game.canCurrentPlayerStackDraw()) {
+                String stackMsg = game.getTopCard().getType() == Types.DRAW_TWO ? "Computer played +2! You can stack a +2 card!" : "Computer played +4! You can stack a +4 card!";
+                if (prev_move_Label != null) prev_move_Label.setText(stackMsg);
+            }
+        }
+
     }
 
     private void updatePlayerHandCount(AbstractPlayer player) {
-        if (playerHandCount != null) {
-            playerHandCount.setText("(" + player.getHand().size() + " cards)");
-        }
+        if (playerHandCount != null) playerHandCount.setText("(" + player.getHand().size() + " cards)");
     }
+
     private void renderPlayerHand(AbstractPlayer player) {
         List<AbstractCard> hand = player.getHand();
         for (int i = 0; i < hand.size(); i++) {
@@ -145,6 +170,7 @@ public class GameController implements Initializable {
             playerHand.getChildren().add(cardNode);
         }
     }
+
     private Node createCardNode(AbstractCard card, int cardIndex) {
         try {
             ImageView cardView = new ImageView(new Image(Objects.requireNonNull(getClass().getResourceAsStream(card.getImagePath()))));
@@ -154,8 +180,6 @@ public class GameController implements Initializable {
             return cardView;
         } catch (Exception exception) {
             Rectangle cardRect = new Rectangle(PLAYER_CARD_WIDTH, PLAYER_CARD_HEIGHT);
-            cardRect.setFill(getJavaFXColor(card.getColor()));
-            cardRect.setStroke(Color.BLACK);
 
             Label cardLabel = new Label(card.toString());
             VBox cardBox = new VBox(cardRect, cardLabel);
@@ -164,6 +188,7 @@ public class GameController implements Initializable {
             return cardBox;
         }
     }
+
     private Image loadCardBackImage() {
         try {
             return new Image(Objects.requireNonNull(getClass().getResourceAsStream("/images/cards/card_back.png")));
@@ -171,6 +196,7 @@ public class GameController implements Initializable {
             return null;
         }
     }
+
     private void updateOpponentHands(Image cardBack) {
         int computerCount = game.getPlayers().size() - 1;
         Object[][] opponents = {
@@ -189,6 +215,7 @@ public class GameController implements Initializable {
             }
         }
     }
+
     private void updateDiscardAndDrawPiles() {
         AbstractCard topCard = game.getTopCard();
         try {
@@ -196,6 +223,7 @@ public class GameController implements Initializable {
             drawPileView.setImage(new Image(Objects.requireNonNull(getClass().getResourceAsStream("/images/cards/card_back.png"))));
         } catch (Exception ignored) {}
     }
+
     private void clearOpponentHands() {
         if (opponent1Hand != null) opponent1Hand.getChildren().clear();
         if (opponent2Hand != null) opponent2Hand.getChildren().clear();
@@ -203,22 +231,19 @@ public class GameController implements Initializable {
         if (opponent4Hand != null) opponent4Hand.getChildren().clear();
         if (opponent5Hand != null) opponent5Hand.getChildren().clear();
     }
+
     private void clearOpponentHandUI(Label nameLabel, javafx.scene.layout.Pane handBox, Label handCountLabel) {
         if (nameLabel != null) nameLabel.setText("");
         if (handBox != null) handBox.getChildren().clear();
         if (handCountLabel != null) handCountLabel.setText("");
     }
+
     private void setOpponentHandHBox(int index, Label nameLabel, HBox handBox, Label handCountLabel, Image cardBack) {
         if (game.getPlayers().size() > index) {
             AbstractPlayer opponent = game.getPlayers().get(index);
-            if (nameLabel != null) {
-                nameLabel.setText(opponent.getName());
-                if (game.getCurrentPlayer() == opponent) {
-                    nameLabel.setStyle("-fx-font-weight: bold; -fx-text-fill: blue;");
-                } else {
-                    nameLabel.setStyle("");
-                }
-            }
+            if (nameLabel != null) nameLabel.setText(opponent.getName());
+            setPlayerLabelStyle(index, nameLabel, game.getCurrentPlayer() == opponent);
+
             if (handBox != null && cardBack != null) {
                 handBox.getChildren().clear();
                 int opponentHandSize = opponent.getHand().size();
@@ -242,17 +267,26 @@ public class GameController implements Initializable {
             }
         }
     }
+
+    private void setPlayerLabelStyle(int index, Label nameLabel, boolean isCurrentTurn) {
+        if (nameLabel != null) {
+            if (isCurrentTurn) {
+                nameLabel.setStyle("-fx-font-weight: bold; -fx-text-fill: blue;");
+                if (index == 0 && playerLabel != null) playerLabel.setStyle("-fx-font-weight: bold; -fx-text-fill: blue;");
+                if (index != 0 && playerLabel != null) playerLabel.setStyle("");
+            } else {
+                nameLabel.setStyle("");
+                if (index == 0 && playerLabel != null) playerLabel.setStyle("");
+            }
+        }
+    }
+
     private void setOpponentHandVBox(int index, Label nameLabel, VBox handBox, Label handCountLabel, Image cardBack) {
         if (game.getPlayers().size() > index) {
             AbstractPlayer opponent = game.getPlayers().get(index);
-            if (nameLabel != null) {
-                nameLabel.setText(opponent.getName());
-                if (game.getCurrentPlayer() == opponent) {
-                    nameLabel.setStyle("-fx-font-weight: bold; -fx-text-fill: blue;");
-                } else {
-                    nameLabel.setStyle("");
-                }
-            }
+            if (nameLabel != null) nameLabel.setText(opponent.getName());
+            setPlayerLabelStyle(index, nameLabel, game.getCurrentPlayer() == opponent);
+
             if (handBox != null && cardBack != null) {
                 handBox.getChildren().clear();
                 int opponentHandSize = opponent.getHand().size();
@@ -276,6 +310,7 @@ public class GameController implements Initializable {
             }
         }
     }
+
     private void updateWildCardColor() {
         AbstractCard topCard = game.getTopCard();
         Colors currentColor = game.getCurrentColor();
@@ -293,104 +328,73 @@ public class GameController implements Initializable {
             }
         }
     }
-    private Color getJavaFXColor(Colors cardColor) {
-        return switch (cardColor) {
-            case RED -> Color.RED;
-            case BLUE -> Color.BLUE;
-            case GREEN -> Color.GREEN;
-            case YELLOW -> Color.YELLOW;
-            case WILD -> Color.BLACK;
-            default -> Color.GRAY;
-        };
-    }
 
-    // --- Only stacking draw card rules enabled, jump-in removed ---
+    @FXML
+    private void handleExit() {
+        try {
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/example/javarice_capstone/javarice_capstone/SetupDialog.fxml"));
+            Parent dialogRoot = loader.load();
+            GameSetupDialogController dialogController = loader.getController();
 
-    // Stacking Draw Rule: Proper stacking +2 and +4 cards (transfers and accumulates)
-    private void applyStackDrawRule() {
-        AbstractCard topCard = game.getTopCard();
-        if (topCard.getType() == Types.DRAW_TWO || topCard.getType() == Types.DRAW_FOUR) {
-            AbstractPlayer player = game.getCurrentPlayer();
-            int stackAmount = 0;
+            dialogController.showExitGameDialog("Are you sure you want to exit the current game session?",
+                    () -> {
+                        goToMainMenu();
+                        Stage stage = (Stage) dialogRoot.getScene().getWindow();
+                        if (stage != null) stage.close();
+                    }, () -> {
 
-            if (topCard.getType() == Types.DRAW_TWO) {
-                stackAmount = 2;
-            } else if (topCard.getType() == Types.DRAW_FOUR) {
-                stackAmount = 4;
-            }
-            stackedDrawCards += stackAmount;
+                    }
+            );
 
-            boolean stacked = false;
-            for (int i = 0; i < player.getHand().size(); i++) {
-                AbstractCard card = player.getHand().get(i);
-                if (card.getType() == topCard.getType()) {
-                    game.playCard(i);
-                    stacked = true;
-                    break;
-                }
-            }
+            Stage dialogStage = new Stage();
+            dialogStage.setTitle("Exit Game");
+            dialogStage.initModality(javafx.stage.Modality.APPLICATION_MODAL);
+            dialogStage.setScene(new Scene(dialogRoot));
+            dialogStage.setResizable(false);
 
-            if (!stacked) {
-                for (int i = 0; i < stackedDrawCards; i++) {
-                    player.addCard(game.drawCard());
-                }
-                stackedDrawCards = 0;
-                game.nextPlayer();
-            }
-        } else {
-            stackedDrawCards = 0;
+            dialogStage.showAndWait();
+
+        } catch (Exception e) {
+            e.printStackTrace();
         }
     }
 
-    // Always call stacking draw rules after every turn
     private void handleGameRulesAfterTurn() {
-        applyStackDrawRule();
+        game.handleGameRulesAfterTurn();
     }
 
     private void handleCardClick(int cardIndex) {
-        if (game.getCurrentPlayer() != game.getPlayers().get(0)) {
-            return;
-        }
-        AbstractCard card = game.getPlayers().get(0).getHand().get(cardIndex);
+        if (!game.isPlayersTurn(0)) return;
+        AbstractPlayer player = game.getPlayers().get(0);
+        AbstractCard card = player.getHand().get(cardIndex);
 
+        boolean playResult;
         if (card.getType() == Types.WILD || card.getType() == Types.DRAW_FOUR) {
             Colors chosenColor = showColorSelectionDialog();
-            if (chosenColor != null) {
-                game.handleWildColorSelection(chosenColor);
-                if (game.playCard(cardIndex)) {
-                    updateLastAction(card);
-                    updateUI();
-                    handleGameRulesAfterTurn();
-                    checkGameStatus();
-                    checkAndStartComputerTurn();
-                }
-            }
+            playResult = chosenColor != null && game.playWildCard(cardIndex, chosenColor);
         } else {
-            if (game.playCard(cardIndex)) {
-                updateLastAction(card);
-                updateUI();
-                handleGameRulesAfterTurn();
-                checkGameStatus();
-                checkAndStartComputerTurn();
-            } else {
-                Alert alert = new Alert(Alert.AlertType.WARNING);
-                alert.setTitle("Invalid Move");
-                alert.setHeaderText("You can't play this card");
-                alert.setContentText("The card must match the color or number/type of the top discard card.");
-                alert.showAndWait();
-            }
+            playResult = game.playCard(cardIndex);
+        }
+
+        if (playResult) {
+            updateLastAction(player, card);
+            updateUI();
+            game.handleGameRulesAfterTurn();
+            checkGameStatus();
+            checkAndStartComputerTurn();
         }
     }
 
-    private void updateLastAction(AbstractCard card) {
-        lastActionLabel.setText(game.getActionDescription(card));
+    private void updateLastAction(AbstractPlayer player, AbstractCard card) {
+        lastPlayedCard = card;
+        if (prev_move_Label != null) prev_move_Label.setText(player.getName() + " PLAYED " + card.toString());
         switch (card.getType()) {
             case SKIP:
                 showNotification("SKIP!", Color.RED);
                 break;
             case REVERSE:
                 showNotification("REVERSE!", Color.ORANGE);
-                updateGameDirectionLabel(game.isCustomOrderClockwise());
+                updateGameDirectionLabel();
                 break;
             case DRAW_TWO:
                 showNotification("+2 CARDS", Color.RED);
@@ -402,13 +406,16 @@ public class GameController implements Initializable {
                 break;
         }
     }
+
     private void showNotification(String message, Color color) {
         Text notification = new Text(message);
         notification.setFont(Font.font("System", FontWeight.BOLD, 24));
         notification.setFill(color);
 
-        notificationArea.getChildren().clear();
-        notificationArea.getChildren().add(notification);
+        if (notificationArea != null) {
+            notificationArea.getChildren().clear();
+            notificationArea.getChildren().add(notification);
+        }
 
         FadeTransition fadeOut = new FadeTransition(Duration.seconds(0.5), notification);
         fadeOut.setFromValue(1.0);
@@ -416,22 +423,17 @@ public class GameController implements Initializable {
         fadeOut.setDelay(Duration.seconds(1.5));
         fadeOut.play();
 
-        fadeOut.setOnFinished(e -> notificationArea.getChildren().clear());
+        fadeOut.setOnFinished(e -> {
+            if (notificationArea != null) notificationArea.getChildren().clear();
+        });
     }
-    private void updateGameDirectionLabel(boolean isClockwise) {
-        if (isFirstTurn) {
-            gameDirectionLabel.setText("Direction: Clockwise →");
-            isFirstTurn = false;
-            return;
-        }
-        if (isClockwise) {
-            gameDirectionLabel.setText("Direction: Clockwise →");
-        } else {
-            gameDirectionLabel.setText("Direction: Counter-clockwise ←");
+
+    private void updateGameDirectionLabel() {
+        if (direction != null) {
+            direction.setText(game.isCustomOrderClockwise()? "↻" : "↺");
         }
     }
 
-    // Show color selection dialog and return chosen color, or null if cancelled
     private Colors showColorSelectionDialog() {
         Dialog<Colors> dialog = new Dialog<>();
         dialog.setTitle("Choose a Color");
@@ -477,38 +479,41 @@ public class GameController implements Initializable {
     }
 
     private void handleDrawCard() {
-        if (game.getCurrentPlayer() != game.getPlayers().get(0)) {
-            return;
-        }
-        game.drawCard();
-        lastActionLabel.setText("You drew a card");
+        if (!game.isPlayersTurn(0)) return;
+        game.playerDrawCard(0);
         updateUI();
-        handleGameRulesAfterTurn();
+        game.handleGameRulesAfterTurn();
+        checkGameStatus();
+
+        checkAndStartComputerTurn();
     }
 
     private void checkGameStatus() {
         AbstractPlayer winner = game.getWinner();
         if (winner != null) {
-            Alert alert = new Alert(Alert.AlertType.INFORMATION);
-            alert.setTitle("Game Over");
-            alert.setHeaderText(winner.getName() + " wins!");
-            alert.setContentText("Game finished.");
-            alert.showAndWait();
+            if (isSingleplayer) {
+                showSingleplayerWinDialog(winner.getName());
+            } else {
+                Alert alert = new Alert(Alert.AlertType.INFORMATION);
+                alert.setTitle("Game Over");
+                alert.setHeaderText(winner.getName() + " wins!");
+                alert.setContentText("Game finished.");
+                alert.showAndWait();
 
-            shutdown();
-
-            try {
-                FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/example/javarice_capstone/javarice_capstone/GameSetupUI.fxml"));
-                Parent root = loader.load();
-                Stage stage = (Stage) statusLabel.getScene().getWindow();
-                stage.getScene().setRoot(root);
-                stage.setTitle("UNO - Setup Game");
-            } catch (Exception e) {
-                e.printStackTrace();
-                game = new Game(6);
-                isFirstTurn = true;
-                updateUI();
-                updateGameDirectionLabel(true);
+                shutdown();
+                try {
+                    FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/example/javarice_capstone/javarice_capstone/GameSetupUI.fxml"));
+                    Parent root = loader.load();
+                    Stage stage = (Stage) statusLabel.getScene().getWindow();
+                    stage.getScene().setRoot(root);
+                    stage.setTitle("UNO - Setup Game");
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    game = new Game(6);
+                    isFirstTurn = true;
+                    updateUI();
+                    updateGameDirectionLabel();
+                }
             }
             return;
         }
@@ -519,28 +524,90 @@ public class GameController implements Initializable {
         }
     }
 
+    private void showSingleplayerWinDialog(String winnerName) {
+        try {
+            isShuttingDown = true;
+            isComputerTurnActive = false;
+
+            shutdown();
+
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/example/javarice_capstone/javarice_capstone/SetupDialog.fxml"));
+            Parent dialogRoot = loader.load();
+
+            GameSetupDialogController dialogController = loader.getController();
+            dialogController.setCustomWinModeMainMenuOnly(winnerName + " has won the Game!", this::goToMainMenu);
+
+            Stage dialogStage = new Stage();
+            dialogStage.setTitle("Game Over");
+            dialogStage.initModality(Modality.APPLICATION_MODAL);
+            dialogStage.setScene(new Scene(dialogRoot));
+            dialogStage.setResizable(false);
+            dialogStage.showAndWait();
+        } catch (Exception e) {
+            e.printStackTrace();
+            goToMainMenu();
+        }
+    }
+
+    private void goToMainMenu() {
+        try {
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/example/javarice_capstone/javarice_capstone/MenuUI.fxml"));
+            Parent root = loader.load();
+            Stage stage = (Stage) statusLabel.getScene().getWindow();
+            stage.getScene().setRoot(root);
+            stage.setTitle("UNO - Main Menu");
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void shutdown() {
+        isShuttingDown = true;
+        isComputerTurnActive = false;
+
+        try {
+            computerPlayerTimer.shutdown();
+            if (!computerPlayerTimer.awaitTermination(500, TimeUnit.MILLISECONDS)) {
+                computerPlayerTimer.shutdownNow();
+            }
+        } catch (InterruptedException e) {
+            computerPlayerTimer.shutdownNow();
+            Thread.currentThread().interrupt();
+        } catch (Exception ignored) {
+        }
+    }
+
     private void checkAndStartComputerTurn() {
+        if (isShuttingDown) return;
+
         AbstractPlayer currentPlayer = game.getCurrentPlayer();
         boolean isComputer = currentPlayer instanceof PlayerComputer;
         if (isComputer) {
             Platform.runLater(() -> {
-                statusLabel.setText("Current turn: " + currentPlayer.getName() + " (thinking...)");
+                statusLabel.setText("TURN: " + currentPlayer.getName() + " (THINKING...)");
             });
 
             isComputerTurnActive = true;
             lastAIAction = null;
-            ((PlayerComputer) currentPlayer).resetAITurnState();
-            scheduleNextAIStep();
+
+            try {
+                scheduleNextAIStep();
+            } catch (RejectedExecutionException ignored) {
+            }
         }
     }
 
     private void scheduleNextAIStep() {
-        if (!isComputerTurnActive) return;
-        computerPlayerTimer.schedule(() -> Platform.runLater(this::stepComputerTurn), 900, TimeUnit.MILLISECONDS);
+        if (!isComputerTurnActive || isShuttingDown) return;
+
+        try {
+            computerPlayerTimer.schedule(() -> Platform.runLater(this::stepComputerTurn), 1250, TimeUnit.MILLISECONDS);
+        } catch (RejectedExecutionException ignored) {
+        }
     }
 
     private void stepComputerTurn() {
-        if (!isComputerTurnActive) return;
+        if (!isComputerTurnActive || isShuttingDown) return;
 
         AbstractPlayer computer = game.getCurrentPlayer();
         if (!(computer instanceof PlayerComputer)) {
@@ -550,24 +617,26 @@ public class GameController implements Initializable {
 
         PlayerComputer pc = (PlayerComputer) computer;
         ComputerActionResult result = pc.stepTurn(game);
+
+        if (result == ComputerActionResult.PLAYED) {
+            AbstractCard lastCard = game.getLastPlayedCard();
+            updateLastAction(computer, lastCard);
+        }
+
         updateUI();
 
         if (result == ComputerActionResult.PLAYED) {
             handleGameRulesAfterTurn();
             checkGameStatus();
             isComputerTurnActive = false;
-            checkAndStartComputerTurn();
-        } else if (result == ComputerActionResult.DRAWN) {
-            scheduleNextAIStep();
-        } else if (result == ComputerActionResult.DONE) {
-            handleGameRulesAfterTurn();
-            checkGameStatus();
-            isComputerTurnActive = false;
-            checkAndStartComputerTurn();
+
+            if (!isShuttingDown) checkAndStartComputerTurn();
+        } else if (result == ComputerActionResult.DRAWN && !isShuttingDown) {
+            try {
+                scheduleNextAIStep();
+            } catch (RejectedExecutionException ignored) {
+            }
         }
     }
 
-    private void shutdown() {
-        computerPlayerTimer.shutdownNow();
-    }
 }

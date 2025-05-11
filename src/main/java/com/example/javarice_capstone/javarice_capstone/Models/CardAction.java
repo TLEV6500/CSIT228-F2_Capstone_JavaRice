@@ -20,9 +20,8 @@ public class CardAction extends AbstractCard {
     @Override
     public String getImagePath() {
         String typeStr = getType().toString().toLowerCase();
-        if (getType() == Types.WILD || getType() == Types.DRAW_FOUR) {
-            return "/images/cards/wild_" + typeStr + ".png";
-        } else {
+        if (getType() == Types.WILD || getType() == Types.DRAW_FOUR) return "/images/cards/wild_" + typeStr + ".png";
+        else {
             String colorStr = getColor().toString().toLowerCase();
             return "/images/cards/" + colorStr + "_" + typeStr + ".png";
         }

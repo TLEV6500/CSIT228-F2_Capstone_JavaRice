@@ -21,6 +21,7 @@ public class Game {
     private boolean customOrderIsClockwise = true;
 
     private AbstractCard lastPlayedCard = null;
+    private int stackedDrawCards = 0;
 
     public Game(int numPlayers) {
         deck = new Deck();
@@ -69,6 +70,28 @@ public class Game {
         return lastPlayedCard;
     }
 
+    public boolean isPlayersTurn(int playerIndex) {
+        return getCurrentPlayer() == getPlayers().get(playerIndex);
+    }
+
+    public boolean playWildCard(int cardIndex, Colors chosenColor) {
+        handleWildColorSelection(chosenColor);
+        boolean result = playCard(cardIndex);
+        if (result) {
+            AbstractPlayer player = getCurrentPlayer();
+            System.out.println(player.getName() + ":\tCHANGED COLOR TO --> " + chosenColor);
+        }
+        return result;
+    }
+
+    public void playerDrawCard(int playerIndex) {
+        AbstractPlayer player = getPlayers().get(playerIndex);
+        AbstractCard drawnCard = drawCard();
+        player.addCard(drawnCard);
+
+        System.out.println(player.getName() + ":\tDREW CARD --> " + drawnCard.toString());
+    }
+
     public Colors getCurrentColor() {
         return currentColor;
     }
@@ -109,6 +132,8 @@ public class Game {
             deck.discard(playedCard);
             lastPlayedCard = playedCard;
 
+            System.out.println(player.getName() + ":\tPLAYED --> " + playedCard.toString());
+
             if (card.getType() != Types.NUMBER) {
                 handleSpecialCard(card);
             } else {
@@ -121,26 +146,11 @@ public class Game {
     }
 
     public AbstractCard drawCard() {
-        AbstractCard card = deck.drawCard();
-        getCurrentPlayer().addCard(card);
-        return card;
+        return deck.drawCard();
     }
 
     public void handleWildColorSelection(Colors color) {
         setCurrentColor(color);
-    }
-
-    public void handleSevenSwap(int targetPlayerIndex) {
-        AbstractPlayer currentPlayer = getCurrentPlayer();
-        AbstractPlayer targetPlayer = players.get(targetPlayerIndex);
-        List<AbstractCard> temp = new ArrayList<>(currentPlayer.getHand());
-        replaceHand(currentPlayer, targetPlayer.getHand());
-        replaceHand(targetPlayer, temp);
-    }
-
-    private void replaceHand(AbstractPlayer player, List<AbstractCard> newHand) {
-        player.getHand().clear();
-        player.getHand().addAll(newHand);
     }
 
     public void nextPlayer() {
@@ -193,6 +203,53 @@ public class Game {
             tries++;
         }
         return 0;
+    }
+
+    public void handleGameRulesAfterTurn() {
+        applyStackDrawRule();
+    }
+
+    private void applyStackDrawRule() {
+        AbstractCard topCard = getTopCard();
+        if (topCard.getType() == Types.DRAW_TWO || topCard.getType() == Types.DRAW_FOUR) {
+            AbstractPlayer player = getCurrentPlayer();
+            int stackAmount = 0;
+
+            if (topCard.getType() == Types.DRAW_TWO) stackAmount = 2;
+            else if (topCard.getType() == Types.DRAW_FOUR) stackAmount = 4;
+            stackedDrawCards += stackAmount;
+
+            boolean canStack = false;
+            for (AbstractCard card : player.getHand()) {
+                if (card.getType() == topCard.getType()) {
+                    canStack = true;
+                    break;
+                }
+            }
+
+            if (!canStack) {
+                for (int i = 0; i < stackedDrawCards; i++) {
+                    player.addCard(drawCard());
+                }
+                stackedDrawCards = 0;
+                nextPlayer();
+            }
+        } else {
+            stackedDrawCards = 0;
+        }
+    }
+
+    public boolean canCurrentPlayerStackDraw() {
+        AbstractCard topCard = getTopCard();
+        if (topCard.getType() == Types.DRAW_TWO || topCard.getType() == Types.DRAW_FOUR) {
+            AbstractPlayer player = getCurrentPlayer();
+            for (AbstractCard card : player.getHand()) {
+                if (card.getType() == topCard.getType()) {
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 
     private int getCustomOrderIndex(int playerIdx) {

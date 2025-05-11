@@ -19,8 +19,7 @@ public class CardNumber extends AbstractCard {
 
     @Override
     public boolean canPlayOn(AbstractCard other) {
-        return this.getColor() == other.getColor()
-                || (other instanceof CardNumber && ((CardNumber) other).getValue() == this.number);
+        return this.getColor() == other.getColor() || (other instanceof CardNumber && ((CardNumber) other).getValue() == this.number);
     }
 
     @Override

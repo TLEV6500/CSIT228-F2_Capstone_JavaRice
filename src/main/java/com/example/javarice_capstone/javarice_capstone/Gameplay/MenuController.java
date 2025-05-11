@@ -6,6 +6,7 @@ import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.Alert;
+import javafx.scene.control.Button;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.VBox;
@@ -15,8 +16,8 @@ import java.util.*;
 
 public class MenuController {
     @FXML private VBox singleplayerCard;
-    @FXML private VBox hostGameCard; // changed from HostGame
-    @FXML private VBox joinGameCard; // changed from JoinGame
+    @FXML private VBox hostGameCard;
+    @FXML private VBox joinGameCard;
     @FXML private VBox exitCard;
 
     @FXML private ImageView singleplayerImageView;
@@ -30,10 +31,10 @@ public class MenuController {
 
     @FXML
     private void initialize() {
-        singleplayerImageView.setImage(new Image(getClass().getResourceAsStream("/images/cards/green_card.png")));
-        hostgameImageView.setImage(new Image(getClass().getResourceAsStream("/images/cards/blue_card.png")));
-        joingameImageView.setImage(new Image(getClass().getResourceAsStream("/images/cards/yellow_card.png")));
-        exitImageView.setImage(new Image(getClass().getResourceAsStream("/images/cards/red_card.png")));
+        singleplayerImageView.setImage(new Image(getClass().getResourceAsStream("/images/cards/green_1.png")));
+        hostgameImageView.setImage(new Image(getClass().getResourceAsStream("/images/cards/blue_6.png")));
+        joingameImageView.setImage(new Image(getClass().getResourceAsStream("/images/cards/yellow_reverse.png")));
+        exitImageView.setImage(new Image(getClass().getResourceAsStream("/images/cards/red_skip.png")));
 
         singleplayerCard.setOnMouseClicked(e -> handleSingleplayer());
         hostGameCard.setOnMouseClicked(e -> handleHostGame());
@@ -43,7 +44,7 @@ public class MenuController {
 
     private void handleHostGame() {
         try {
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/example/javarice_capstone/javarice_capstone/Dialog/GameSetupDialog.fxml"));
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/example/javarice_capstone/javarice_capstone/SetupDialog.fxml"));
             Parent dialogRoot = loader.load();
             GameSetupDialogController dialogController = loader.getController();
 
@@ -62,13 +63,13 @@ public class MenuController {
             });
         } catch (Exception e) {
             e.printStackTrace();
-            showError("Cannot load host game setup dialog", "Make sure GameSetupDialog.fxml exists in the resources folder.");
+            showError("Cannot load host game setup dialog", "Make sure SetupDialog.fxml exists in the resources folder.");
         }
     }
 
     private void handleJoinGame() {
         try {
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/example/javarice_capstone/javarice_capstone/Dialog/GameSetupDialog.fxml"));
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/example/javarice_capstone/javarice_capstone/SetupDialog.fxml"));
             Parent dialogRoot = loader.load();
             GameSetupDialogController dialogController = loader.getController();
 
@@ -83,15 +84,14 @@ public class MenuController {
             dialogStage.showAndWait();
 
             dialogController.getJoinGameResult().ifPresent(result -> {
-                launchGameSetupUI(GameSetupDialogController.Mode.JOIN, result);
+
             });
         } catch (Exception e) {
             e.printStackTrace();
-            showError("Cannot load join game setup dialog", "Make sure GameSetupDialog.fxml exists in the resources folder.");
+            showError("Cannot load join game setup dialog", "Make sure SetupDialog.fxml exists in the resources folder.");
         }
     }
 
-    // MODIFIED: Replace current scene instead of creating a new Stage for GameSetupUI
     private void launchGameSetupUI(GameSetupDialogController.Mode mode, GameSetupDialogController.MultiplayerSetupResult setupResult) {
         try {
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/example/javarice_capstone/javarice_capstone/GameSetupUI.fxml"));
@@ -99,22 +99,15 @@ public class MenuController {
             Object setupController = loader.getController();
 
             if (mode == GameSetupDialogController.Mode.HOST) {
-                // setupHost(String username)
-                setupController.getClass().getMethod("setupHost", String.class)
-                        .invoke(setupController, setupResult.username);
+                setupController.getClass().getMethod("setupHost", String.class).invoke(setupController, setupResult.username);
             } else if (mode == GameSetupDialogController.Mode.JOIN) {
-                // setupJoin(String username, String hostCode)
-                setupController.getClass().getMethod("setupJoin", String.class, String.class)
-                        .invoke(setupController, setupResult.username, setupResult.lobbyCode);
+                setupController.getClass().getMethod("setupJoin", String.class, String.class).invoke(setupController, setupResult.username, setupResult.hostCode);
             }
 
-            // Instead of a new Stage, replace the current Scene
-            // Use any node from the current scene to get the window, e.g., hostGameCard
             Stage stage = (Stage) hostGameCard.getScene().getWindow();
             Scene scene = new Scene(setupUIRoot);
             stage.setScene(scene);
             stage.setTitle(mode == GameSetupDialogController.Mode.HOST ? "Host Lobby" : "Join Lobby");
-            // No showAndWait here, as we're on the main window
         } catch (Exception e) {
             e.printStackTrace();
             showError("Cannot launch game setup UI", "Something went wrong while launching the game setup UI.");
@@ -127,7 +120,7 @@ public class MenuController {
 
     private void handleSingleplayer() {
         try {
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/example/javarice_capstone/javarice_capstone/Dialog/GameSetupDialog.fxml"));
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/example/javarice_capstone/javarice_capstone/SetupDialog.fxml"));
             Parent dialogRoot = loader.load();
             GameSetupDialogController dialogController = loader.getController();
 
@@ -151,7 +144,7 @@ public class MenuController {
             });
         } catch (Exception e) {
             e.printStackTrace();
-            showError("Cannot load singleplayer dialog", "Make sure GameSetupDialog.fxml exists in the resources folder.");
+            showError("Cannot load singleplayer dialog", "Make sure SetupDialog.fxml exists in the resources folder.");
         }
     }
 
@@ -169,6 +162,8 @@ public class MenuController {
         }
         return aiNames;
     }
+
+
 
     private void launchSingleplayerGame(int numberOfPlayers, List<String> playerNames) {
         try {

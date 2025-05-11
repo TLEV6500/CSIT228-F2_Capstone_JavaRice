@@ -1,9 +1,16 @@
 package com.example.javarice_capstone.javarice_capstone.Factory;
 
 import javafx.fxml.FXML;
+import javafx.fxml.FXMLLoader;
+import javafx.scene.Parent;
+import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.layout.StackPane;
+import javafx.scene.layout.VBox;
+import javafx.stage.Modality;
 import javafx.stage.Stage;
+import javafx.stage.Window;
+import javafx.stage.StageStyle;
 
 import java.util.Optional;
 
@@ -14,7 +21,7 @@ public class GameSetupDialogController {
     public enum MultiplayerType { NONE, HOST, JOIN }
     private MultiplayerType multiplayerType = MultiplayerType.NONE;
 
-    public enum Mode { SINGLEPLAYER, HOST, JOIN }
+    public enum Mode { SINGLEPLAYER, HOST, JOIN, WIN }
     private Mode mode = Mode.SINGLEPLAYER;
 
     private Optional<Integer> selectedPlayerCount = Optional.empty();
@@ -50,31 +57,53 @@ public class GameSetupDialogController {
             }
             titleLabel.setText(title);
 
-            javafx.fxml.FXMLLoader loader = new javafx.fxml.FXMLLoader(getClass().getResource(fxml));
-            javafx.scene.Parent content = loader.load();
+            if (!fxml.isEmpty()) {
+                javafx.fxml.FXMLLoader loader = new javafx.fxml.FXMLLoader(getClass().getResource(fxml));
+                javafx.scene.Parent content = loader.load();
 
-            switch (mode) {
-                case SINGLEPLAYER:
-                    SingleplayerContentController singleCtrl = loader.getController();
-                    singleCtrl.init(this);
-                    break;
-                case HOST:
-                    HostGameContentController hostCtrl = loader.getController();
-                    hostCtrl.init(this);
-                    break;
-                case JOIN:
-                    JoinGameContentController joinCtrl = loader.getController();
-                    joinCtrl.init(this);
-                    break;
+                switch (mode) {
+                    case SINGLEPLAYER:
+                        SingleplayerContentController singleCtrl = loader.getController();
+                        singleCtrl.init(this);
+                        break;
+                    case HOST:
+                        HostGameContentController hostCtrl = loader.getController();
+                        hostCtrl.init(this);
+                        break;
+                    case JOIN:
+                        JoinGameContentController joinCtrl = loader.getController();
+                        joinCtrl.init(this);
+                        break;
+                }
+
+                contentPane.getChildren().setAll(content);
             }
-
-            contentPane.getChildren().setAll(content);
         } catch (Exception e) {
             e.printStackTrace();
         }
     }
 
-    // --- Callbacks for dialog results ---
+    public void setCustomWinModeMainMenuOnly(String message, Runnable mainMenuCallback) {
+        titleLabel.setText("Game Over");
+
+        VBox vbox = new VBox(20);
+        vbox.setAlignment(javafx.geometry.Pos.CENTER);
+
+        Label msg = new Label(message);
+        msg.setStyle("-fx-font-size: 18px; -fx-text-fill: #ffd54f; -fx-font-weight: bold;");
+        msg.setWrapText(true);
+
+        Button mainMenuBtn = new Button("Main Menu");
+        mainMenuBtn.setStyle("-fx-background-color: #ef5350; -fx-text-fill: #fff; -fx-font-weight: bold; -fx-background-radius: 7;");
+        mainMenuBtn.setOnAction(e -> {
+            if (mainMenuCallback != null) mainMenuCallback.run();
+            javafx.stage.Window win = ((Button) e.getSource()).getScene().getWindow();
+            if (win instanceof Stage) ((Stage) win).close();
+        });
+
+        vbox.getChildren().addAll(msg, mainMenuBtn);
+        contentPane.getChildren().setAll(vbox);
+    }
     void onSingleplayerOk(int playerCount) {
         selectedPlayerCount = Optional.of(playerCount);
         closeDialog();
@@ -103,8 +132,11 @@ public class GameSetupDialogController {
     }
 
     private void closeDialog() {
-        Stage stage = (Stage) contentPane.getScene().getWindow();
-        stage.close();
+        if (contentPane == null) return;
+        javafx.scene.Scene scene = contentPane.getScene();
+        if (scene == null) return;
+        javafx.stage.Window window = scene.getWindow();
+        if (window instanceof Stage) ((Stage) window).close();
     }
 
     public Optional<Integer> getSelectedPlayerCount() {

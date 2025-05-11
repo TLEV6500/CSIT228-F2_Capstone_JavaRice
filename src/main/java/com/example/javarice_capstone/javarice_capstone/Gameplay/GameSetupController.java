@@ -1,6 +1,5 @@
 package com.example.javarice_capstone.javarice_capstone.Gameplay;
 
-import com.example.javarice_capstone.javarice_capstone.Multiplayer.GenerateLobbyCode;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
@@ -21,13 +20,12 @@ import java.util.*;
 
 public class GameSetupController {
 
-    @FXML private Button startGameButton;
-    @FXML private Button cancelButton;
+    @FXML private Button startGameButton; // Will be Start Game or Ready
+    @FXML private Button cancelButton; // Will be Leave Lobby
     @FXML private HBox playersContainer;
     @FXML private Label dateTimeLabel;
-    @FXML private Button addPlayerButton;
-    @FXML private Button removePlayerButton;
-    @FXML public TextField lobbyCodeField;
+    @FXML
+    TextField lobbyCodeField;
 
     private static final int MIN_PLAYERS = 2;
     private static final int MAX_PLAYERS = 6;
@@ -37,24 +35,15 @@ public class GameSetupController {
     private boolean isHost = false;
     private boolean isJoin = false;
 
-    /**
-     * Call this method to set up the controller for Host mode.
-     * @param username The host's username.
-     */
     public void setupHost(String username) {
         isHost = true;
         isJoin = false;
         if (username != null && !username.isEmpty()) currentUser = username;
         initializePlayersContainer();
-        updateLobbyCodeLabel(GenerateLobbyCode.GenerateLobbyCode());
-        updateAddRemoveButtons();
+        updateLobbyCodeLabel(generateLobbyCode());
+        updateBottomButtons();
     }
 
-    /**
-     * Call this method to set up the controller for Join mode.
-     * @param username The joining user's username.
-     * @param code The lobby code to join.
-     */
     public void setupJoin(String username, String code) {
         isHost = false;
         isJoin = true;
@@ -62,8 +51,7 @@ public class GameSetupController {
         if (code != null) lobbyCode = code;
         initializePlayersContainer();
         updateLobbyCodeLabel(lobbyCode);
-        if (addPlayerButton != null) addPlayerButton.setDisable(true);
-        if (removePlayerButton != null) removePlayerButton.setDisable(true);
+        updateBottomButtons();
     }
 
     private void updateLobbyCodeLabel(String code) {
@@ -74,13 +62,9 @@ public class GameSetupController {
 
     @FXML
     public void initialize() {
-        if (startGameButton != null) startGameButton.setOnAction(e -> handleStartGame());
-        if (cancelButton != null) cancelButton.setOnAction(e -> handleCancel());
-        if (addPlayerButton != null) addPlayerButton.setOnAction(e -> handleAddPlayer());
-        if (removePlayerButton != null) removePlayerButton.setOnAction(e -> handleRemovePlayer());
         updateDateTimeLabel();
         if (!isHost && !isJoin && playersContainer != null) initializePlayersContainer();
-        updateAddRemoveButtons();
+        updateBottomButtons();
     }
 
     private void updateDateTimeLabel() {
@@ -93,7 +77,6 @@ public class GameSetupController {
         if (playersContainer == null) return;
         playersContainer.getChildren().clear();
         addPlayerEntry(currentUser, true);
-        updateAddRemoveButtons();
     }
 
     private void removeLastPlayer() {
@@ -108,21 +91,14 @@ public class GameSetupController {
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/example/javarice_capstone/javarice_capstone/PlayerCard.fxml"));
             VBox playerBox = loader.load();
 
-            if (isHostEntry) {
-                playerBox.getStyleClass().add("host-player");
-            } else {
-                playerBox.getStyleClass().add("player");
-            }
+            if (isHostEntry) playerBox.getStyleClass().add("host-player");
+            else playerBox.getStyleClass().add("player");
 
             ImageView avatar = (ImageView) playerBox.lookup("#avatarImageView");
-            if (avatar != null) {
-                avatar.setImage(new Image(getClass().getResourceAsStream("/images/cards/card_back.png")));
-            }
+            if (avatar != null) avatar.setImage(new Image(getClass().getResourceAsStream("/images/cards/card_back.png")));
 
             Label nameLabel = (Label) playerBox.lookup("#nameLabel");
-            if (nameLabel != null) {
-                nameLabel.setText(name);
-            }
+            if (nameLabel != null) nameLabel.setText(name);
 
             playersContainer.getChildren().add(playerBox);
         } catch (IOException e) {
@@ -130,29 +106,18 @@ public class GameSetupController {
         }
     }
 
-    private void addPlayer(String name) {
-        if (playersContainer != null) addPlayerEntry(name, false);
-        updateAddRemoveButtons();
-    }
-
-    private void handleAddPlayer() {
-        if (playersContainer.getChildren().size() < MAX_PLAYERS) {
-            addPlayer("Player " + (playersContainer.getChildren().size() + 1));
+    private void updateBottomButtons() {
+        if (startGameButton != null && cancelButton != null) {
+            if (isHost) {
+                startGameButton.setText("Start Game");
+                startGameButton.setOnAction(e -> handleStartGame());
+            } else {
+                startGameButton.setText("Ready");
+                startGameButton.setOnAction(e -> handleReady());
+            }
+            cancelButton.setText("Leave Lobby");
+            cancelButton.setOnAction(e -> handleLeaveLobby());
         }
-        updateAddRemoveButtons();
-    }
-
-    private void handleRemovePlayer() {
-        if (playersContainer.getChildren().size() > MIN_PLAYERS) removeLastPlayer();
-        updateAddRemoveButtons();
-    }
-
-    private void updateAddRemoveButtons() {
-        int count = playersContainer != null ? playersContainer.getChildren().size() : 0;
-        if (addPlayerButton != null)
-            addPlayerButton.setDisable(isJoin || count >= MAX_PLAYERS);
-        if (removePlayerButton != null)
-            removePlayerButton.setDisable(isJoin || count <= MIN_PLAYERS);
     }
 
     private void handleStartGame() {
@@ -182,7 +147,13 @@ public class GameSetupController {
         }
     }
 
-    private void handleCancel() {
+    private void handleReady() {
+        // Implement what should happen when a non-host player clicks "Ready"
+        System.out.println(currentUser + " is ready!");
+        // You may want to update the player's status or send a network message here
+    }
+
+    private void handleLeaveLobby() {
         try {
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/example/javarice_capstone/javarice_capstone/MenuUI.fxml"));
             Parent root = loader.load();
@@ -192,5 +163,16 @@ public class GameSetupController {
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    private String generateLobbyCode() {
+        String chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890";
+        Random rand = new Random();
+        StringBuilder code = new StringBuilder();
+        for (int i = 0; i < 8; i++) {
+            code.append(chars.charAt(rand.nextInt(chars.length())));
+        }
+        lobbyCode = code.toString();
+        return lobbyCode;
     }
 }

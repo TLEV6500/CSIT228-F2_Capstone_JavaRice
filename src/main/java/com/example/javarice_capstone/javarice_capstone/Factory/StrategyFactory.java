@@ -4,13 +4,14 @@ import com.example.javarice_capstone.javarice_capstone.Abstracts.ComputerStrateg
 import com.example.javarice_capstone.javarice_capstone.Strategies.*;
 
 public class StrategyFactory {
+
     public static ComputerStrategy createStrategy(String type) {
         return switch (type) {
             case "COMPUTER - N" -> new NormalStrat();
             case "COMPUTER - A" -> new AggressiveStrat();
             case "COMPUTER - D" -> new DefensiveStrat();
-            case "COMPUTER - T" -> new TrollStrat();
             default -> throw new IllegalArgumentException("Unknown strategy type: " + type);
         };
     }
+
 }
