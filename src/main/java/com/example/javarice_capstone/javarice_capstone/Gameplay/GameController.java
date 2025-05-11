@@ -6,6 +6,7 @@ import com.example.javarice_capstone.javarice_capstone.enums.*;
 import com.example.javarice_capstone.javarice_capstone.Abstracts.*;
 import javafx.animation.FadeTransition;
 import javafx.application.Platform;
+import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.fxml.Initializable;
@@ -31,6 +32,8 @@ import javafx.scene.text.FontWeight;
 import javafx.scene.text.Text;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
+import javafx.stage.StageStyle;
+import javafx.stage.Window;
 import javafx.util.Duration;
 
 import java.net.URL;
@@ -50,6 +53,7 @@ public class GameController implements Initializable {
     @FXML private Label statusLabel;
     @FXML private StackPane notificationArea;
     @FXML private BorderPane rootBorderPane;
+    @FXML private Button exitButton;
 
     @FXML private HBox opponent1Hand, opponent2Hand, opponent3Hand;
     @FXML private VBox  opponent4Hand, opponent5Hand;
@@ -96,8 +100,8 @@ public class GameController implements Initializable {
             BorderPane root = this.rootBorderPane;
             Scene scene = root.getScene();
             if (scene != null) {
-                root.maxWidthProperty().bind(scene.widthProperty().multiply(0.96));
-                root.maxHeightProperty().bind(scene.heightProperty().multiply(0.93));
+                root.maxWidthProperty().bind(scene.widthProperty().multiply(0.93));
+                root.maxHeightProperty().bind(scene.heightProperty().multiply(0.90));
             }
         });
 
@@ -322,6 +326,36 @@ public class GameController implements Initializable {
                     } catch (Exception ignored) {}
                 }
             }
+        }
+    }
+
+    @FXML
+    private void handleExit() {
+        try {
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/example/javarice_capstone/javarice_capstone/SetupDialog.fxml"));
+            Parent dialogRoot = loader.load();
+            GameSetupDialogController dialogController = loader.getController();
+
+            dialogController.showExitGameDialog("Are you sure you want to exit the current game session?",
+                    () -> {
+                        goToMainMenu();
+                        Stage stage = (Stage) dialogRoot.getScene().getWindow();
+                        if (stage != null) stage.close();
+                    }, () -> {
+
+                    }
+            );
+
+            Stage dialogStage = new Stage();
+            dialogStage.setTitle("Exit Game");
+            dialogStage.initModality(javafx.stage.Modality.APPLICATION_MODAL);
+            dialogStage.setScene(new Scene(dialogRoot));
+            dialogStage.setResizable(false);
+
+            dialogStage.showAndWait();
+
+        } catch (Exception e) {
+            e.printStackTrace();
         }
     }
 

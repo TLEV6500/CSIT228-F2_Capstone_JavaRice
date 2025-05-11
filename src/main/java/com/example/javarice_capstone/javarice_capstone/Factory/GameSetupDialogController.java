@@ -1,10 +1,16 @@
 package com.example.javarice_capstone.javarice_capstone.Factory;
 
 import javafx.fxml.FXML;
+import javafx.fxml.FXMLLoader;
+import javafx.scene.Parent;
+import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
+import javafx.stage.Modality;
 import javafx.stage.Stage;
+import javafx.stage.Window;
+import javafx.stage.StageStyle;
 
 import java.util.Optional;
 
@@ -259,6 +265,60 @@ public class GameSetupDialogController {
         @FXML
         private void cancelClicked() {
             parent.onJoinGameCancel();
+        }
+    }
+
+    public static class ExitConfirmationDialogController {
+        @FXML private Label messageLabel;
+        @FXML private Button yesButton;
+        @FXML private Button noButton;
+
+        private GameSetupDialogController parent;
+
+        public void init(GameSetupDialogController parent, String message) {
+            this.parent = parent;
+            messageLabel.setText(message);
+        }
+
+        @FXML
+        private void yesButtonClicked() {
+            parent.onExitConfirmation(true);
+        }
+
+        @FXML
+        private void noButtonClicked() {
+            parent.onExitConfirmation(false);
+        }
+    }
+
+    private Boolean exitConfirmed = null;
+
+    public void onExitConfirmation(boolean confirmed) {
+        this.exitConfirmed = confirmed;
+        if (contentPane != null && contentPane.getScene() != null && contentPane.getScene().getWindow() instanceof Stage stage) {
+            stage.close();
+        }
+    }
+
+    public void showExitGameDialog(String message, Runnable onYes, Runnable onNo) {
+        try {
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/example/javarice_capstone/javarice_capstone/ExitDialogContent.fxml"));
+            Parent exitDialog = loader.load();
+            ExitConfirmationDialogController controller = loader.getController();
+            controller.init(this, message);
+
+            controller.yesButton.setOnAction(e -> {
+                contentPane.getChildren().clear();
+                if (onYes != null) onYes.run();
+            });
+            controller.noButton.setOnAction(e -> {
+                contentPane.getChildren().clear();
+                if (onNo != null) onNo.run();
+            });
+
+            contentPane.getChildren().setAll(exitDialog);
+        } catch (Exception e) {
+            e.printStackTrace();
         }
     }
 
