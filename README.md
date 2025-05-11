@@ -31,8 +31,11 @@
 
 ### Design Patterns
 - Utilized the Factory pattern through distinct factories (e.g., PlayerFactory, StrategyFactory, GameSetupDialogFactory) to encapsulate object creation logic.
-- Centralizing object creation simplifies maintenance and allows for easy extension or modification of supported players, strategies, and game setup options.
-- Added somewhat of an Observer pattern since it notifies objects after the end of turn of a player.
+- Centralizing creation of Players and the different strategies (for the computer) they can implore simplifies maintenance and allows for easy extension or modification of supported players and strategies (Maybe adding a Trolling Strategy).
+- Added somewhat of an Observer pattern since it notifies objects after the end of turn of a player (Not sure its applicable).
+
+### Other Features
+- ??
 
 ## Additional Notes
 [Home](docs/home.md)
