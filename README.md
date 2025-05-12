@@ -25,7 +25,7 @@
   ![Image](https://github.com/user-attachments/assets/1b5a17eb-b42e-4d26-ae0b-5532e11e652f)
 
 ### Database Connectivity
-- ??
+- The [DatabaseManager](src/main/java/com/example/javarice_capstone/javarice_capstone/database/DatabaseManager.java) and its subclasses are used to make CRUD operations on game data via the [SerializableGameData]([DatabaseManager](src/main/java/com/example/javarice_capstone/javarice_capstone/datatypes/SerializableGameData.java) interface simpler, more centralized, and more consistent than just using raw SQL and the collection of classes that JDBC provides. 
 
 ### Unified Modeling Language (UML)
 - Created and maintained Class and Use Case Diagrams aligning with the final code structure.
@@ -35,6 +35,8 @@
 - Utilized the Factory pattern through distinct factories (e.g., PlayerFactory, StrategyFactory, GameSetupDialogFactory) to encapsulate object creation logic.
 - Centralizing creation of Players and the different strategies (for the computer) they can implore simplifies maintenance and allows for easy extension or modification of supported players and strategies (Maybe adding a Trolling Strategy).
 - Added somewhat of an Observer pattern since it notifies objects after the end of turn of a player (Not sure its applicable).
+- The [DatabaseManager](src/main/java/com/example/javarice_capstone/javarice_capstone/database/DatabaseManager.java) and classes ([LocalDatabaseManager](src/main/java/com/example/javarice_capstone/javarice_capstone/database/local/LocalDatabaseManager.java) and [SqlDatabaseManager](src/main/java/com/example/javarice_capstone/javarice_capstone/database/mysql/SqlDatabaseManager.java)) applied the Singleton approach in their approach on access, because you really only need one instance of these classes to make use of purpose.
+  - In particular, the `executeTransaction()` method of the [SqlDatabaseManager](src/main/java/com/example/javarice_capstone/javarice_capstone/database/mysql/SqlDatabaseManager.java) employs a variant of the Template behavioral design pattern that predefines a set of operations to setup the database connection and environment for a callback function/object to be called in, and letting the individual instances of the callback function/object decide how they will provide functionality in the event that the `executeTransaction` is called and the callback instance is passed.
 
 ### Other Features
 - ??
