@@ -11,9 +11,9 @@ import java.util.*;
 import java.util.stream.Stream;
 
 public class LocalDatabaseManager extends DatabaseManager {
-    private final String storageDirName = "gamedata";
-    private final Map<Class<? extends SerializableGameData>, Map<Integer, String>> tables = new HashMap<>();
+    private static final String storageDirName = "gamedata";
     private static volatile LocalDatabaseManager instance;
+    private final Map<Class<? extends SerializableGameData>, Map<Integer, String>> tables = new HashMap<>();
     private final Object lock = new Object();
 
     private LocalDatabaseManager() {
