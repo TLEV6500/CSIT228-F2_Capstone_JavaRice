@@ -12,7 +12,7 @@ public class JoinLobby {
     private static final String dbPass = "";
 
     // Method to join an existing lobby
-    public static String joinLobby(String playerName, String lobbyAddress,String lobbyCode) {
+    public static String joinLobby(String playerName, String lobbyCode) {
         try {
             // Construct the JDBC URL for Remote.it connection
             String url = "jdbc:mysql://" + SessionState.LobbyConnection + "/" + dbName + "?useSSL=false";
@@ -35,32 +35,12 @@ public class JoinLobby {
                     }
 
                     // Step 3: Update the lobby status and add the new player
-                    String updatePlayerSQL = "INSERT INTO players_in_lobby (lobby_code, player_name) VALUES (?, ?)";
+                    String updatePlayerSQL = "INSERT INTO players_in_lobbies (lobby_code, player) VALUES (?, ?)";
                     try (PreparedStatement psInsert = conn.prepareStatement(updatePlayerSQL)) {
                         psInsert.setString(1, lobbyCode);
                         psInsert.setString(2, playerName);
                         psInsert.executeUpdate();
                     }
-
-                    // Step 4: Optionally, update the lobby status if the lobby reaches a certain number of players
-                    // Step 4: Check number of players before starting the game
-                    String countPlayersSQL = "SELECT COUNT(*) AS player_count FROM players_in_lobby WHERE lobby_code = ?";
-                    try (PreparedStatement psCount = conn.prepareStatement(countPlayersSQL)) {
-                        psCount.setString(1, lobbyCode);
-                        ResultSet rsCount = psCount.executeQuery();
-                        if (rsCount.next()) {
-                            int playerCount = rsCount.getInt("player_count");
-                            if (playerCount >= 2) { // Only start if there are 2 or more players
-                                String updateLobbyStatusSQL = "UPDATE lobbies SET status = 'started' WHERE lobby_code = ? AND status = 'waiting'";
-                                try (PreparedStatement psUpdateStatus = conn.prepareStatement(updateLobbyStatusSQL)) {
-                                    psUpdateStatus.setString(1, lobbyCode);
-                                    psUpdateStatus.executeUpdate();
-                                }
-                            }
-                        }
-                    }
-
-
                     return "Player " + playerName + " successfully joined the lobby with code " + lobbyCode;
                 }
 

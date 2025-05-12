@@ -21,7 +21,7 @@ public class HostLobby {
         }
 
         // Step 3: Have the host join the lobby as a player
-        String result = JoinLobby.joinLobby(hostPlayer, lobbyAddress, lobbyCode);
+        String result = JoinLobby.joinLobby(hostPlayer, lobbyCode);
         System.out.println(result);
     }
 }

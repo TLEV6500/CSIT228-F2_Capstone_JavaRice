@@ -165,15 +165,4 @@ public class GameSetupController {
             throw new RuntimeException(e);
         }
     }
-
-    private String generateLobbyCode() {
-        String chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890";
-        Random rand = new Random();
-        StringBuilder code = new StringBuilder();
-        for (int i = 0; i < 8; i++) {
-            code.append(chars.charAt(rand.nextInt(chars.length())));
-        }
-        lobbyCode = code.toString();
-        return lobbyCode;
-    }
 }

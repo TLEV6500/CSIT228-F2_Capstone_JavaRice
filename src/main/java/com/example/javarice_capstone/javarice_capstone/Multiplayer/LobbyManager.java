@@ -9,95 +9,81 @@ public class LobbyManager {
 
     // Method to create a new lobby
     public static String createLobby(String lobbyCode) {
-        try {
-            // Same setup ...
-            String url = "jdbc:mysql://" + SessionState.LobbyConnection + "/" + dbName + "?useSSL=false";
-            try (Connection conn = DriverManager.getConnection(url, dbUser, dbPass);
-                 Statement stmt = conn.createStatement()) {
-
-                stmt.executeUpdate("CREATE DATABASE IF NOT EXISTS " + dbName);
-
-                ensureLobbiesTable(conn);
-                ensurePlayersInLobbyTable(conn);
-
-                // Check if lobby already exists
-                String checkLobbySQL = "SELECT * FROM lobbies WHERE lobby_code = ?";
-                try (PreparedStatement ps = conn.prepareStatement(checkLobbySQL)) {
-                    ps.setString(1, lobbyCode);
-                    ResultSet rs = ps.executeQuery();
-                    if (rs.next()) return null; // already exists
+        CreateDatabase();
+        // Connect to the target database
+        String url = "jdbc:mysql://" + SessionState.LobbyConnection + "/" + dbName + "?useSSL=false&connectTimeout=10000";
+        try (Connection conn = DriverManager.getConnection(url, dbUser, dbPass)) {
+            // Check if the lobby already exists
+            String checkLobbySQL = "SELECT 1 FROM lobbies WHERE lobby_code = ?";
+            try (PreparedStatement ps = conn.prepareStatement(checkLobbySQL)) {
+                ps.setString(1, lobbyCode);
+                ResultSet rs = ps.executeQuery();
+                if (rs.next()) {
+                    System.out.println("⚠️ Lobby already exists: " + lobbyCode);
+                    return null;
                 }
-
-                // Insert new lobby
-                String createLobbySQL = "INSERT INTO lobbies (lobby_code, status) VALUES (?, 'waiting')";
-                try (PreparedStatement psInsert = conn.prepareStatement(createLobbySQL)) {
-                    psInsert.setString(1, lobbyCode);
-                    psInsert.executeUpdate();
-                }
-
-                return lobbyCode;
-
             }
+            Thread.sleep(500);
+            // Create the new lobby
+            String createLobbySQL = "INSERT INTO lobbies (lobby_code, status) VALUES (?, 'waiting')";
+            try (PreparedStatement ps = conn.prepareStatement(createLobbySQL)) {
+                ps.setString(1, lobbyCode);
+                ps.executeUpdate();
+                System.out.println("✅ Lobby created: " + lobbyCode);
+                Thread.sleep(500);
+            }
+
+            String createPlayersInLobbySQL = "INSERT INTO players_in_lobbies (lobby_code) VALUES (?)";
+            try (PreparedStatement ps = conn.prepareStatement(createPlayersInLobbySQL)) {
+                ps.setString(1, lobbyCode);
+                ps.executeUpdate();
+                System.out.println("✅ Players in Lobby created: " + lobbyCode);
+                Thread.sleep(500);
+            }
+
+            return lobbyCode;
+
         } catch (Exception e) {
+            System.err.println("❌ Failed to create lobby.");
             e.printStackTrace();
             return null;
         }
     }
 
-
-    // Ensure 'lobbies' table exists
-    private static void ensureLobbiesTable(Connection conn) {
-        String createTableSQL = """
-            CREATE TABLE IF NOT EXISTS lobbies (
-                lobby_code VARCHAR(50) PRIMARY KEY,
-                status VARCHAR(20) DEFAULT 'waiting',
-                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-            )
-        """;
-
-        try (Statement stmt = conn.createStatement()) {
-            stmt.executeUpdate(createTableSQL);
-        } catch (Exception e) {
-            System.err.println("⚠️ Failed to create lobbies table:");
-            e.printStackTrace();
-        }
-    }
-
-    // Ensure 'players_in_lobby' table exists
-    private static void ensurePlayersInLobbyTable(Connection conn) {
-        String createTableSQL = """
-        CREATE TABLE IF NOT EXISTS players_in_lobby (
-            id INT PRIMARY KEY AUTO_INCREMENT,
-            lobby_code VARCHAR(50) NOT NULL,
-            player_name VARCHAR(100) NOT NULL,
-            FOREIGN KEY (lobby_code) REFERENCES lobbies(lobby_code) ON DELETE CASCADE
-        )
-    """;
-
-        try (Statement stmt = conn.createStatement()) {
-            stmt.executeUpdate(createTableSQL);
-        } catch (Exception e) {
-            System.err.println("⚠️ Failed to create players_in_lobby table:");
-            e.printStackTrace();
-        }
-    }
-
     public static boolean assignHost(String lobbyCode, String hostPlayer) {
+        System.out.println("Connecting to: jdbc:mysql://" + SessionState.LobbyConnection + "/" + dbName);
+
         try {
-            String url = "jdbc:mysql://" + SessionState.LobbyConnection + "/" + dbName + "?useSSL=false";
+            String url = "jdbc:mysql://" + SessionState.LobbyConnection + "/" + dbName + "?useSSL=false&connectTimeout=10000";
             try (Connection conn = DriverManager.getConnection(url, dbUser, dbPass)) {
-                String updateSQL = "UPDATE lobbies SET host_player = ? WHERE lobby_code = ?";
-                try (PreparedStatement ps = conn.prepareStatement(updateSQL)) {
+                Thread.sleep(500);
+                // Update host_player in lobbies
+                String updateLobbySQL = "UPDATE lobbies SET host_player = ? WHERE lobby_code = ?";
+                boolean lobbyUpdated = false;
+                try (PreparedStatement ps = conn.prepareStatement(updateLobbySQL)) {
                     ps.setString(1, hostPlayer);
                     ps.setString(2, lobbyCode);
-                    return ps.executeUpdate() > 0;
+                    lobbyUpdated = ps.executeUpdate() > 0;
                 }
+                Thread.sleep(500);
+                // Update player and host in players_in_lobbies
+                String updatePlayersInLobbiesSQL = "UPDATE players_in_lobbies SET player = ?, host = ? WHERE lobby_code = ?";
+                boolean playerUpdated = false;
+                try (PreparedStatement ps = conn.prepareStatement(updatePlayersInLobbiesSQL)) {
+                    ps.setString(1, hostPlayer);
+                    ps.setBoolean(2, true);
+                    ps.setString(3, lobbyCode);
+                    playerUpdated = ps.executeUpdate() > 0;
+                }
+                Thread.sleep(500);
+                return lobbyUpdated && playerUpdated;
             }
         } catch (Exception e) {
             e.printStackTrace();
             return false;
         }
     }
+
     public static boolean deleteLobby(String lobbyCode) {
         try {
             // Connect to your DB and execute delete query
@@ -112,6 +98,20 @@ public class LobbyManager {
         } catch (SQLException e) {
             e.printStackTrace();
             return false;
+        }
+    }
+
+    public static void CreateDatabase(){
+        try (Connection initConn = DriverManager.getConnection(
+                "jdbc:mysql://" + SessionState.LobbyConnection + "/?useSSL=false&connectTimeout=10000", dbUser, dbPass);
+             Statement initStmt = initConn.createStatement()) {
+            initStmt.executeUpdate("CREATE DATABASE IF NOT EXISTS " + dbName);
+            System.out.println("✅ Database ensured: " + dbName);
+            InitializeDatabase.InitializeLobbies();
+            InitializeDatabase.InitializePlayers();
+        } catch (Exception e) {
+            System.err.println("❌ Failed to create or connect to database.");
+            e.printStackTrace();
         }
     }
 }

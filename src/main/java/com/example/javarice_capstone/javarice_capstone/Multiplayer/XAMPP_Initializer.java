@@ -12,54 +12,37 @@ public class XAMPP_Initializer {
     private static final String XAMPP_URL = "https://sourceforge.net/projects/xampp/files/XAMPP%20Windows/8.2.12/xampp-windows-x64-8.2.12-0-VS16-installer.exe/download";
     private static final String INSTALLER_PATH = "installers/xampp-installer-8.2.12.exe";
     private static final String XAMPP_DEFAULT_PATH = "C:\\xampp\\xampp-control.exe";
-    private static final String APACHE_BIN = "C:\\xampp\\apache\\bin\\httpd.exe";
-    private static final String MYSQL_BIN = "C:\\xampp\\mysql\\bin\\mysqld.exe";
-    private static boolean apacheWasAlreadyRunning = false;
-    private static boolean mysqlWasAlreadyRunning = false;
 
-    public static void start(){
+    public static void start() {
+        stopXAMPP();
         install();
-
-        apacheWasAlreadyRunning = isServiceStarted("Apache2.4");
-        mysqlWasAlreadyRunning = isServiceStarted("mysql");
-
         startXAMPP();
-        startServices();
-        addShutdownHook();
     }
 
     public static void install() {
         try {
-            // Check if XAMPP is already installed
             File xampp = new File(XAMPP_DEFAULT_PATH);
             File xamppInstaller = new File(INSTALLER_PATH);
 
             if (xampp.exists()) {
                 System.out.println("✅ XAMPP is already installed at: " + xampp.getAbsolutePath());
                 return;
-            } else if(xamppInstaller.exists()) {
-                System.out.println("❌ XAMPP not found. ✅ XAMPP installer exists. Proceeding to install.");
-            } else {
-                System.out.println("❌ XAMPP not found. ❌ XAMPP installer doesn't exists. Proceeding to download.");
+            } else if (!xamppInstaller.exists()) {
+                System.out.println("❌ XAMPP not found. ❌ XAMPP installer doesn't exist. Proceeding to download.");
                 downloadXAMPP();
+            } else {
+                System.out.println("❌ XAMPP not found. ✅ XAMPP installer exists. Proceeding to install.");
             }
 
-            // Run installer with admin rights and wait
-            String command = "powershell -Command \"Start-Process '" + xamppInstaller.getAbsolutePath().replace("\\", "\\\\") +
-                    "' -Verb runAs -Wait\"";
-
-            ProcessBuilder pb = new ProcessBuilder("cmd", "/c", command);
-            pb.inheritIO();
-            Process process = pb.start();
-            process.waitFor();
-
+            String command = "powershell -Command \"Start-Process '" + xamppInstaller.getAbsolutePath().replace("\\", "\\\\") + "' -Verb runAs -Wait\"";
+            new ProcessBuilder("cmd", "/c", command).inheritIO().start().waitFor();
             System.out.println("✅ XAMPP installer finished.");
-
             waitForAndKillXamppControlPanel();
         } catch (IOException | InterruptedException e) {
             e.printStackTrace();
         }
     }
+
     public static void downloadXAMPP() {
         try {
             System.out.println("🔽 Downloading XAMPP from: " + XAMPP_URL);
@@ -81,7 +64,6 @@ public class XAMPP_Initializer {
                 while ((bytesRead = inputStream.read(buffer)) != -1) {
                     outputStream.write(buffer, 0, bytesRead);
                     totalBytesRead += bytesRead;
-
                     int newPercent = (int) (totalBytesRead * 100 / fileSize);
                     if (newPercent != percentCompleted) {
                         percentCompleted = newPercent;
@@ -100,124 +82,37 @@ public class XAMPP_Initializer {
 
     public static void startXAMPP() {
         try {
-            installServices();
-            // Start Apache
-            new ProcessBuilder("cmd", "/c", "net start Apache2.4").start();
-            // Start MySQL
-            new ProcessBuilder("cmd", "/c", "net start MySQL").start();
-            System.out.println("✅ Apache and MySQL services started silently.");
+            System.out.println("🚀 Starting Apache and MySQL without installing services...");
+            new ProcessBuilder("C:\\xampp\\apache\\bin\\httpd.exe").start();
+            new ProcessBuilder("C:\\xampp\\mysql\\bin\\mysqld.exe").start();
+            System.out.println("✅ Apache and MySQL started as standalone processes.");
         } catch (IOException e) {
+            System.err.println("❌ Failed to start XAMPP components.");
             e.printStackTrace();
         }
     }
+
 
     public static void stopXAMPP() {
         try {
-            System.out.println("🛑 Attempting to stop Apache and MySQL services...");
-
-            if (!apacheWasAlreadyRunning && isServiceStarted("Apache2.4")) {
-                ProcessBuilder apacheStop = new ProcessBuilder("cmd", "/c", "sc stop Apache2.4");
-                apacheStop.inheritIO();
-                apacheStop.start().waitFor();
-                System.out.println("✅ Apache stopped.");
-            } else {
-                System.out.println("ℹ️ Apache was already running before. Not stopping.");
-            }
-
-            if (!mysqlWasAlreadyRunning && isServiceStarted("mysql")) {
-                ProcessBuilder mysqlStop = new ProcessBuilder("cmd", "/c", "sc stop mysql");
-                mysqlStop.inheritIO();
-                mysqlStop.start().waitFor();
-                System.out.println("✅ MySQL stopped.");
-            } else {
-                System.out.println("ℹ️ MySQL was already running before. Not stopping.");
-            }
+            System.out.println("🛑 Attempting to stop Apache and MySQL (non-service mode)...");
+            new ProcessBuilder("cmd", "/c", "taskkill /F /IM httpd.exe").start().waitFor();
+            new ProcessBuilder("cmd", "/c", "taskkill /F /IM mysqld.exe").start().waitFor();
+            System.out.println("✅ Apache and MySQL stopped.");
         } catch (IOException | InterruptedException e) {
-            e.printStackTrace();
-        }
-    }
-
-
-    public static void installServices() {
-        try {
-            if (isServiceInstalled("Apache2.4") && isServiceInstalled("mysql")) {
-                System.out.println("✅ Apache and MySQL services are already installed.");
-                return;
-            }
-            // Install Apache as a service
-            Process apacheService = new ProcessBuilder("cmd.exe", "/c", "\"" + APACHE_BIN + "\" -k install")
-                    .inheritIO()
-                    .start();
-            apacheService.waitFor();
-
-            // Install MySQL as a service
-            Process mysqlService = new ProcessBuilder("cmd.exe", "/c", "\"" + MYSQL_BIN + "\" --install")
-                    .inheritIO()
-                    .start();
-            mysqlService.waitFor();
-
-            System.out.println("✅ Apache and MySQL services registered.");
-        } catch (IOException | InterruptedException e) {
+            System.err.println("❌ Failed to stop XAMPP components.");
             e.printStackTrace();
         }
     }
 
     public static boolean isServiceStarted(String serviceName) {
         try {
-            ProcessBuilder pb = new ProcessBuilder("cmd", "/c", "sc query " + serviceName);
-            Process process = pb.start();
-
-            try (InputStream is = process.getInputStream()) {
-                String output = new String(is.readAllBytes());
-
-                return output.contains("STATE") && output.contains("RUNNING");
-            }
+            Process process = new ProcessBuilder("cmd", "/c", "sc query " + serviceName).start();
+            String output = new String(process.getInputStream().readAllBytes());
+            return output.contains("STATE") && output.contains("RUNNING");
         } catch (IOException e) {
             e.printStackTrace();
             return false;
-        }
-    }
-
-
-    public static boolean isServiceInstalled(String serviceName) {
-        try {
-            ProcessBuilder pb = new ProcessBuilder("cmd", "/c", "sc query " + serviceName);
-            Process process = pb.start();
-
-            try (InputStream is = process.getInputStream()) {
-                String output = new String(is.readAllBytes());
-                return !output.contains("FAILED 1060");
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
-            return false;
-        }
-    }
-
-
-    public static void startServices() {
-        try {
-            if (!isServiceStarted("Apache2.4")) {
-                new ProcessBuilder("cmd.exe", "/c", "net start Apache2.4")
-                        .inheritIO()
-                        .start()
-                        .waitFor();
-            } else {
-                System.out.println("🔄 Apache is already running.");
-            }
-
-            if (!isServiceStarted("mysql")) {
-                new ProcessBuilder("cmd.exe", "/c", "net start mysql")
-                        .inheritIO()
-                        .start()
-                        .waitFor();
-            } else {
-                System.out.println("🔄 MySQL is already running.");
-            }
-
-            System.out.println("✅ Apache and MySQL services started.");
-        } catch (IOException | InterruptedException e) {
-            e.printStackTrace();
         }
     }
 
@@ -226,19 +121,12 @@ public class XAMPP_Initializer {
             System.out.println("⏳ Waiting for XAMPP Control Panel to launch...");
             boolean found = false;
             for (int i = 0; i < 5; i++) {
-                Process processList = new ProcessBuilder("cmd", "/c", "tasklist /FI \"IMAGENAME eq xampp-control.exe\"")
-                        .redirectErrorStream(true)
-                        .start();
-
-                try (InputStream is = processList.getInputStream()) {
-                    String output = new String(is.readAllBytes());
-                    if (output.contains("xampp-control.exe")) {
-                        found = true;
-                        break;
-                    }
+                Process process = new ProcessBuilder("cmd", "/c", "tasklist /FI \"IMAGENAME eq xampp-control.exe\"").start();
+                String output = new String(process.getInputStream().readAllBytes());
+                if (output.contains("xampp-control.exe")) {
+                    found = true;
+                    break;
                 }
-
-                Thread.sleep(1000); // Wait 1 second before checking again
             }
 
             if (found) {
@@ -254,17 +142,12 @@ public class XAMPP_Initializer {
         }
     }
 
-    // Shutdown hook to stop XAMPP when the Java application exits
     public static void addShutdownHook() {
         Runtime.getRuntime().addShutdownHook(new Thread(() -> {
-            // Stop services
             stopXAMPP();
-
-            // Remove hosted lobby if it exists
             if (SessionState.LobbyCode != null) {
                 System.out.println("🧹 Cleaning up hosted lobby: " + SessionState.LobbyCode);
-                boolean deleted = LobbyManager.deleteLobby(SessionState.LobbyCode);
-                if (deleted) {
+                if (LobbyManager.deleteLobby(SessionState.LobbyCode)) {
                     System.out.println("✅ Lobby deleted from database.");
                 } else {
                     System.out.println("⚠️ Failed to delete lobby.");

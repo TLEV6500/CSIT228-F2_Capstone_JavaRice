@@ -8,6 +8,9 @@ import javafx.fxml.FXML;
 import javafx.scene.control.Button;
 import javafx.scene.control.TextField;
 
+import static com.example.javarice_capstone.javarice_capstone.Multiplayer.XAMPP_Initializer.addShutdownHook;
+import static com.example.javarice_capstone.javarice_capstone.Multiplayer.XAMPP_Initializer.stopXAMPP;
+
 public class HostGameContentController {
     @FXML private TextField hostAddressTextField;
     @FXML private TextField usernameTextField;
@@ -46,10 +49,7 @@ public class HostGameContentController {
             // Step 3: Assign host
             boolean hostAssigned = LobbyManager.assignHost(lobbyCode, username);
             System.out.println("Host assigned: " + hostAssigned);
-
-            // Step 4: Join lobby
-            String joinResult = JoinLobby.joinLobby(username, lobbyAddress, lobbyCode);
-            System.out.println("Join Lobby Result: " + joinResult);
+            addShutdownHook();
         }
     }
 
@@ -57,7 +57,5 @@ public class HostGameContentController {
     @FXML
     private void cancelClicked() {
         parent.onHostGameCancel();
-        SessionState.LobbyConnection = null;
-        SessionState.LobbyCode = null;
     }
 }

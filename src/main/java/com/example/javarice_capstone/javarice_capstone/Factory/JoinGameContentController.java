@@ -34,7 +34,7 @@ public class JoinGameContentController {
         SessionState.LobbyCode = lobbyCode;
         SessionState.LobbyConnection = lobbyAddress;
 
-        String joinResult = JoinLobby.joinLobby(username, lobbyAddress, lobbyCode);
+        String joinResult = JoinLobby.joinLobby(username, lobbyCode);
         System.out.println(joinResult);
 
         if (joinResult.startsWith("Player")) {
