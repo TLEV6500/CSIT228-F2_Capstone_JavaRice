@@ -1,5 +1,6 @@
 package com.example.javarice_capstone.javarice_capstone.Factory;
 
+import com.example.javarice_capstone.javarice_capstone.Multiplayer.ThreadLobbyManager;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
@@ -8,6 +9,7 @@ import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 
+import java.util.List;
 import java.util.Optional;
 
 public class GameSetupDialogController {
@@ -112,7 +114,7 @@ public class GameSetupDialogController {
     }
 
     void onHostGameOk(String username) {
-        hostGameResult = Optional.of(new MultiplayerSetupResult(MultiplayerType.HOST, username, null, null));
+        hostGameResult = Optional.of(new MultiplayerSetupResult(MultiplayerType.HOST, username, null, null, null));
         closeDialog();
     }
     void onHostGameCancel() {
@@ -120,8 +122,8 @@ public class GameSetupDialogController {
         closeDialog();
     }
 
-    void onJoinGameOk(String username, String lobbyAddress, String lobbyCode) {
-        joinGameResult = Optional.of(new MultiplayerSetupResult(MultiplayerType.JOIN, username, lobbyAddress, lobbyCode));
+    void onJoinGameOk(String username, String lobbyAddress, String lobbyCode, List<ThreadLobbyManager.PlayerInfo> players) {
+        joinGameResult = Optional.of(new MultiplayerSetupResult(MultiplayerType.JOIN, username, lobbyAddress, lobbyCode, players));
         closeDialog();
     }
     void onJoinGameCancel() {
@@ -146,11 +148,14 @@ public class GameSetupDialogController {
         public final String username;
         public final String lobbyAddress;
         public final String lobbyCode;
-        public MultiplayerSetupResult(MultiplayerType type, String username, String lobbyAddress, String lobbyCode) {
+        public final List<ThreadLobbyManager.PlayerInfo> players;
+
+        public MultiplayerSetupResult(MultiplayerType type, String username, String lobbyAddress, String lobbyCode, List<ThreadLobbyManager.PlayerInfo> players) {
             this.type = type;
             this.username = username;
             this.lobbyAddress = lobbyAddress;
             this.lobbyCode = lobbyCode;
+            this.players = players;
         }
     }
 

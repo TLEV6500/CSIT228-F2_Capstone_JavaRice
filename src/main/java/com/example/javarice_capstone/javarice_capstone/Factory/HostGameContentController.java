@@ -29,6 +29,26 @@ public class HostGameContentController {
         String lobbyAddress = hostAddressTextField.getText() != null ? hostAddressTextField.getText().trim() : "";
 
         if (!username.isEmpty() && !lobbyAddress.isEmpty()) {
+            // Validate MySQL connection first
+            try {
+                String testUrl = "jdbc:mysql://" + lobbyAddress + "/?useSSL=false&connectTimeout=5000";
+                java.sql.Connection testConn = java.sql.DriverManager.getConnection(testUrl, "root", "");
+                testConn.close();
+            } catch (java.sql.SQLException e) {
+                System.err.println("❌ Failed to connect to MySQL server at: " + lobbyAddress);
+                System.err.println("Error: " + e.getMessage());
+                // Show error to user
+                javafx.scene.control.Alert alert = new javafx.scene.control.Alert(javafx.scene.control.Alert.AlertType.ERROR);
+                alert.setTitle("Connection Error");
+                alert.setHeaderText("Cannot connect to MySQL server");
+                alert.setContentText("Please check that:\n" +
+                    "1. The MySQL server is running\n" +
+                    "2. The address is correct (e.g., localhost:3306)\n" +
+                    "3. The server is accepting connections");
+                alert.showAndWait();
+                return;
+            }
+
             parent.onHostGameOk(username);
 
             // Step 1: Generate lobby code
@@ -41,7 +61,7 @@ public class HostGameContentController {
             System.out.println("Create Lobby Result: " + creationResult);
 
             // Optional: check if creation failed
-            if (creationResult.contains("already exists") || creationResult.contains("error")) {
+            if (creationResult == null || creationResult.contains("already exists") || creationResult.contains("error")) {
                 System.out.println("⚠️ Lobby creation failed.");
                 return;
             }

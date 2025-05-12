@@ -4,10 +4,10 @@
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 
-<VBox alignment="CENTER" spacing="12" xmlns="http://javafx.com/javafx/17.0.12" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.example.javarice_capstone.javarice_capstone.Factory.JoinGameContentController">
+<VBox alignment="CENTER" prefHeight="250.0" prefWidth="306.0" spacing="12" xmlns="http://javafx.com/javafx/17.0.12" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.example.javarice_capstone.javarice_capstone.Factory.JoinGameContentController">
 
     <HBox alignment="CENTER_RIGHT" spacing="8">
-      <HBox alignment="CENTER_LEFT" prefHeight="45.0" prefWidth="102.0">
+      <HBox alignment="CENTER_LEFT" prefHeight="45.0" prefWidth="110.0">
          <children>
               <Label style="-fx-font-size: 15px; -fx-text-fill: #fff;" text="Username:">
                <HBox.margin>
@@ -16,32 +16,35 @@
             </Label>
          </children>
       </HBox>
-      <HBox alignment="CENTER_RIGHT">
+      <HBox>
          <children>
-              <TextField fx:id="usernameTextField" prefHeight="45.0" prefWidth="200.0" promptText="Enter your username" style="                     -fx-font-size: 15px;                     -fx-background-radius: 7;                     -fx-background-color: #f2f2f2;                     -fx-border-color: #ffd54f;                     -fx-border-radius: 7;                     -fx-border-width: 2;                     -fx-text-fill: #414345;                     -fx-padding: 4 8 4 8;                    " />
+              <TextField fx:id="usernameTextField" prefHeight="45.0" promptText="Enter your username" style="                     -fx-font-size: 15px;                     -fx-background-radius: 7;                     -fx-background-color: #f2f2f2;                     -fx-border-color: #ffd54f;                     -fx-border-radius: 7;                     -fx-border-width: 2;                     -fx-text-fill: #414345;                     -fx-padding: 4 8 4 8;                    " />
          </children>
       </HBox>
     </HBox>
 
-    <HBox alignment="CENTER" spacing="8">
-      <HBox alignment="CENTER_LEFT">
-         <children>
-              <Label style="-fx-font-size: 15px; -fx-text-fill: #fff;" text="Host Address:">
-               <HBox.margin>
-                  <Insets right="10.0" />
-               </HBox.margin>
-            </Label>
-         </children>
-      </HBox>
-      <HBox>
-         <children>
-              <TextField fx:id="lobbyAddressTextField" prefHeight="45.0" prefWidth="200.0" promptText="Enter Host Address" style="                     -fx-font-size: 15px;                     -fx-background-radius: 7;                     -fx-background-color: #f2f2f2;                     -fx-border-color: #ffd54f;                     -fx-border-radius: 7;                     -fx-border-width: 2;                     -fx-text-fill: #414345;                     -fx-padding: 4 8 4 8;                    " />
-         </children>
-      </HBox>
-    </HBox>
+    <HBox alignment="CENTER_RIGHT" layoutX="10.0" layoutY="10.0" spacing="8">
+      <children>
+         <HBox alignment="CENTER_LEFT" prefHeight="45.0" prefWidth="122.0">
+            <children>
+               <Label style="-fx-font-size: 15px; -fx-text-fill: #fff;" text="Host Address:">
+                  <HBox.margin>
+                     <Insets right="10.0" />
+                  </HBox.margin>
+               </Label>
+            </children>
+         </HBox>
+         <HBox>
+            <children>
+               <TextField fx:id="lobbyAddressTextField" prefHeight="45.0" prefWidth="200.0" promptText="Enter Host Address" style="                     -fx-font-size: 15px;                     -fx-background-radius: 7;                     -fx-background-color: #f2f2f2;                     -fx-border-color: #ffd54f;                     -fx-border-radius: 7;                     -fx-border-width: 2;                     -fx-text-fill: #414345;                     -fx-padding: 4 8 4 8;                    " />
+            </children>
+         </HBox>
+      </children>
+   </HBox>
+
    <HBox alignment="CENTER_RIGHT" layoutX="10.0" layoutY="67.0" spacing="8">
       <children>
-         <HBox alignment="CENTER_LEFT" prefHeight="45.0" prefWidth="102.0">
+         <HBox alignment="CENTER_LEFT" prefHeight="45.0" prefWidth="122.0">
             <children>
                <Label style="-fx-font-size: 15px; -fx-text-fill: #fff;" text="Lobby Code:">
                   <HBox.margin>
@@ -50,7 +53,7 @@
                </Label>
             </children>
          </HBox>
-         <HBox alignment="TOP_RIGHT">
+         <HBox>
             <children>
                <TextField fx:id="lobbyCodeTextField" prefHeight="45.0" prefWidth="200.0" promptText="Enter Lobby Code" style="                     -fx-font-size: 15px;                     -fx-background-radius: 7;                     -fx-background-color: #f2f2f2;                     -fx-border-color: #ffd54f;                     -fx-border-radius: 7;                     -fx-border-width: 2;                     -fx-text-fill: #414345;                     -fx-padding: 4 8 4 8;                    " />
             </children>
@@ -59,7 +62,7 @@
    </HBox>
 
     <HBox alignment="CENTER" spacing="18">
-        <Button fx:id="okButton" defaultButton="true" onAction="#joinButtonClicked" style="-fx-background-color: #34C275; -fx-text-fill: #fff; -fx-font-weight: bold; -fx-background-radius: 7; -fx-pref-width: 90; -fx-pref-height: 40;" text="Join" />
+        <Button fx:id="join" defaultButton="true" onAction="#joinButtonClicked" style="-fx-background-color: #34C275; -fx-text-fill: #fff; -fx-font-weight: bold; -fx-background-radius: 7; -fx-pref-width: 90; -fx-pref-height: 40;" text="Join" />
         <Button fx:id="cancelButton" cancelButton="true" onAction="#cancelClicked" style="-fx-background-color: #ef5350; -fx-text-fill: #fff; -fx-font-weight: bold; -fx-background-radius: 7; -fx-pref-width: 90; -fx-pref-height: 40;" text="Cancel" />
       <VBox.margin>
          <Insets top="15.0" />

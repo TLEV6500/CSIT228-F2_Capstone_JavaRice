@@ -101,7 +101,8 @@ public class MenuController {
             if (mode == GameSetupDialogController.Mode.HOST) {
                 setupController.getClass().getMethod("setupHost", String.class).invoke(setupController, setupResult.username);
             } else if (mode == GameSetupDialogController.Mode.JOIN) {
-                setupController.getClass().getMethod("setupJoin", String.class, String.class).invoke(setupController, setupResult.username, setupResult.lobbyCode);
+                setupController.getClass().getMethod("setupJoin", String.class, String.class, List.class)
+                    .invoke(setupController, setupResult.username, setupResult.lobbyCode, setupResult.players);
             }
 
             Stage stage = (Stage) hostGameCard.getScene().getWindow();
@@ -162,8 +163,6 @@ public class MenuController {
         }
         return aiNames;
     }
-
-
 
     private void launchSingleplayerGame(int numberOfPlayers, List<String> playerNames) {
         try {

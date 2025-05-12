@@ -32,7 +32,8 @@ public class InitializeDatabase {
                     + "id INT AUTO_INCREMENT PRIMARY KEY,"
                     + "lobby_code VARCHAR(10), "
                     + "player VARCHAR(100), "
-                    + "host BOOL DEFAULT FALSE)"
+                    + "host BOOL DEFAULT FALSE, "
+                    + "is_ready BOOL DEFAULT FALSE)"
             );
         } catch (Exception e) {
             System.err.println("❌ Failed to create or connect to database.");

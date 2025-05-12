@@ -2,10 +2,12 @@ package com.example.javarice_capstone.javarice_capstone.Factory;
 
 import com.example.javarice_capstone.javarice_capstone.Multiplayer.JoinLobby;
 import com.example.javarice_capstone.javarice_capstone.Multiplayer.SessionState;
+import com.example.javarice_capstone.javarice_capstone.Multiplayer.ThreadLobbyManager;
 import javafx.fxml.FXML;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.scene.control.TextField;
+import java.util.List;
 
 public class JoinGameContentController {
     @FXML private TextField lobbyAddressTextField;
@@ -31,6 +33,14 @@ public class JoinGameContentController {
             return;
         }
 
+        // Validate host address format
+        if (!lobbyAddress.contains(":")) {
+            showAlert(Alert.AlertType.WARNING, "Invalid Host Address", 
+                "Please enter the host address in the format: IP_ADDRESS:PORT\n" +
+                "Example: localhost:3306 or 192.168.1.100:3306");
+            return;
+        }
+
         SessionState.LobbyCode = lobbyCode;
         SessionState.LobbyConnection = lobbyAddress;
 
@@ -38,8 +48,14 @@ public class JoinGameContentController {
         System.out.println(joinResult);
 
         if (joinResult.startsWith("Player")) {
-            // Successfully joined, continue to parent
-            parent.onJoinGameOk(username, lobbyAddress, lobbyCode);
+            // Successfully joined, fetch current players
+            List<ThreadLobbyManager.PlayerInfo> players = ThreadLobbyManager.getPlayersInLobby(lobbyCode);
+            if (players != null && !players.isEmpty()) {
+                // Successfully joined and got player list, continue to parent
+                parent.onJoinGameOk(username, lobbyAddress, lobbyCode, players);
+            } else {
+                showAlert(Alert.AlertType.ERROR, "Join Failed", "Could not fetch player list from lobby.");
+            }
         } else {
             // Failed to join, show error
             showAlert(Alert.AlertType.ERROR, "Join Failed", joinResult);
@@ -60,5 +76,4 @@ public class JoinGameContentController {
         alert.setContentText(content);
         alert.showAndWait();
     }
-
 }

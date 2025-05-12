@@ -40,7 +40,7 @@ public class JoinLobby {
             }
 
             conn.commit(); // Commit the transaction
-            return "✅ Player " + playerName + " successfully joined the lobby with code " + lobbyCode;
+            return "Player " + playerName + " successfully joined the lobby with code " + lobbyCode;
 
         } catch (SQLException e) {
             e.printStackTrace();
