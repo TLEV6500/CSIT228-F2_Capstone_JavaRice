@@ -1,6 +1,7 @@
 package com.example.javarice_capstone.javarice_capstone.Multiplayer;
 
 import java.sql.*;
+import java.util.function.Supplier;
 
 public class LobbyManager {
     private static final String dbName = "game_data";
@@ -101,17 +102,50 @@ public class LobbyManager {
         }
     }
 
-    public static void CreateDatabase(){
+    public static void CreateDatabase() {
         try (Connection initConn = DriverManager.getConnection(
                 "jdbc:mysql://" + SessionState.LobbyConnection + "/?useSSL=false&connectTimeout=10000", dbUser, dbPass);
              Statement initStmt = initConn.createStatement()) {
+
             initStmt.executeUpdate("CREATE DATABASE IF NOT EXISTS " + dbName);
             System.out.println("✅ Database ensured: " + dbName);
-            InitializeDatabase.InitializeLobbies();
-            InitializeDatabase.InitializePlayers();
+
+            waitFor(() -> {
+                InitializeDatabase.InitializeLobbies();
+                return checkIfTableExists("lobbies");
+            });
+
+            waitFor(() -> {
+                InitializeDatabase.InitializePlayers();
+                return checkIfTableExists("players_in_lobbies");
+            });
+
         } catch (Exception e) {
             System.err.println("❌ Failed to create or connect to database.");
             e.printStackTrace();
         }
     }
+
+    public static void waitFor(Supplier<Boolean> condition) throws InterruptedException {
+        int retries = 10;
+        while (retries-- > 0) {
+            if (condition.get()) return;
+            Thread.sleep(300); // short wait before retry
+        }
+        throw new RuntimeException("Timeout waiting for condition");
+    }
+
+    public static boolean checkIfTableExists(String tableName) {
+        try (Connection conn = DriverManager.getConnection(
+                "jdbc:mysql://" + SessionState.LobbyConnection + "/" + dbName + "?useSSL=false",
+                dbUser, dbPass);
+             ResultSet rs = conn.getMetaData().getTables(null, null, tableName, null)) {
+            return rs.next();
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+
 }

@@ -84,7 +84,7 @@ public class MenuController {
             dialogStage.showAndWait();
 
             dialogController.getJoinGameResult().ifPresent(result -> {
-
+                launchGameSetupUI(GameSetupDialogController.Mode.JOIN, result);
             });
         } catch (Exception e) {
             e.printStackTrace();
