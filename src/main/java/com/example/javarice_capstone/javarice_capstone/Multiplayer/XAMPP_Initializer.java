@@ -20,24 +20,28 @@ public class XAMPP_Initializer {
     }
 
     public static void install() {
+        File xampp = new File(XAMPP_DEFAULT_PATH);
+        File xamppInstaller = new File(INSTALLER_PATH);
+
+        if (xampp.exists()) {
+            System.out.println("✅ XAMPP is already installed at: " + xampp.getAbsolutePath());
+            return;
+        } else if (!xamppInstaller.exists()) {
+            System.out.println("❌ XAMPP not found. ❌ XAMPP installer doesn't exist. Proceeding to download.");
+            downloadXAMPP();
+        } else {
+            System.out.println("❌ XAMPP not found. ✅ XAMPP installer exists. Proceeding to install.");
+        }
+        XAMPPInstall();
+        waitForAndKillXamppControlPanel();
+    }
+
+    public static void XAMPPInstall(){
         try {
-            File xampp = new File(XAMPP_DEFAULT_PATH);
             File xamppInstaller = new File(INSTALLER_PATH);
-
-            if (xampp.exists()) {
-                System.out.println("✅ XAMPP is already installed at: " + xampp.getAbsolutePath());
-                return;
-            } else if (!xamppInstaller.exists()) {
-                System.out.println("❌ XAMPP not found. ❌ XAMPP installer doesn't exist. Proceeding to download.");
-                downloadXAMPP();
-            } else {
-                System.out.println("❌ XAMPP not found. ✅ XAMPP installer exists. Proceeding to install.");
-            }
-
             String command = "powershell -Command \"Start-Process '" + xamppInstaller.getAbsolutePath().replace("\\", "\\\\") + "' -Verb runAs -Wait\"";
             new ProcessBuilder("cmd", "/c", command).inheritIO().start().waitFor();
             System.out.println("✅ XAMPP installer finished.");
-            waitForAndKillXamppControlPanel();
         } catch (IOException | InterruptedException e) {
             e.printStackTrace();
         }
@@ -88,9 +92,34 @@ public class XAMPP_Initializer {
             System.out.println("✅ Apache and MySQL started as standalone processes.");
         } catch (IOException e) {
             System.err.println("❌ Failed to start XAMPP components.");
+            XAMPPUninstall();
+            XAMPPInstall();
             e.printStackTrace();
         }
     }
+
+    public static void XAMPPUninstall() {
+        try {
+            // Run XAMPP uninstaller with admin rights
+            String uninstallCommand = "powershell -Command \"Start-Process 'C:\\xampp\\uninstall.exe' -Verb runAs -Wait\"";
+            Process uninstallProcess = new ProcessBuilder("cmd", "/c", uninstallCommand)
+                    .inheritIO()
+                    .start();
+            uninstallProcess.waitFor();
+            System.out.println("✅ XAMPP Uninstaller finished.");
+
+            // Delete the C:\xampp directory after uninstall
+            String deleteCommand = "powershell -Command \"Remove-Item -Path 'C:\\xampp' -Recurse -Force\"";
+            Process deleteProcess = new ProcessBuilder("cmd", "/c", deleteCommand)
+                    .inheritIO()
+                    .start();
+            deleteProcess.waitFor();
+            System.out.println("🗑️ XAMPP folder deleted.");
+        } catch (IOException | InterruptedException e) {
+            e.printStackTrace();
+        }
+    }
+
 
 
     public static void stopXAMPP() {
