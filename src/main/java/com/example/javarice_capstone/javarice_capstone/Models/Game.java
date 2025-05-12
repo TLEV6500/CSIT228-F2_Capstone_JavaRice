@@ -168,6 +168,7 @@ public class Game {
             case REVERSE:
                 currentColor = card.getColor();
                 customOrderIsClockwise = !customOrderIsClockwise;
+                if (players.size() == 2) nextPlayer();
                 nextPlayer();
                 break;
             case DRAW_TWO:
@@ -207,6 +208,20 @@ public class Game {
 
     public void handleGameRulesAfterTurn() {
         applyStackDrawRule();
+    }
+
+    public boolean isStackingActive() {
+        AbstractCard topCard = getTopCard();
+        return (topCard.getType() == Types.DRAW_TWO || topCard.getType() == Types.DRAW_FOUR) && stackedDrawCards > 0;
+    }
+
+    public int getStackedDrawCards() {
+        return stackedDrawCards;
+    }
+
+    public Types getStackType() {
+        AbstractCard topCard = getTopCard();
+        return topCard.getType();
     }
 
     private void applyStackDrawRule() {

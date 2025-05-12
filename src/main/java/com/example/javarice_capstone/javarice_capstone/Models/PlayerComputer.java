@@ -5,6 +5,7 @@ import com.example.javarice_capstone.javarice_capstone.Abstracts.AbstractPlayer;
 import com.example.javarice_capstone.javarice_capstone.Abstracts.ComputerStrategy;
 import com.example.javarice_capstone.javarice_capstone.enums.*;
 
+// THIS IS FOR THE AI COMPUTER ON SINGLE PLAYER MODE
 public class PlayerComputer extends AbstractPlayer {
     private final ComputerStrategy strategy;
 

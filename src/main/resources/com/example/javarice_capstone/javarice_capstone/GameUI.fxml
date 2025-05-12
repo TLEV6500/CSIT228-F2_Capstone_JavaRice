@@ -114,12 +114,12 @@
         <bottom>
             <VBox alignment="CENTER" prefHeight="150" spacing="5">
                 <HBox fx:id="bottomPart" alignment="CENTER" spacing="15">
-                    <Label fx:id="playerLabel" text="You">
+                    <Label fx:id="MainPlayerLabel" text="You">
                         <font>
                             <Font name="Arial Black" size="14.0" />
                         </font>
                     </Label>
-                    <Label fx:id="playerHandCount" text="(0 cards)">
+                    <Label fx:id="MainPlayerHandCount" text="(0 cards)">
                         <font>
                             <Font name="Arial Black" size="12.0" />
                         </font>

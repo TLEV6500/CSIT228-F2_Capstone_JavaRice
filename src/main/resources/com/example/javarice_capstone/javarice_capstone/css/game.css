@@ -18,14 +18,14 @@ HBox, VBox {
     -fx-padding: 20 0 10 0;
 }
 
-#opponent1Name, #opponent2Name, #opponent3Name, #opponent4Name, #opponent5Name, #playerLabel {
+#opponent1Name, #opponent2Name, #opponent3Name, #opponent4Name, #opponent5Name, #MainPlayerLabel {
     -fx-text-fill: #ffd54f;
     -fx-font-size: 16px;
     -fx-font-weight: bold;
     -fx-effect: dropshadow(gaussian, #232526, 2, 0.7, 0, 1);
 }
 
-#opponent1HandCount, #opponent2HandCount, #opponent3HandCount, #opponent4HandCount, #opponent5HandCount, #playerHandCount {
+#opponent1HandCount, #opponent2HandCount, #opponent3HandCount, #opponent4HandCount, #opponent5HandCount, #MainPlayerHandCount {
     -fx-text-fill: #aaa;
     -fx-font-size: 12px;
     -fx-padding: 0 0 0 2;
