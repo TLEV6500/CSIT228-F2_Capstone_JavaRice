@@ -11,31 +11,51 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class SqlDatabaseManager extends DatabaseManager {
-    private final Connection connection;
-    private final Set<String> initializedTables = ConcurrentHashMap.newKeySet();
-    private final boolean useDedicatedTables; // Configurable
+    private static volatile SqlDatabaseManager instance;
+    private static Connection connection;
+    private static boolean useDedicatedTables;
+    private static String databaseName = "JavaRiceUnoDb";
+    private static final String metadataTableName = "metadata";
+    private static final String gameDataTableName = "game_data";
+    private static final Set<String> initializedTables = ConcurrentHashMap.newKeySet();
     private final PreparedStatement dedicatedTableSaveStmt;
     private final PreparedStatement gameDataTableSaveStmt;
-    private final String gameDataTableName = "game_data";
-    private final String metadataTableName = "metadata";
 
-    public SqlDatabaseManager(Connection connection, Boolean useDedicated) throws SQLException {
-        this.connection = connection;
-        this.useDedicatedTables = useDedicated;
-        initializeCoreTables();
-
-        if (useDedicatedTables) {
-            dedicatedTableSaveStmt = connection.prepareStatement(
-                    "INSERT INTO ? (id, data) VALUES (?, ?) " +
-                            "ON DUPLICATE KEY UPDATE data = VALUES(data)");
-            gameDataTableSaveStmt = null;
-        } else {
-            gameDataTableSaveStmt = connection.prepareStatement(
-                    "INSERT INTO game_data (id, data_type, content) " +
-                            "VALUES (?, ?, ?) " +
-                            "ON DUPLICATE KEY UPDATE content = VALUES(content)");
-            dedicatedTableSaveStmt = null;
+    public static void initialize(Connection connection, String databaseName, boolean useDedicatedTables) throws DatabaseException {
+        if (connection == null) {
+            throw new IllegalArgumentException("Connection cannot be null");
         }
+        SqlDatabaseManager.databaseName = databaseName;
+        SqlDatabaseManager.connection = connection;
+        SqlDatabaseManager.useDedicatedTables = useDedicatedTables;
+        if (instance == null) {
+            instance = new SqlDatabaseManager();
+        }
+    }
+
+    public static SqlDatabaseManager getInstance() {
+        if (connection == null) throw new IllegalStateException(SqlDatabaseManager.class.getSimpleName() + " must be first be initialized by calling `initialize()` with appropriate the arguments");
+        return instance;
+    }
+
+    private SqlDatabaseManager() throws DatabaseException {
+        try {
+            if (useDedicatedTables) {
+                dedicatedTableSaveStmt = connection.prepareStatement(
+                        "INSERT INTO ? (id, data) VALUES (?, ?) " +
+                                "ON DUPLICATE KEY UPDATE data = VALUES(data)");
+                gameDataTableSaveStmt = null;
+            } else {
+                gameDataTableSaveStmt = connection.prepareStatement(
+                        "INSERT INTO game_data (id, data_type, content) " +
+                                "VALUES (?, ?, ?) " +
+                                "ON DUPLICATE KEY UPDATE content = VALUES(content)");
+                dedicatedTableSaveStmt = null;
+            }
+        } catch (SQLException e) {
+            throw new DatabaseException("Failed to prepare SQL statements for dedicated or gamedata tables", e);
+        }
+        initializeDatabase();
     }
 
     @Override
@@ -44,7 +64,7 @@ public class SqlDatabaseManager extends DatabaseManager {
     }
 
     @Override
-    public void logout() throws SQLException, UnsupportedOperationException {
+    public void logout() throws DatabaseException, UnsupportedOperationException {
         synchronized (this) {
             try {
                 initializedTables.clear();
@@ -53,7 +73,7 @@ public class SqlDatabaseManager extends DatabaseManager {
                     connection.close();
                 }
             } catch (SQLException e) {
-                System.err.println("Failed to close database connection: " + e.getMessage());
+                throw new DatabaseException("Failed to close database connection: " + e.getMessage());
             }
         }
     }
@@ -68,14 +88,14 @@ public class SqlDatabaseManager extends DatabaseManager {
                 synchronized (dedicatedTableSaveStmt) {
                     dedicatedTableSaveStmt.setString(1, tableName);
                     dedicatedTableSaveStmt.setInt(2, data.getId());
-                    dedicatedTableSaveStmt.setBytes(3, LocalDatabaseManager.serialize(data));
+                    dedicatedTableSaveStmt.setBytes(3, serialize(data));
                     dedicatedTableSaveStmt.executeUpdate();
                 }
             } else {
                 synchronized (gameDataTableSaveStmt) {
                     gameDataTableSaveStmt.setInt(1, data.getId());
                     gameDataTableSaveStmt.setString(2, data.getClass().getName());
-                    gameDataTableSaveStmt.setBytes(3, LocalDatabaseManager.serialize(data));
+                    gameDataTableSaveStmt.setBytes(3, serialize(data));
                     gameDataTableSaveStmt.executeUpdate();
                 }
             }
@@ -114,7 +134,7 @@ public class SqlDatabaseManager extends DatabaseManager {
                 List<T> results = new ArrayList<>();
                 while (rs.next()) {
                     byte[] serializedData = rs.getBytes("data");
-                    T data = LocalDatabaseManager.deserialize(serializedData, classType);
+                    T data = deserialize(serializedData, classType);
                     results.add(data);
                 }
                 return results;
@@ -186,7 +206,6 @@ public class SqlDatabaseManager extends DatabaseManager {
         }
     }
 
-    @Override
     public <R> R executeTransaction(Transaction<R,SQLException> transaction) throws DatabaseException {
         try {
             connection.setAutoCommit(false);
@@ -205,6 +224,15 @@ public class SqlDatabaseManager extends DatabaseManager {
                 connection.setAutoCommit(true);
             } catch (SQLException ignored) {}
         }
+    }
+
+    public void initializeDatabase() throws DatabaseException {
+        int dbInitRes = executeTransaction((db)-> {
+            Statement stmt = db.createStatement();
+            return stmt.executeUpdate("CREATE DATABASE " + databaseName);
+        });
+        System.out.println("Created database " + databaseName + " with result " + dbInitRes);
+        initializeCoreTables();
     }
 
     private void initializeCoreTables() {
@@ -274,7 +302,6 @@ public class SqlDatabaseManager extends DatabaseManager {
         }
     }
 
-
     private void createDedicatedTable(Class<? extends SerializableGameData> classType)
             throws SQLException {
         String tableName = classType.getSimpleName();
@@ -291,7 +318,6 @@ public class SqlDatabaseManager extends DatabaseManager {
         }
     }
 
-
     private void registerTypeInMetadata(Class<? extends SerializableGameData> classType)
             throws SQLException {
         String sql = """
@@ -306,19 +332,10 @@ public class SqlDatabaseManager extends DatabaseManager {
         }
     }
 
-
     private boolean tableExists(String tableName) throws SQLException {
         DatabaseMetaData dbMeta = connection.getMetaData();
         try (ResultSet rs = dbMeta.getTables(null, null, tableName, null)) {
             return rs.next();
         }
-    }
-
-    private byte[] serialize(SerializableGameData data) throws DatabaseException {
-        return LocalDatabaseManager.serialize(data);
-    }
-
-    private <T extends SerializableGameData> T deserialize(byte[] data, Class<T> classType) throws DatabaseException {
-         return LocalDatabaseManager.deserialize(data,classType);
     }
 }
