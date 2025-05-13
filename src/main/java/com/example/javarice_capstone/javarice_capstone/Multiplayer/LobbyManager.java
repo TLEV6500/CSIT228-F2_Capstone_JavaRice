@@ -2,6 +2,12 @@ package com.example.javarice_capstone.javarice_capstone.Multiplayer;
 
 import java.sql.*;
 import java.util.function.Supplier;
+import javafx.scene.control.Alert;
+import javafx.application.Platform;
+import javafx.stage.Stage;
+import javafx.stage.Window;
+import javafx.stage.WindowEvent;
+import javafx.stage.Modality;
 
 public class LobbyManager {
     private static final String dbName = "game_data";
@@ -16,6 +22,7 @@ public class LobbyManager {
 
         try (Connection conn = DriverManager.getConnection(url, dbUser, dbPass)) {
             conn.setAutoCommit(false); // Start transaction
+            conn.setTransactionIsolation(Connection.TRANSACTION_SERIALIZABLE); // Add proper isolation
 
             try {
                 // Check if the lobby already exists
@@ -51,15 +58,44 @@ public class LobbyManager {
             } catch (SQLException e) {
                 conn.rollback(); // Rollback on error
                 System.err.println("❌ Transaction failed. Rolling back.");
-                e.printStackTrace();
+                handleDatabaseError(e);
                 return null;
             }
 
         } catch (SQLException e) {
             System.err.println("❌ DB Connection failed.");
-            e.printStackTrace();
+            handleDatabaseError(e);
             return null;
         }
+    }
+
+    private static void handleDatabaseError(SQLException e) {
+        String errorMessage;
+        switch (e.getErrorCode()) {
+            case 1062: // Duplicate entry
+                errorMessage = "Lobby already exists. Please try a different lobby code.";
+                break;
+            case 2003: // Connection refused
+                errorMessage = "Could not connect to the database server. Please check your connection.";
+                break;
+            case 1045: // Access denied
+                errorMessage = "Database access denied. Please check your credentials.";
+                break;
+            default:
+                errorMessage = "An unexpected database error occurred: " + e.getMessage();
+        }
+        showError("Database Error", errorMessage);
+        e.printStackTrace();
+    }
+
+    private static void showError(String title, String message) {
+        Platform.runLater(() -> {
+            Alert alert = new Alert(Alert.AlertType.ERROR);
+            alert.setTitle(title);
+            alert.setHeaderText(null);
+            alert.setContentText(message);
+            alert.showAndWait();
+        });
     }
 
     public static boolean assignHost(String lobbyCode, String hostPlayer) {
@@ -159,22 +195,9 @@ public class LobbyManager {
             stmt.executeUpdate("CREATE DATABASE IF NOT EXISTS " + dbName);
             System.out.println("✅ Database ensured: " + dbName);
 
-            // Create tables only if they don't exist
-            String fullUrl = baseUrl + dbName;
-            try (Connection dbConn = DriverManager.getConnection(
-                    "jdbc:mysql://" + SessionState.LobbyConnection + "/" + dbName + "?useSSL=false", dbUser, dbPass)) {
-
-                if (!checkIfTableExists("lobbies")) {
-                    InitializeDatabase.InitializeLobbies();
-                    System.out.println("📂 Table created: lobbies");
-                }
-
-                if (!checkIfTableExists("players_in_lobbies")) {
-                    InitializeDatabase.InitializePlayers();
-                    System.out.println("📂 Table created: players_in_lobbies");
-                }
-
-            }
+            // Initialize all tables using the new approach
+            InitializeDatabase.InitializeAllTables();
+            System.out.println("✅ All tables initialized successfully");
 
         } catch (SQLException e) {
             System.err.println("❌ Failed to initialize database.");
