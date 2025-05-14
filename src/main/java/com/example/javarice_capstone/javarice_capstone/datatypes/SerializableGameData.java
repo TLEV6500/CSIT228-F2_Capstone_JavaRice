@@ -51,25 +51,4 @@ public interface SerializableGameData extends Serializable {
         }
         return null;
     }
-
-    default int setAllIntFields(int... values) {
-        return 0;
-    }
-
-    default int setAllDoubleFields(double... values) {
-        return 0;
-    }
-
-    default int setAllCharFields(char... values) {
-        return 0;
-    }
-
-    default int setAllStringFields(char... values) {
-        return 0;
-    }
-
-    default int setAllObjectFields(Object... values) {
-        return 0;
-    }
-
 }

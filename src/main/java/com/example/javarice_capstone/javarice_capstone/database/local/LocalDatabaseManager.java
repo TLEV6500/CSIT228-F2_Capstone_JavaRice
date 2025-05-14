@@ -11,10 +11,10 @@ import java.util.*;
 import java.util.stream.Stream;
 
 public class LocalDatabaseManager extends DatabaseManager {
-    private final String storageDirName = "gamedata";
-    private final Map<Class<? extends SerializableGameData>, Map<Integer, String>> tables = new HashMap<>();
+    private static final String storageDirName = "gamedata";
     private static volatile LocalDatabaseManager instance;
-    private final Object lock = new Object(); // Shared lock object for synchronization
+    private final Map<Class<? extends SerializableGameData>, Map<Integer, String>> tables = new HashMap<>();
+    private final Object lock = new Object();
 
     private LocalDatabaseManager() {
         initializeStorageDir();
@@ -82,7 +82,7 @@ public class LocalDatabaseManager extends DatabaseManager {
         synchronized (lock) {
             Map<Integer, String> table = getTable(classType);
             if (table.isEmpty()) {
-                // If no in-memory records, scan directory
+                // If no saved records in-memory, scan directory
                 Path classDir = Path.of(storageDirName, classType.getSimpleName());
                 if (!Files.exists(classDir)) {
                     return Collections.emptyList();
@@ -109,7 +109,7 @@ public class LocalDatabaseManager extends DatabaseManager {
                 }
             }
 
-            // Return all records from the table
+            // Return all the records from the table
             List<T> result = new ArrayList<>();
             for (String filePath : table.values()) {
                 try (ObjectInputStream ois = new ObjectInputStream(Files.newInputStream(Path.of(filePath)))) {
@@ -181,39 +181,6 @@ public class LocalDatabaseManager extends DatabaseManager {
             } catch (IOException e) {
                 throw new RuntimeException("Failed to initialize storage directory", e);
             }
-        }
-    }
-
-    public static byte[] serialize(SerializableGameData data) throws DatabaseException {
-        try (ByteArrayOutputStream baos = new ByteArrayOutputStream();
-             ObjectOutputStream oos = new ObjectOutputStream(baos)) {
-
-            oos.writeObject(data);
-            oos.flush();
-            return baos.toByteArray();
-
-        } catch (IOException e) {
-            throw new DatabaseException(
-                    "Failed to serialize " + data.getClass().getSimpleName(),
-                    e
-            );
-        }
-    }
-
-    public static <T extends SerializableGameData> T deserialize(byte[] bytes, Class<T> classType)
-            throws DatabaseException {
-        T data = null;
-        try (ByteArrayInputStream bais = new ByteArrayInputStream(bytes);
-             ObjectInputStream ois = new ObjectInputStream(bais)) {
-            data = (T) ois.readObject();
-            return data;
-
-        } catch (IOException | ClassNotFoundException e) {
-            assert data != null;
-            throw new DatabaseException(
-                    "Failed to deserialize " + data.getClass().getSimpleName(),
-                    e
-            );
         }
     }
 }
