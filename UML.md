@@ -6,4 +6,4 @@
 
 # CLASS DIAGRAM
 
-![Image](https://github.com/user-attachments/assets/82790141-dd19-40e6-a993-ef77f59ce45e)
+![Image](https://github.com/user-attachments/assets/a6c4396f-447c-4787-8a99-8ced66529b45)
