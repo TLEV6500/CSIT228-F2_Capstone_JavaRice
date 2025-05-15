@@ -13,10 +13,15 @@
 - Implemented interfaces for certain interaction points (e.g., user input handling) and used abstract classes for shared behaviors.
 
 ### Java Generics
-- ??
+- Generics are used with the `SerializableGameData` interface for serializable, type-safe game data classes (like `User`, `Player`).
+- Database manager methods (e.g., `updateData(T newData, int... ids)`) use generics to handle any game data type.
+- Java collections such as `List<AbstractCard>` and `List<PlayerInfo>` use generics for type safety.
 
 ### Multithreading and Concurrency
-- ??
+- Multithreading is implemented in `ThreadLobbyManager` using `ScheduledExecutorService` to update lobby/player state every second.
+- Multiplayer servers use a thread-per-client model so multiple players can connect at once.
+- File operations in the local database manager are synchronized for thread safety.
+- These patterns help with code reuse, type safety, real-time multiplayer features, and preventing data corruption.
 
 ### Graphical User Interface
 - Built an interactive JavaFX interface for the whole game with event listeners for drawing and playing a card.
@@ -38,8 +43,6 @@
 - The [DatabaseManager](src/main/java/com/example/javarice_capstone/javarice_capstone/database/DatabaseManager.java) and classes ([LocalDatabaseManager](src/main/java/com/example/javarice_capstone/javarice_capstone/database/local/LocalDatabaseManager.java) and [SqlDatabaseManager](src/main/java/com/example/javarice_capstone/javarice_capstone/database/mysql/SqlDatabaseManager.java)) applied the Singleton approach in their approach on access, because you really only need one instance of these classes to make use of purpose.
   - In particular, the `executeTransaction()` method of the [SqlDatabaseManager](src/main/java/com/example/javarice_capstone/javarice_capstone/database/mysql/SqlDatabaseManager.java) employs a variant of the Template behavioral design pattern that predefines a set of operations to setup the database connection and environment for a callback function/object to be called in, and letting the individual instances of the callback function/object decide how they will provide functionality in the event that the `executeTransaction` is called and the callback instance is passed.
 
-### Other Features
-- ??
 
 ## Additional Notes
 [Home](docs/home.md)
