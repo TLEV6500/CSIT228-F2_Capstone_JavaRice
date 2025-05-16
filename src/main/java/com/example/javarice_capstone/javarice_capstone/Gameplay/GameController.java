@@ -608,6 +608,14 @@ public class GameController implements Initializable {
                 break;
             case DRAW_TWO:
                 showNotification("+2 CARDS", Color.RED);
+                // For multiplayer games, ensure the next player knows they need to draw
+                if (game instanceof com.example.javarice_capstone.javarice_capstone.Models.MultiplayerGame) {
+                    String lobbyCode = ((com.example.javarice_capstone.javarice_capstone.Models.MultiplayerGame) game).getLobbyCode();
+                    String nextPlayer = com.example.javarice_capstone.javarice_capstone.Multiplayer.ThreadLobbyManager.getCurrentPlayer(lobbyCode);
+                    if (nextPlayer != null && !nextPlayer.equals(game.getCurrentPlayer().getName())) {
+                        showNotification(nextPlayer + " must draw 2 cards!", Color.ORANGE);
+                    }
+                }
                 break;
             case DRAW_FOUR:
                 showNotification("+4 CARDS", Color.DARKRED);
@@ -640,7 +648,18 @@ public class GameController implements Initializable {
 
     private void updateGameDirectionLabel() {
         if (direction != null) {
-            direction.setText(game.isCustomOrderClockwise()? "↻" : "↺");
+            boolean isClockwise = game.isCustomOrderClockwise();
+            direction.setText(isClockwise ? "↻" : "↺");
+            
+            // For multiplayer games, verify direction with database
+            if (game instanceof com.example.javarice_capstone.javarice_capstone.Models.MultiplayerGame) {
+                String lobbyCode = ((com.example.javarice_capstone.javarice_capstone.Models.MultiplayerGame) game).getLobbyCode();
+                boolean dbDirection = com.example.javarice_capstone.javarice_capstone.Multiplayer.ThreadLobbyManager.getGameDirection(lobbyCode);
+                if (isClockwise != dbDirection) {
+                    game.setCustomOrderClockwise(dbDirection);
+                    direction.setText(dbDirection ? "↻" : "↺");
+                }
+            }
         }
     }
 
