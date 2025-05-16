@@ -84,7 +84,7 @@ public class ThreadLobbyManager {
             
             List<PlayerInfo> players = getPlayersInLobby(lobbyCode);
             onUpdate.accept(players);
-        }, 0, 1, TimeUnit.SECONDS);
+        }, 0, 2, TimeUnit.SECONDS);
     }
 
     public static void stopLobbyUpdates() {

@@ -117,7 +117,7 @@ public class GameController implements Initializable {
                     ((com.example.javarice_capstone.javarice_capstone.Models.MultiplayerGame) game).updateGameState();
                     updateUI();
                 });
-            }, 0, 1, TimeUnit.SECONDS);
+            }, 0, 2, TimeUnit.SECONDS);
         }
     }
 
@@ -862,7 +862,7 @@ public class GameController implements Initializable {
         if (!isComputerTurnActive || isShuttingDown) return;
 
         try {
-            computerPlayerTimer.schedule(() -> Platform.runLater(this::stepComputerTurn), 1250, TimeUnit.MILLISECONDS);
+            computerPlayerTimer.schedule(() -> Platform.runLater(this::stepComputerTurn), 2000, TimeUnit.MILLISECONDS);
         } catch (RejectedExecutionException ignored) {
         }
     }

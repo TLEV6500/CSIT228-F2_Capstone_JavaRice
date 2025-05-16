@@ -5,7 +5,7 @@ import com.example.javarice_capstone.javarice_capstone.enums.Types;
 
 public abstract class AbstractCard {
 
-    protected Colors color;
+    private final Colors color;
     private final Types type;
 
     public AbstractCard(Colors color, Types type) {
@@ -15,10 +15,6 @@ public abstract class AbstractCard {
 
     public Colors getColor() { return color; }
     public Types getType() { return type; }
-
-    public void setColor(Colors color) {
-        this.color = color;
-    }
 
     public abstract boolean canPlayOn(AbstractCard other);
 

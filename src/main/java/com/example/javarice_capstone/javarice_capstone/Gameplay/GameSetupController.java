@@ -380,7 +380,7 @@ public class GameSetupController {
                     System.err.println("[HOST POLL] Error in polling: " + e.getMessage());
                     e.printStackTrace();
                 }
-            }, 0, 1, TimeUnit.SECONDS);
+            }, 0, 2, TimeUnit.SECONDS);
 
             // Start polling for current player changes for host
             ScheduledExecutorService currentPlayerPoller = Executors.newSingleThreadScheduledExecutor();
@@ -403,8 +403,8 @@ public class GameSetupController {
                 } catch (Exception e) {
                     System.err.println("[HOST POLL] Error in current player polling: " + e.getMessage());
                     e.printStackTrace();
-            }
-            }, 0, 1, TimeUnit.SECONDS);
+                }
+            }, 0, 2, TimeUnit.SECONDS);
 
             System.out.println("[DEBUG] Host polling setup complete");
         } catch (Exception e) {
@@ -456,7 +456,7 @@ public class GameSetupController {
                         discardPileCard = ThreadLobbyManager.fetchDiscardPile(lobbyCode);
                         if (discardPileCard == null) {
                             try {
-                                Thread.sleep(500);
+                                Thread.sleep(2000);  // Changed to 2 seconds
                             } catch (InterruptedException e) {
                                 e.printStackTrace();
                             }
