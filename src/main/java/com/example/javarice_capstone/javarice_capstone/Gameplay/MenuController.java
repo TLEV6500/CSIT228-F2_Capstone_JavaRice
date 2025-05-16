@@ -139,7 +139,7 @@ public class MenuController {
 
             result.ifPresent(numPlayers -> {
                 List<String> playerNames = new ArrayList<>();
-                playerNames.add("Player");
+                playerNames.add("You");
                 playerNames.addAll(getUniqueAiNames(numPlayers - 1));
                 launchSingleplayerGame(numPlayers, playerNames);
             });
@@ -166,9 +166,10 @@ public class MenuController {
 
     private void launchSingleplayerGame(int numberOfPlayers, List<String> playerNames) {
         try {
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/example/javarice_capstone/javarice_capstone/GameUI.fxml"));
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/example/javarice_capstone/javarice_capstone/SinglePlayerGameUI.fxml"));
             Parent root = loader.load();
-            GameController gameUIController = loader.getController();
+            // IMPORTANT: SinglePlayerGameUI.fxml must use SinglePlayerController as its controller for singleplayer mode!
+            SinglePlayerController gameUIController = loader.getController();
 
             gameUIController.startGame(numberOfPlayers, playerNames);
 

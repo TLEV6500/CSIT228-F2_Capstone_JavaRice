@@ -33,6 +33,10 @@ public class InitializeDatabase {
                     + "lobby_code VARCHAR(10) PRIMARY KEY, "
                     + "host_player VARCHAR(100), "
                     + "current_player VARCHAR(100), "
+                    + "current_color VARCHAR(20), "
+                    + "discard_pile VARCHAR(50), "
+                    + "player_count INT DEFAULT 0, "
+                    + "game_direction VARCHAR(20) DEFAULT 'clockwise', "
                     + "status VARCHAR(20) DEFAULT 'waiting')"
             );
             System.out.println("✅ Table created: lobbies");
@@ -44,32 +48,20 @@ public class InitializeDatabase {
                     + "player VARCHAR(100), "
                     + "host BOOL DEFAULT FALSE, "
                     + "is_ready BOOL DEFAULT FALSE, "
+                    + "player_cards INT DEFAULT 7, "
                     + "FOREIGN KEY (lobby_code) REFERENCES lobbies(lobby_code) ON DELETE CASCADE)"
             );
             System.out.println("✅ Table created: players_in_lobbies");
 
-            // Create game_cards table
-            stmt.executeUpdate("CREATE TABLE IF NOT EXISTS game_cards ("
+            // Create game_moves table
+            stmt.executeUpdate("CREATE TABLE IF NOT EXISTS game_moves ("
                     + "id INT AUTO_INCREMENT PRIMARY KEY,"
                     + "lobby_code VARCHAR(10), "
                     + "player_name VARCHAR(100), "
-                    + "card_value VARCHAR(10), "
-                    + "card_color VARCHAR(10), "
-                    + "card_type VARCHAR(20), "
-                    + "is_played BOOL DEFAULT FALSE, "
-                    + "play_order INT, "
-                    + "FOREIGN KEY (lobby_code) REFERENCES lobbies(lobby_code) ON DELETE CASCADE)"
-            );
-            System.out.println("✅ Table created: game_cards");
-
-            // Create game_moves table
-            stmt.executeUpdate("CREATE TABLE IF NOT EXISTS game_moves ("
-                    + "move_id INT AUTO_INCREMENT PRIMARY KEY,"
-                    + "lobby_code VARCHAR(10),"
-                    + "player_name VARCHAR(100),"
-                    + "card_played VARCHAR(50),"
-                    + "turn_number INT,"
-                    + "created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,"
+                    + "card_played VARCHAR(50), "
+                    + "action VARCHAR(20), "
+                    + "turn_number INT, "
+                    + "forced_draw_handled BOOLEAN DEFAULT FALSE, "
                     + "FOREIGN KEY (lobby_code) REFERENCES lobbies(lobby_code) ON DELETE CASCADE)"
             );
             System.out.println("✅ Table created: game_moves");

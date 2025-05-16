@@ -4,10 +4,7 @@ import java.sql.*;
 import java.util.function.Supplier;
 import javafx.scene.control.Alert;
 import javafx.application.Platform;
-import javafx.stage.Stage;
-import javafx.stage.Window;
-import javafx.stage.WindowEvent;
-import javafx.stage.Modality;
+
 
 public class LobbyManager {
     private static final String dbName = "game_data";
@@ -38,7 +35,7 @@ public class LobbyManager {
                 }
 
                 // Insert into lobbies
-                String insertLobbySQL = "INSERT INTO lobbies (lobby_code, status) VALUES (?, 'waiting')";
+                String insertLobbySQL = "INSERT INTO lobbies (lobby_code, status, player_count) VALUES (?, 'waiting', 1)";
                 try (PreparedStatement ps = conn.prepareStatement(insertLobbySQL)) {
                     ps.setString(1, lobbyCode);
                     ps.executeUpdate();
@@ -70,28 +67,23 @@ public class LobbyManager {
     }
 
     private static void handleDatabaseError(SQLException e) {
-        String errorMessage;
-        switch (e.getErrorCode()) {
-            case 1062: // Duplicate entry
-                errorMessage = "Lobby already exists. Please try a different lobby code.";
-                break;
-            case 2003: // Connection refused
-                errorMessage = "Could not connect to the database server. Please check your connection.";
-                break;
-            case 1045: // Access denied
-                errorMessage = "Database access denied. Please check your credentials.";
-                break;
-            default:
-                errorMessage = "An unexpected database error occurred: " + e.getMessage();
-        }
-        showError("Database Error", errorMessage);
+        String errorMessage = switch (e.getErrorCode()) {
+            case 1062 -> // Duplicate entry
+                    "Lobby already exists. Please try a different lobby code.";
+            case 2003 -> // Connection refused
+                    "Could not connect to the database server. Please check your connection.";
+            case 1045 -> // Access denied
+                    "Database access denied. Please check your credentials.";
+            default -> "An unexpected database error occurred: " + e.getMessage();
+        };
+        showError(errorMessage);
         e.printStackTrace();
     }
 
-    private static void showError(String title, String message) {
+    private static void showError(String message) {
         Platform.runLater(() -> {
             Alert alert = new Alert(Alert.AlertType.ERROR);
-            alert.setTitle(title);
+            alert.setTitle("Database Error");
             alert.setHeaderText(null);
             alert.setContentText(message);
             alert.showAndWait();
@@ -204,28 +196,4 @@ public class LobbyManager {
             e.printStackTrace();
         }
     }
-
-
-    public static void waitFor(Supplier<Boolean> condition) throws InterruptedException {
-        int retries = 10;
-        while (retries-- > 0) {
-            if (condition.get()) return;
-            Thread.sleep(300); // short wait before retry
-        }
-        throw new RuntimeException("Timeout waiting for condition");
-    }
-
-    public static boolean checkIfTableExists(String tableName) {
-        try (Connection conn = DriverManager.getConnection(
-                "jdbc:mysql://" + SessionState.LobbyConnection + "/" + dbName + "?useSSL=false",
-                dbUser, dbPass);
-             ResultSet rs = conn.getMetaData().getTables(null, null, tableName, null)) {
-            return rs.next();
-        } catch (SQLException e) {
-            e.printStackTrace();
-            return false;
-        }
-    }
-
-
 }

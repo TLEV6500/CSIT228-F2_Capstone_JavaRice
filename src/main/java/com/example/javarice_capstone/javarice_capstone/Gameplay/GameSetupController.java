@@ -21,6 +21,11 @@ import javafx.animation.Timeline;
 import javafx.util.Duration;
 import javafx.application.Platform;
 import javafx.scene.control.Alert;
+import com.example.javarice_capstone.javarice_capstone.Models.Game;
+import com.example.javarice_capstone.javarice_capstone.Abstracts.AbstractCard;
+import com.example.javarice_capstone.javarice_capstone.Models.MultiplayerGame;
+import com.example.javarice_capstone.javarice_capstone.Models.PlayerComputer;
+import com.example.javarice_capstone.javarice_capstone.Strategies.NormalStrat;
 
 import java.io.IOException;
 import java.sql.Connection;
@@ -55,15 +60,16 @@ public class GameSetupController {
     private boolean isReady = false;
     private boolean isWaitingForCards = false;
     private ScheduledExecutorService scheduler;
+    private Game game;
 
     public void setupHost(String username) {
         isHost = true;
         isJoin = false;
         if (username != null && !username.isEmpty()) currentUser = username;
-        
+
         // Set the lobby code from SessionState
         lobbyCode = SessionState.LobbyCode;
-        
+
         // Set host as ready in the database
         try {
             String url = "jdbc:mysql://" + SessionState.LobbyConnection + "/game_data?useSSL=false";
@@ -79,17 +85,17 @@ public class GameSetupController {
             System.err.println("Error setting host ready status: " + e.getMessage());
             e.printStackTrace();
         }
-        
+
         // Clear and update the players container with all players
         if (playersContainer != null) {
             playersContainer.getChildren().clear();
             // Add host as first player
             addPlayerEntry(currentUser, true, true);
         }
-        
+
         updateLobbyCodeLabel(lobbyCode);
         updateBottomButtons();
-        
+
         // Start periodic player list updates
         startPlayerUpdates();
     }
@@ -99,7 +105,7 @@ public class GameSetupController {
         isJoin = true;
         if (username != null && !username.isEmpty()) currentUser = username;
         if (code != null) lobbyCode = code;
-        
+
         // Clear and update the players container with all players
         if (playersContainer != null) {
             playersContainer.getChildren().clear();
@@ -107,10 +113,10 @@ public class GameSetupController {
                 addPlayerEntry(player.name, player.isHost, player.isReady);
             }
         }
-        
+
         updateLobbyCodeLabel(lobbyCode);
         updateBottomButtons();
-        
+
         // Start periodic player list updates
         startPlayerUpdates();
     }
@@ -125,6 +131,42 @@ public class GameSetupController {
     public void initialize() {
         // Initialize all database tables
         InitializeDatabase.InitializeAllTables();
+        
+        // Get the number of players from the database for multiplayer games
+        int numPlayers = 2; // Default minimum
+        if (isHost || isJoin) {
+            try {
+                String url = "jdbc:mysql://" + SessionState.LobbyConnection + "/game_data?useSSL=false";
+                try (Connection conn = DriverManager.getConnection(url, "root", "")) {
+                    String query = "SELECT player_count FROM lobbies WHERE lobby_code = ?";
+                    try (PreparedStatement stmt = conn.prepareStatement(query)) {
+                        stmt.setString(1, lobbyCode);
+                        ResultSet rs = stmt.executeQuery();
+                        if (rs.next()) {
+                            numPlayers = rs.getInt("player_count");
+                            System.out.println("Found player count in database: " + numPlayers);
+                        }
+                    }
+                }
+            } catch (SQLException e) {
+                System.err.println("Error getting player count: " + e.getMessage());
+                e.printStackTrace();
+            }
+        } else {
+            // For single player, use the number of players in the container
+            numPlayers = playersContainer.getChildren().size();
+        }
+        
+        // Initialize the game with the correct number of players
+        if (isHost || isJoin) {
+            game = new MultiplayerGame(numPlayers, lobbyCode, isHost, currentUser);
+        } else {
+            game = new Game(numPlayers);
+            // For single player mode, ensure we have computer players
+            while (game.getPlayers().size() < numPlayers) {
+                game.getPlayers().add(new PlayerComputer("Computer " + (game.getPlayers().size() + 1), new NormalStrat()));
+            }
+        }
         
         updateDateTimeLabel();
         if (!isHost && !isJoin && playersContainer != null) initializePlayersContainer();
@@ -204,10 +246,10 @@ public class GameSetupController {
         try {
             String url = "jdbc:mysql://" + SessionState.LobbyConnection + "/game_data?useSSL=false";
             try (Connection conn = DriverManager.getConnection(url, "root", "")) {
-                String updateLobbySQL = "UPDATE lobbies SET status = 'started' WHERE lobby_code = ?";
-                try (PreparedStatement stmt = conn.prepareStatement(updateLobbySQL)) {
-                    stmt.setString(1, lobbyCode);
-                    stmt.executeUpdate();
+                    String updateLobbySQL = "UPDATE lobbies SET status = 'started' WHERE lobby_code = ?";
+                    try (PreparedStatement stmt = conn.prepareStatement(updateLobbySQL)) {
+                        stmt.setString(1, lobbyCode);
+                        stmt.executeUpdate();
                 }
             }
         } catch (SQLException e) {
@@ -215,38 +257,159 @@ public class GameSetupController {
             return;
         }
 
+        // Fetch the top discard pile card and push it to the database
+        AbstractCard topCard = game.getTopCard();
+        String discardPileCard = topCard.getColor() + "_" + topCard.getValue();
+        
+        // Push to database and verify
+        boolean pushSuccess = false;
+        int retryCount = 0;
+        while (!pushSuccess && retryCount < 3) {
+            ThreadLobbyManager.pushDiscardPile(lobbyCode, discardPileCard);
+            
+            // Verify the card was pushed successfully
+            try {
+                Thread.sleep(500); // Wait for database update
+                String pushedCard = ThreadLobbyManager.fetchDiscardPile(lobbyCode);
+                pushSuccess = discardPileCard.equals(pushedCard);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+            
+            if (!pushSuccess) {
+                retryCount++;
+            }
+        }
+        
+        if (!pushSuccess) {
+            showError("Synchronization Error", "Could not synchronize discard pile. Please try again.");
+            return;
+        }
+
+        // Wait a moment to ensure database update is propagated
+        try {
+            Thread.sleep(1000);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+        
+        // Then update local game state
+        game.updateDiscardPile(discardPileCard);
+
+        // Log the top discard pile card for the host
+        System.out.println("Host's top discard pile card: " + discardPileCard);
+        System.out.println("Host's entire discard pile: " + game.getDiscardPile());
+
         // Broadcast start game event to all players in the lobby
         ThreadLobbyManager.broadcastStartGame(lobbyCode);
 
         // Stop the player updates
         ThreadLobbyManager.stopLobbyUpdates();
 
-        // Get player names for game initialization
-        List<String> playerNames = new ArrayList<>();
-        for (var node : playersContainer.getChildren()) {
-            VBox entry = (VBox) node;
-            Label nameLabel = (Label) entry.lookup("#nameLabel");
-            if (nameLabel != null) {
-                playerNames.add(nameLabel.getText());
-            }
+        // Get player names for game initialization from the database
+        List<ThreadLobbyManager.PlayerInfo> playerInfos = ThreadLobbyManager.getPlayersInLobby(lobbyCode);
+        for (ThreadLobbyManager.PlayerInfo info : playerInfos) {
+            System.out.println("[DEBUG] Player in lobby: " + info.name);
         }
+        List<String> playerNames = new ArrayList<>();
+        for (ThreadLobbyManager.PlayerInfo info : playerInfos) {
+            playerNames.add(info.name);
+        }
+        System.out.println("[DEBUG] playerNames passed to GameController: " + playerNames);
 
-        // Initialize game cards
-        // GameCardManager.initializeGame(lobbyCode, playerNames);
+        // Rotate playerNames so local player is first
+        String localPlayerName = currentUser;
+        int localIndex = playerNames.indexOf(localPlayerName);
+        if (localIndex > 0) {
+            List<String> rotated = new ArrayList<>();
+            rotated.addAll(playerNames.subList(localIndex, playerNames.size()));
+            rotated.addAll(playerNames.subList(0, localIndex));
+            playerNames = rotated;
+        }
+        System.out.println("[DEBUG] Rotated playerNames for local view: " + playerNames);
+
+        // Always reconstruct the game with the correct number of players for the host
+        game = new com.example.javarice_capstone.javarice_capstone.Models.MultiplayerGame(playerNames.size(), lobbyCode, isHost, currentUser);
+        // Ensure the game has enough player objects
+        while (game.getPlayers().size() < playerNames.size()) {
+            game.getPlayers().add(new com.example.javarice_capstone.javarice_capstone.Models.PlayerHuman("Player" + (game.getPlayers().size() + 1)));
+        }
+        for (int i = 0; i < playerNames.size(); i++) {
+            game.getPlayers().get(i).setName(playerNames.get(i));
+        }
+        // Set the discard pile for the host from the database
+        String hostDiscardPileCard = ThreadLobbyManager.fetchDiscardPile(lobbyCode);
+        if (hostDiscardPileCard != null) {
+            game.updateDiscardPile(hostDiscardPileCard);
+        }
 
         // Launch game UI
         try {
-            Stage currentStage = (Stage) startGameButton.getScene().getWindow();
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/example/javarice_capstone/javarice_capstone/GameUI.fxml"));
             Parent root = loader.load();
             GameController gameUIController = loader.getController();
-
+            gameUIController.setGame(game);
             gameUIController.startGame(playerNames.size(), playerNames);
 
+            Stage currentStage = (Stage) startGameButton.getScene().getWindow();
             Scene scene = new Scene(root);
             currentStage.setScene(scene);
             currentStage.setTitle("UNO - Gameplay");
+            currentStage.show();
+
+            // Start polling for discard pile changes for host
+            ScheduledExecutorService discardPoller = Executors.newSingleThreadScheduledExecutor();
+            discardPoller.scheduleAtFixedRate(() -> {
+                try {
+                    String dbTopCard = ThreadLobbyManager.fetchDiscardPile(lobbyCode);
+                    AbstractCard localTopCard = game.getTopCard();
+                    String localTopCardStr = localTopCard != null ? localTopCard.getColor() + "_" + localTopCard.getValue() : null;
+                    System.out.println("[HOST POLL] DB Card: " + dbTopCard + " | Local Card: " + localTopCardStr);
+                    
+                    if (dbTopCard != null && !dbTopCard.equals(localTopCardStr)) {
+                        Platform.runLater(() -> {
+                            System.out.println("[HOST POLL] Updating discard pile from DB: " + dbTopCard);
+                            game.updateDiscardPile(dbTopCard);
+                            if (gameUIController != null) {
+                                System.out.println("[HOST POLL] Calling updateUI()");
+                                gameUIController.updateUI();
+                            }
+                        });
+                    }
+                } catch (Exception e) {
+                    System.err.println("[HOST POLL] Error in polling: " + e.getMessage());
+                    e.printStackTrace();
+                }
+            }, 0, 1, TimeUnit.SECONDS);
+
+            // Start polling for current player changes for host
+            ScheduledExecutorService currentPlayerPoller = Executors.newSingleThreadScheduledExecutor();
+            currentPlayerPoller.scheduleAtFixedRate(() -> {
+                try {
+                    String dbCurrentPlayer = ThreadLobbyManager.getCurrentPlayer(lobbyCode);
+                    String localCurrentPlayer = game.getCurrentPlayer().getName();
+                    System.out.println("[HOST POLL] DB Current Player: " + dbCurrentPlayer + " | Local Current Player: " + localCurrentPlayer);
+                    
+                    if (dbCurrentPlayer != null && !dbCurrentPlayer.equals(localCurrentPlayer)) {
+                        Platform.runLater(() -> {
+                            System.out.println("[HOST POLL] Updating current player to: " + dbCurrentPlayer);
+                            game.setCurrentPlayer(dbCurrentPlayer);
+                            if (gameUIController != null) {
+                                System.out.println("[HOST POLL] Calling updateUI()");
+                                gameUIController.updateUI();
+                            }
+                        });
+                    }
+                } catch (Exception e) {
+                    System.err.println("[HOST POLL] Error in current player polling: " + e.getMessage());
+                    e.printStackTrace();
+            }
+            }, 0, 1, TimeUnit.SECONDS);
+
+            System.out.println("[DEBUG] Host polling setup complete");
         } catch (Exception e) {
+            System.err.println("[DEBUG] Error launching game UI: " + e.getMessage());
+            e.printStackTrace();
             showError("Error", "Failed to start game: " + e.getMessage());
         }
     }
@@ -254,13 +417,13 @@ public class GameSetupController {
     private void handleReady() {
         if (!isJoin) return; // Only handle ready status for joining players
         
-        isReady = !isReady;
+                isReady = !isReady;
         boolean updated = ThreadLobbyManager.updatePlayerReadyStatus(lobbyCode, currentUser, isReady);
         
         if (updated) {
-            Platform.runLater(() -> {
-                startGameButton.setText(isReady ? "Unready" : "Ready");
-            });
+                Platform.runLater(() -> {
+                    startGameButton.setText(isReady ? "Unready" : "Ready");
+                });
         }
     }
 
@@ -279,34 +442,160 @@ public class GameSetupController {
 
         // Check lobby status periodically for non-host players
         if (!isHost) {
+            System.out.println("[DEBUG] Setting up joiner polling...");
             scheduler = Executors.newScheduledThreadPool(1);
             scheduler.scheduleAtFixedRate(() -> {
                 String status = ThreadLobbyManager.checkLobbyStatus(lobbyCode);
+                System.out.println("[DEBUG] Joiner checking lobby status: " + status);
                 if ("started".equals(status)) {
+                    System.out.println("[DEBUG] Game started, setting up joiner game...");
+                    // Fetch the discard pile card from the database with retries
+                    String discardPileCard = null;
+                    int retryCount = 0;
+                    while (discardPileCard == null && retryCount < 3) {
+                        discardPileCard = ThreadLobbyManager.fetchDiscardPile(lobbyCode);
+                        if (discardPileCard == null) {
+                            try {
+                                Thread.sleep(500);
+                            } catch (InterruptedException e) {
+                                e.printStackTrace();
+                            }
+                            retryCount++;
+                        }
+                    }
+                    
+                    // Poll for moves and update local game state/UI
+                    List<ThreadLobbyManager.MoveInfo> moves = ThreadLobbyManager.getGameMoves(lobbyCode);
+                    if (!moves.isEmpty()) {
+                        ThreadLobbyManager.MoveInfo latestMove = moves.get(moves.size() - 1);
+                        // Update discard pile if the latest move is a play
+                        if ("play".equals(latestMove.action) && latestMove.cardPlayed != null && !latestMove.cardPlayed.isEmpty()) {
+                            game.updateDiscardPile(latestMove.cardPlayed);
+                        }
+                        // Only allow local player to act if it's their turn
+                        boolean isMyTurn = latestMove != null && !latestMove.playerName.equals(currentUser);
+                        // You can use isMyTurn to enable/disable UI actions
+                        // (e.g., set a flag or call Platform.runLater to update UI controls)
+                    }
+                    
+                    if (discardPileCard != null) {
+                        System.out.println("Joined player received discard pile card: " + discardPileCard);
+                        // Update the local discard pile
+                        game.updateDiscardPile(discardPileCard);
+                        
+                        // Verify the update
+                        AbstractCard topCard = game.getTopCard();
+                        String localCard = topCard.getColor() + "_" + topCard.getValue();
+                        if (!discardPileCard.equals(localCard)) {
+                            System.out.println("Warning: Local discard pile card does not match database card");
+                            System.out.println("Database card: " + discardPileCard);
+                            System.out.println("Local card: " + localCard);
+                        }
+
+                        // Log the top discard pile card for joined players
+                        System.out.println("Joined player's top discard pile card: " + discardPileCard);
+                        System.out.println("Joined player's entire discard pile: " + game.getDiscardPile());
+                    } else {
+                        System.out.println("Error: Could not fetch discard pile card after multiple retries");
+                    }
+
                     Platform.runLater(() -> {
                         try {
+                            System.out.println("[DEBUG] Creating joiner game UI...");
                             Stage currentStage = (Stage) startGameButton.getScene().getWindow();
-                            FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/example/javarice_capstone/javarice_capstone/GameUI.fxml"));
-                            Parent root = loader.load();
-                            GameController gameUIController = loader.getController();
+                                                FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/example/javarice_capstone/javarice_capstone/GameUI.fxml"));
+                                                Parent root = loader.load();
+                                                GameController gameUIController = loader.getController();
 
-                            List<String> playerNames = new ArrayList<>();
-                            for (var node : playersContainer.getChildren()) {
-                                VBox entry = (VBox) node;
-                                Label nameLabel = (Label) entry.lookup("#nameLabel");
-                                if (nameLabel != null) {
-                                    playerNames.add(nameLabel.getText());
-                                }
+                            // Get player names from the database for correct order and names
+                            List<ThreadLobbyManager.PlayerInfo> playerInfos = ThreadLobbyManager.getPlayersInLobby(lobbyCode);
+                            for (ThreadLobbyManager.PlayerInfo info : playerInfos) {
+                                System.out.println("[DEBUG] Player in lobby: " + info.name);
                             }
+                            List<String> playerNames = new ArrayList<>();
+                            for (ThreadLobbyManager.PlayerInfo info : playerInfos) {
+                                playerNames.add(info.name);
+                            }
+                            System.out.println("[DEBUG] playerNames passed to GameController: " + playerNames);
 
+                            // Rotate playerNames so local player is first
+                            String localPlayerName = currentUser;
+                            int localIndex = playerNames.indexOf(localPlayerName);
+                            if (localIndex > 0) {
+                                List<String> rotated = new ArrayList<>();
+                                rotated.addAll(playerNames.subList(localIndex, playerNames.size()));
+                                rotated.addAll(playerNames.subList(0, localIndex));
+                                playerNames = rotated;
+                            }
+                            System.out.println("[DEBUG] Rotated playerNames for local view: " + playerNames);
+
+                            // Always reconstruct the game with the correct number of players for the joiner
+                            game = new com.example.javarice_capstone.javarice_capstone.Models.MultiplayerGame(playerNames.size(), lobbyCode, isHost, currentUser);
+                            // Ensure the game has enough player objects
+                            while (game.getPlayers().size() < playerNames.size()) {
+                                game.getPlayers().add(new com.example.javarice_capstone.javarice_capstone.Models.PlayerHuman("Player" + (game.getPlayers().size() + 1)));
+                            }
+                            for (int i = 0; i < playerNames.size(); i++) {
+                                game.getPlayers().get(i).setName(playerNames.get(i));
+                            }
+                            // Set the discard pile for the joiner
+                            String joinerDiscardPileCard = ThreadLobbyManager.fetchDiscardPile(lobbyCode);
+                            if (joinerDiscardPileCard != null) {
+                                game.updateDiscardPile(joinerDiscardPileCard);
+                            }
+                            gameUIController.setGame(game);
                             gameUIController.startGame(playerNames.size(), playerNames);
 
-                            Scene scene = new Scene(root);
-                            currentStage.setScene(scene);
-                            currentStage.setTitle("UNO - Gameplay");
+                            // Set the new scene and show it
+                                                Scene scene = new Scene(root);
+                                                currentStage.setScene(scene);
+                                                currentStage.setTitle("UNO - Gameplay");
+                            currentStage.show(); // Make sure the window is visible
+
+                            // Start polling for discard pile changes
+                            ScheduledExecutorService discardPoller = Executors.newSingleThreadScheduledExecutor();
+                            discardPoller.scheduleAtFixedRate(() -> {
+                                try {
+                                    String dbTopCard = ThreadLobbyManager.fetchDiscardPile(lobbyCode);
+                                    AbstractCard localTopCard = game.getTopCard();
+                                    String localTopCardStr = localTopCard != null ? localTopCard.getColor() + "_" + localTopCard.getValue() : null;
+                                    System.out.println("[POLL] DB Card: " + dbTopCard + " | Local Card: " + localTopCardStr);
+                                    
+                                    if (dbTopCard != null && !dbTopCard.equals(localTopCardStr)) {
+                                        Platform.runLater(() -> {
+                                            System.out.println("[POLL] Updating discard pile from DB: " + dbTopCard);
+                                            game.updateDiscardPile(dbTopCard);
+                                            if (gameUIController != null) {
+                                                System.out.println("[POLL] Calling updateUI()");
+                                                gameUIController.updateUI();
+                                            }
+                                        });
+                                    }
+                                } catch (Exception e) {
+                                    System.err.println("[POLL] Error in polling: " + e.getMessage());
+            e.printStackTrace();
+        }
+                            }, 0, 1, TimeUnit.SECONDS);
+
+                            // Start polling for current player changes
+                            ScheduledExecutorService currentPlayerPoller = Executors.newSingleThreadScheduledExecutor();
+                            currentPlayerPoller.scheduleAtFixedRate(() -> {
+                                String dbCurrentPlayer = ThreadLobbyManager.getCurrentPlayer(lobbyCode);
+                                String localCurrentPlayer = game.getCurrentPlayer().getName();
+                                if (dbCurrentPlayer != null && !dbCurrentPlayer.equals(localCurrentPlayer)) {
+                                    Platform.runLater(() -> {
+                                        game.setCurrentPlayer(dbCurrentPlayer);
+                                        if (gameUIController != null) gameUIController.updateUI();
+                                    });
+                                }
+                            }, 0, 1, TimeUnit.SECONDS);
+
+                            System.out.println("[DEBUG] Joiner polling setup complete");
                         } catch (Exception e) {
+                            System.err.println("[DEBUG] Error setting up joiner game: " + e.getMessage());
+                            e.printStackTrace();
                             showError("Error", "Failed to start game: " + e.getMessage());
-                        }
+                }
                     });
                     scheduler.shutdown();
                 }
@@ -331,6 +620,12 @@ public class GameSetupController {
                             stmt.setString(1, lobbyCode);
                             stmt.setString(2, currentUser);
                             stmt.executeUpdate();
+                        }
+                        // Decrement player_count in lobbies
+                        String updateCountSQL = "UPDATE lobbies SET player_count = player_count - 1 WHERE lobby_code = ? AND player_count > 0";
+                        try (PreparedStatement updateStmt = conn.prepareStatement(updateCountSQL)) {
+                            updateStmt.setString(1, lobbyCode);
+                            updateStmt.executeUpdate();
                         }
                     }
                     conn.commit();

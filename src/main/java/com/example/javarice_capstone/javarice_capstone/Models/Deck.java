@@ -74,4 +74,8 @@ public class Deck {
         return discardPile.get(discardPile.size() - 1);
     }
 
+    public List<AbstractCard> getDiscardPile() {
+        return discardPile;
+    }
+
 }

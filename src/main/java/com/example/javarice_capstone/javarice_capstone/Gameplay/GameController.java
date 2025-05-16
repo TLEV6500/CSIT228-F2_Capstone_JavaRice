@@ -41,6 +41,8 @@ import java.util.concurrent.RejectedExecutionException;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.List;
+import java.util.stream.Collectors;
+import com.example.javarice_capstone.javarice_capstone.Multiplayer.ThreadLobbyManager.PlayerInfo;
 
 public class GameController implements Initializable {
 
@@ -64,6 +66,7 @@ public class GameController implements Initializable {
 
     private Game game;
     private final ScheduledExecutorService computerPlayerTimer = Executors.newSingleThreadScheduledExecutor();
+    private final ScheduledExecutorService multiplayerPollingTimer = Executors.newSingleThreadScheduledExecutor();
     private boolean isFirstTurn = true;
     private boolean isSingleplayer = true;
     private boolean isShuttingDown = false;
@@ -84,8 +87,7 @@ public class GameController implements Initializable {
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
-        game = new Game(6);
-
+        // Do NOT create the game here!
         if (notificationArea == null) {
             notificationArea = new StackPane();
             notificationArea.setPrefHeight(50);
@@ -99,17 +101,35 @@ public class GameController implements Initializable {
             }
         });
 
-        updateUI();
+        // Only set up listeners here, do not call updateUI or checkAndStartComputerTurn
         drawPileView.setOnMouseClicked(e -> handleDrawCard());
-        checkAndStartComputerTurn();
+    }
+
+    private void startMultiplayerPolling() {
+        if (game instanceof com.example.javarice_capstone.javarice_capstone.Models.MultiplayerGame) {
+            String lobbyCode = ((com.example.javarice_capstone.javarice_capstone.Models.MultiplayerGame) game).getLobbyCode();
+            multiplayerPollingTimer.scheduleAtFixedRate(() -> {
+                if (isShuttingDown) {
+                    multiplayerPollingTimer.shutdown();
+                    return;
+                }
+                Platform.runLater(() -> {
+                    ((com.example.javarice_capstone.javarice_capstone.Models.MultiplayerGame) game).updateGameState();
+                    updateUI();
+                });
+            }, 0, 1, TimeUnit.SECONDS);
+        }
     }
 
     public void setGame(Game game) {
         this.game = game;
+        if (game instanceof com.example.javarice_capstone.javarice_capstone.Models.MultiplayerGame) {
+            isSingleplayer = false;
+            startMultiplayerPolling();
+        }
     }
 
     public void startGame(int numPlayers, List<String> playerNames) {
-        game = new Game(numPlayers);
         for (int i = 0; i < Math.min(numPlayers, playerNames.size()); i++) {
             AbstractPlayer player = game.getPlayers().get(i);
             player.setName(playerNames.get(i));
@@ -144,7 +164,8 @@ public class GameController implements Initializable {
         }
     }
 
-    private void updateUI() {
+    public void updateUI() {
+        System.out.println("[UI] updateUI called. Top card: " + game.getTopCard());
         playerHand.getChildren().clear();
         AbstractPlayer humanPlayer = game.getPlayers().get(0);
         playerHand.setAlignment(Pos.CENTER);
@@ -154,23 +175,134 @@ public class GameController implements Initializable {
 
         clearOpponentHands();
         Image cardBack = loadCardBackImage();
+
+        // Multiplayer: fetch and update opponent hand sizes from DB
+        if (game instanceof com.example.javarice_capstone.javarice_capstone.Models.MultiplayerGame) {
+            String lobbyCode = ((com.example.javarice_capstone.javarice_capstone.Models.MultiplayerGame) game).getLobbyCode();
+            java.util.List<com.example.javarice_capstone.javarice_capstone.Multiplayer.ThreadLobbyManager.PlayerInfo> playerInfos =
+                com.example.javarice_capstone.javarice_capstone.Multiplayer.ThreadLobbyManager.getPlayersInLobby(lobbyCode);
+            
+            // Update hand sizes for all players (including local player) from the database
+            for (int i = 0; i < game.getPlayers().size(); i++) {
+                if (i == 0) continue; // Local player: keep real cards
+                AbstractPlayer player = game.getPlayers().get(i);
+                // Find the matching PlayerInfo by name
+                PlayerInfo info = playerInfos.stream()
+                    .filter(pi -> pi.name.equals(player.getName()))
+                    .findFirst()
+                    .orElse(null);
+                if (info != null) {
+                    player.getHand().clear();
+                    for (int j = 0; j < info.handSize; j++) {
+                        player.getHand().add(null); // Placeholder for card
+                    }
+                }
+            }
+
+            // Check for recent game moves
+            String lastMove = com.example.javarice_capstone.javarice_capstone.Multiplayer.ThreadLobbyManager.getLastGameMove(lobbyCode);
+            if (lastMove != null) {
+                if (lastMove.equals("draw")) {
+                    // Get the player who drew the card
+                    List<com.example.javarice_capstone.javarice_capstone.Multiplayer.ThreadLobbyManager.MoveInfo> moves = 
+                        com.example.javarice_capstone.javarice_capstone.Multiplayer.ThreadLobbyManager.getGameMoves(lobbyCode);
+                    if (!moves.isEmpty()) {
+                        com.example.javarice_capstone.javarice_capstone.Multiplayer.ThreadLobbyManager.MoveInfo lastMoveInfo = moves.get(moves.size() - 1);
+                        String playerWhoDrew = lastMoveInfo.playerName;
+                        
+                        // Show draw notification with player name
+                        Platform.runLater(() -> {
+                            showNotification(playerWhoDrew + " drew a card!", Color.BLUE);
+                        });
+                    }
+                }
+            }
+
+            // Force update discard pile from database
+            String dbTopCard = com.example.javarice_capstone.javarice_capstone.Multiplayer.ThreadLobbyManager.fetchDiscardPile(lobbyCode);
+            if (dbTopCard != null) {
+                System.out.println("[POLL] Updating discard pile from DB: " + dbTopCard);
+                
+                // Handle special card effects
+                if (dbTopCard.equals("wild") || dbTopCard.equals("wild_draw4")) {
+                    // For wild cards, we need to get the chosen color from the game state
+                    Colors currentColor = game.getCurrentColor();
+                    if (currentColor != Colors.WILD) {
+                        String colorPrefix = currentColor.name().toLowerCase();
+                        if (dbTopCard.equals("wild")) {
+                            dbTopCard = colorPrefix + "_wild";
+                        } else {
+                            dbTopCard = colorPrefix + "_draw4";
+                        }
+                    }
+                }
+                
+                Colors dbColor = com.example.javarice_capstone.javarice_capstone.Multiplayer.ThreadLobbyManager.getCurrentColor(lobbyCode);
+                game.setCurrentColor(dbColor);
+                game.updateDiscardPile(dbTopCard);
+                
+                // Handle special card effects
+                if (dbTopCard.endsWith("_reverse")) {
+                    // Get the game direction from database
+                    boolean isClockwise = com.example.javarice_capstone.javarice_capstone.Multiplayer.ThreadLobbyManager.getGameDirection(lobbyCode);
+                    
+                    // Only update if the direction has changed
+                    if (game.isCustomOrderClockwise() != isClockwise) {
+                        game.setCustomOrderClockwise(isClockwise);
+                        Platform.runLater(() -> {
+                            updateGameDirectionLabel();
+                            showNotification("REVERSE!", Color.ORANGE);
+                        });
+                    }
+                    
+                    // Update previous move label
+                    if (prev_move_Label != null) {
+                        String playerName = "";
+                        List<com.example.javarice_capstone.javarice_capstone.Multiplayer.ThreadLobbyManager.MoveInfo> moves = 
+                            com.example.javarice_capstone.javarice_capstone.Multiplayer.ThreadLobbyManager.getGameMoves(lobbyCode);
+                        if (!moves.isEmpty()) {
+                            playerName = moves.get(moves.size() - 1).playerName;
+                        }
+                        prev_move_Label.setText("PREV MOVE: " + playerName + " played a REVERSE card");
+                    }
+                } else if (dbTopCard.endsWith("_skip")) {
+                    Platform.runLater(() -> {
+                        showNotification("SKIP!", Color.RED);
+                    });
+                } else if (dbTopCard.endsWith("_draw4")) {
+                    Platform.runLater(() -> {
+                        showNotification("+4 CARDS", Color.DARKRED);
+                    });
+                }
+            }
+
+            // Check if turn has changed
+            String dbCurrentPlayer = com.example.javarice_capstone.javarice_capstone.Multiplayer.ThreadLobbyManager.getCurrentPlayer(lobbyCode);
+            if (dbCurrentPlayer != null) {
+                System.out.println("[UI] Current player from DB: " + dbCurrentPlayer);
+                if (!dbCurrentPlayer.equals(game.getCurrentPlayer().getName())) {
+                    System.out.println("[UI] Turn changed to: " + dbCurrentPlayer);
+                    game.setCurrentPlayer(dbCurrentPlayer);
+                    // Force UI update after turn change
+                    Platform.runLater(() -> {
+                        updateUI();
+                    });
+                }
+            }
+        }
+
         updateOpponentHands(cardBack);
         updateDiscardAndDrawPiles();
         updateWildCardColor();
 
         checkTurnAndUpdateColors();
+        Platform.runLater(() -> {
         updateGameDirectionLabel();
+        });
         updateStackingNotification();
 
         if (prev_move_Label != null && lastPlayedCard != null) {
             prev_move_Label.setText("PREV MOVE: " + game.getActionDescription(lastPlayedCard));
-        }
-
-        if (game.isPlayersTurn(0) && (game.getTopCard().getType() == Types.DRAW_TWO || game.getTopCard().getType() == Types.DRAW_FOUR)) {
-            if (game.canCurrentPlayerStackDraw()) {
-                String stackMsg = game.getTopCard().getType() == Types.DRAW_TWO ? "Computer played +2! You can stack a +2 card!" : "Computer played +4! You can stack a +4 card!";
-                if (prev_move_Label != null) prev_move_Label.setText(stackMsg);
-            }
         }
     }
 
@@ -233,10 +365,19 @@ public class GameController implements Initializable {
 
     private void updateDiscardAndDrawPiles() {
         AbstractCard topCard = game.getTopCard();
+        System.out.println("[UI] Updating discard pile view with card: " + topCard);
         try {
-            discardPileView.setImage(new Image(Objects.requireNonNull(getClass().getResourceAsStream(topCard.getImagePath()))));
+            if (topCard != null) {
+                String imagePath = topCard.getImagePath();
+                System.out.println("[UI] Loading image from path: " + imagePath);
+                Image cardImage = new Image(Objects.requireNonNull(getClass().getResourceAsStream(imagePath)));
+                discardPileView.setImage(cardImage);
+            }
             drawPileView.setImage(new Image(Objects.requireNonNull(getClass().getResourceAsStream("/images/cards/card_back.png"))));
-        } catch (Exception ignored) {}
+        } catch (Exception e) {
+            System.err.println("[UI] Error updating discard pile view: " + e.getMessage());
+            e.printStackTrace();
+        }
     }
 
     private void clearOpponentHands() {
@@ -361,8 +502,9 @@ public class GameController implements Initializable {
         AbstractCard card = player.getHand().get(cardIndex);
 
         boolean playResult;
+        Colors chosenColor = null;
         if (card.getType() == Types.WILD || card.getType() == Types.DRAW_FOUR) {
-            Colors chosenColor = showColorSelectionDialog();
+            chosenColor = showColorSelectionDialog();
             playResult = chosenColor != null && game.playWildCard(cardIndex, chosenColor);
         } else {
             playResult = game.playCard(cardIndex);
@@ -373,8 +515,83 @@ public class GameController implements Initializable {
             if (prev_move_Label != null) prev_move_Label.setText(player.getName() + " PLAYED " + card.toString());
             handleCardNotification(card);
 
+            // --- Update discard pile in DB after a successful play ---
+            if (game instanceof com.example.javarice_capstone.javarice_capstone.Models.MultiplayerGame) {
+                String lobbyCode = ((com.example.javarice_capstone.javarice_capstone.Models.MultiplayerGame) game).getLobbyCode();
+                AbstractCard playedCard = game.getLastPlayedCard();
+                String discardPileCard;
+                String action = "play";
+                
+                // Format the card info based on its type
+                if (playedCard.getType() == Types.REVERSE) {
+                    discardPileCard = playedCard.getColor() + "_reverse";
+                    action = "reverse";
+                    // Update game direction in database
+                    boolean newDirection = !game.isCustomOrderClockwise();
+                    game.setCustomOrderClockwise(newDirection);
+                    com.example.javarice_capstone.javarice_capstone.Multiplayer.ThreadLobbyManager.updateGameDirection(lobbyCode, newDirection);
+                } else if (playedCard.getType() == Types.SKIP) {
+                    discardPileCard = playedCard.getColor() + "_skip";
+                    action = "skip";
+                } else if (playedCard.getType() == Types.DRAW_TWO) {
+                    discardPileCard = playedCard.getColor() + "_draw2";
+                    action = "draw2";
+                } else if (playedCard.getType() == Types.WILD) {
+                    discardPileCard = chosenColor.toString().toLowerCase() + "_wild";
+                    action = "wild";
+                } else if (playedCard.getType() == Types.DRAW_FOUR) {
+                    discardPileCard = chosenColor.toString().toLowerCase() + "_wild_four";
+                    action = "draw4";
+                } else {
+                    discardPileCard = playedCard.getColor() + "_" + playedCard.getValue();
+                }
+                
+                // Update player's hand size immediately after playing
+                com.example.javarice_capstone.javarice_capstone.Multiplayer.ThreadLobbyManager.updatePlayerHandSize(
+                    lobbyCode,
+                    player.getName(),
+                    player.getHand().size()
+                );
+                
+                // Record the game move
+                com.example.javarice_capstone.javarice_capstone.Multiplayer.ThreadLobbyManager.recordGameMove(
+                    lobbyCode,
+                    player.getName(),
+                    discardPileCard,
+                    action,
+                    ((com.example.javarice_capstone.javarice_capstone.Models.MultiplayerGame) game).getTurnNumber() + 1
+                );
+                
+                // Push to database and verify
+                boolean pushSuccess = false;
+                int retryCount = 0;
+                while (!pushSuccess && retryCount < 3) {
+                    com.example.javarice_capstone.javarice_capstone.Multiplayer.ThreadLobbyManager.pushDiscardPile(lobbyCode, discardPileCard);
+                    
+                    // Verify the card was pushed successfully
+                    try {
+                        Thread.sleep(500); // Wait for database update
+                        String pushedCard = com.example.javarice_capstone.javarice_capstone.Multiplayer.ThreadLobbyManager.fetchDiscardPile(lobbyCode);
+                        pushSuccess = discardPileCard.equals(pushedCard);
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                    
+                    if (!pushSuccess) {
+                        retryCount++;
+                    }
+                }
+                
+                if (!pushSuccess) {
+                    System.err.println("Failed to update discard pile in database after 3 attempts");
+                }
+            }
+            // --------------------------------------------------------
+
             updateUI();
+            if (!(game instanceof com.example.javarice_capstone.javarice_capstone.Models.MultiplayerGame)) {
             game.handleGameRulesAfterTurn();
+            }
             checkGameStatus();
             checkAndStartComputerTurn();
         }
@@ -473,11 +690,40 @@ public class GameController implements Initializable {
 
     private void handleDrawCard() {
         if (!game.isPlayersTurn(0)) return;
-        game.playerDrawCard(0);
+        // Draw the card
+        AbstractCard drawnCard = game.drawCard();
+        if (drawnCard != null) {
+            game.getCurrentPlayer().addCard(drawnCard);
+            // For multiplayer, ensure the draw is recorded and synchronized
+            if (game instanceof com.example.javarice_capstone.javarice_capstone.Models.MultiplayerGame) {
+                String lobbyCode = ((com.example.javarice_capstone.javarice_capstone.Models.MultiplayerGame) game).getLobbyCode();
+                
+                // Update player's hand size immediately after drawing
+                com.example.javarice_capstone.javarice_capstone.Multiplayer.ThreadLobbyManager.updatePlayerHandSize(
+                    lobbyCode, 
+                    game.getCurrentPlayer().getName(), 
+                    game.getCurrentPlayer().getHand().size()
+                );
+                
+                // Record the draw action
+                com.example.javarice_capstone.javarice_capstone.Multiplayer.ThreadLobbyManager.recordGameMove(
+                    lobbyCode,
+                    game.getCurrentPlayer().getName(),
+                    "",
+                    "draw",
+                    ((com.example.javarice_capstone.javarice_capstone.Models.MultiplayerGame) game).getTurnNumber() + 1
+                );
+                
+                // Force UI update to reflect the changes
+                Platform.runLater(() -> {
         updateUI();
+                });
+            }
+        }
+        if (!(game instanceof com.example.javarice_capstone.javarice_capstone.Models.MultiplayerGame)) {
         game.handleGameRulesAfterTurn();
+        }
         checkGameStatus();
-
         checkAndStartComputerTurn();
     }
 
@@ -571,17 +817,22 @@ public class GameController implements Initializable {
         }
     }
 
-    private void shutdown() {
+    protected void shutdown() {
         isShuttingDown = true;
         isComputerTurnActive = false;
 
         try {
             computerPlayerTimer.shutdown();
+            multiplayerPollingTimer.shutdown();
             if (!computerPlayerTimer.awaitTermination(500, TimeUnit.MILLISECONDS)) {
                 computerPlayerTimer.shutdownNow();
             }
+            if (!multiplayerPollingTimer.awaitTermination(500, TimeUnit.MILLISECONDS)) {
+                multiplayerPollingTimer.shutdownNow();
+            }
         } catch (InterruptedException e) {
             computerPlayerTimer.shutdownNow();
+            multiplayerPollingTimer.shutdownNow();
             Thread.currentThread().interrupt();
         } catch (Exception ignored) {
         }

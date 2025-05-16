@@ -13,8 +13,6 @@ public class JoinGameContentController {
     @FXML private TextField lobbyAddressTextField;
     @FXML private TextField usernameTextField;
     @FXML private TextField lobbyCodeTextField;
-    @FXML private Button okButton;
-    @FXML private Button cancelButton;
 
     private GameSetupDialogController parent;
 
@@ -50,7 +48,7 @@ public class JoinGameContentController {
         if (joinResult.startsWith("Player")) {
             // Successfully joined, fetch current players
             List<ThreadLobbyManager.PlayerInfo> players = ThreadLobbyManager.getPlayersInLobby(lobbyCode);
-            if (players != null && !players.isEmpty()) {
+            if (!players.isEmpty()) {
                 // Successfully joined and got player list, continue to parent
                 parent.onJoinGameOk(username, lobbyAddress, lobbyCode, players);
             } else {

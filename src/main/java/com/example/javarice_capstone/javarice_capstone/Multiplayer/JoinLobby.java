@@ -39,6 +39,13 @@ public class JoinLobby {
                 insertStmt.executeUpdate();
             }
 
+            // Step 3: Increment player_count in lobbies
+            String updateCountSQL = "UPDATE lobbies SET player_count = player_count + 1 WHERE lobby_code = ?";
+            try (PreparedStatement updateStmt = conn.prepareStatement(updateCountSQL)) {
+                updateStmt.setString(1, lobbyCode);
+                updateStmt.executeUpdate();
+            }
+
             conn.commit(); // Commit the transaction
             return "Player " + playerName + " successfully joined the lobby with code " + lobbyCode;
 
