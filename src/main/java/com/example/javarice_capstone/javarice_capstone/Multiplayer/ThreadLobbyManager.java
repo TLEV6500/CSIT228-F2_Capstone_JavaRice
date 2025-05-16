@@ -18,7 +18,14 @@ public class ThreadLobbyManager {
     private static final String DB_URL = "jdbc:mysql://" + SessionState.LobbyConnection + "/game_data?useSSL=false&connectTimeout=10000";
     private static final String USER = "root";
     private static final String PASS = "";
-    private static final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
+    private static ScheduledExecutorService scheduler;
+
+    private static synchronized ScheduledExecutorService getScheduler() {
+        if (scheduler == null || scheduler.isShutdown()) {
+            scheduler = Executors.newScheduledThreadPool(1);
+        }
+        return scheduler;
+    }
 
     public static class PlayerInfo {
         public final String name;
@@ -76,9 +83,9 @@ public class ThreadLobbyManager {
     }
 
     public static void startLobbyUpdates(String lobbyCode, Consumer<List<PlayerInfo>> onUpdate) {
-        scheduler.scheduleAtFixedRate(() -> {
+        getScheduler().scheduleAtFixedRate(() -> {
             if (!isLobbyActive(lobbyCode)) {
-                scheduler.shutdown();
+                stopLobbyUpdates();
                 return;
             }
             
@@ -88,7 +95,10 @@ public class ThreadLobbyManager {
     }
 
     public static void stopLobbyUpdates() {
-        scheduler.shutdown();
+        if (scheduler != null && !scheduler.isShutdown()) {
+            scheduler.shutdown();
+            scheduler = null;
+        }
     }
 
     public static boolean updatePlayerReadyStatus(String lobbyCode, String playerName, boolean isReady) {

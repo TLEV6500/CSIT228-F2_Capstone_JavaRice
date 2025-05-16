@@ -456,7 +456,7 @@ public class GameSetupController {
                         discardPileCard = ThreadLobbyManager.fetchDiscardPile(lobbyCode);
                         if (discardPileCard == null) {
                             try {
-                                Thread.sleep(2000);  // Changed to 2 seconds
+                                Thread.sleep(1000);  // Changed to 1 second
                             } catch (InterruptedException e) {
                                 e.printStackTrace();
                             }
